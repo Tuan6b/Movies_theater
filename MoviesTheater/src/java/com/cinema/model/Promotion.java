@@ -6,6 +6,7 @@ package com.cinema.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  *
@@ -141,6 +142,20 @@ public class Promotion {
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public String getStartDateDisplay() {
+        if (startDate == null) {
+            return "";
+        }
+        return startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    public String getEndDateDisplay() {
+        if (endDate == null) {
+            return "";
+        }
+        return endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
     @Override
