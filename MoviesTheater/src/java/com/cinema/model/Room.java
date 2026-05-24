@@ -65,15 +65,4 @@ public class Room {
     public void setActive(boolean active) {
         this.active = active;
     }
-
-    @Override
-    public String toString() {
-        return "Room{"
-                + "roomId=" + roomId
-                + ", roomNumber=" + roomNumber
-                + ", roomType=" + roomType
-                + ", capacity=" + capacity
-                + ", active=" + active
-                + '}';
-    }
 }
