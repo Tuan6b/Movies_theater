@@ -49,6 +49,10 @@ public class RoomServlet extends HttpServlet {
                     break;
 
                 case "edit":
+                    showEditForm(request, response);
+                    break;
+
+                case "update":
                     updateRoom(request, response);
                     break;
 
@@ -122,7 +126,7 @@ public class RoomServlet extends HttpServlet {
 
         roomDAO.updateRoom(room);
 
-        response.sendRedirect("room");
+        response.sendRedirect("RoomServlet");
     }
 
     private void deleteRoom(HttpServletRequest request,
@@ -135,6 +139,21 @@ public class RoomServlet extends HttpServlet {
         roomDAO.deleteRoom(roomId);
 
         response.sendRedirect("RoomServlet");
+    }
+
+    private void showEditForm(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        int roomId = Integer.parseInt(
+                request.getParameter("id"));
+
+        Room room = roomDAO.getRoomById(roomId);
+
+        request.setAttribute("room", room);
+
+        request.getRequestDispatcher("room-edit.jsp")
+                .forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
