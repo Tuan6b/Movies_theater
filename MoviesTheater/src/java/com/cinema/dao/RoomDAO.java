@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.cinema.dao;
 
 import com.cinema.model.Room;
@@ -13,15 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * RoomDAO handles all database operations related to Room entity.
+ * This class follows DAO pattern and uses JDBC for SQL execution.
+ * Extends DBContext to reuse database connection.
  * @author Tuan Phong Nguyen
- */
-/**
- * Data Access Object (DAO) for managing Room entity persistence operations.
- * Handles database interactions using JDBC.
  */
 public class RoomDAO extends DBContext {
 
+    /**
+     * Retrieve all rooms from database (including inactive ones if not filtered in SQL)
+     *
+     * @return list of Room objects
+     */
     public List<Room> getAllRooms() {
 
         List<Room> list = new ArrayList<>();
@@ -35,9 +34,10 @@ public class RoomDAO extends DBContext {
                      FROM Room
                      """;
 
-        try (PreparedStatement stm
-                = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+        try (PreparedStatement stm = connection.prepareStatement(sql);
+             ResultSet rs = stm.executeQuery()) {
 
+            // Loop through result set and map each row to Room object
             while (rs.next()) {
 
                 Room room = new Room(
@@ -58,6 +58,12 @@ public class RoomDAO extends DBContext {
         return list;
     }
 
+    /**
+     * Find a room by its ID
+     *
+     * @param roomId ID of the room
+     * @return Room object if found, otherwise null
+     */
     public Room getRoomById(int roomId) {
 
         String sql = """
@@ -66,15 +72,13 @@ public class RoomDAO extends DBContext {
                      WHERE RoomID = ?
                      """;
 
-        try (PreparedStatement stm
-                = connection.prepareStatement(sql)) {
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, roomId);
 
             try (ResultSet rs = stm.executeQuery()) {
 
                 if (rs.next()) {
-
                     return new Room(
                             rs.getInt("RoomID"),
                             rs.getString("RoomNumber"),
@@ -92,6 +96,13 @@ public class RoomDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Insert a new room into database
+     * Note: IsActive is default = 1 (active)
+     *
+     * @param room Room object containing data
+     * @return true if insert successful
+     */
     public boolean addRoom(Room room) {
 
         String sql = """
@@ -104,8 +115,7 @@ public class RoomDAO extends DBContext {
                      VALUES (?, ?, ?, 1)
                      """;
 
-        try (PreparedStatement stm
-                = connection.prepareStatement(sql)) {
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setString(1, room.getRoomNumber());
             stm.setString(2, room.getRoomType());
@@ -120,6 +130,12 @@ public class RoomDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Update existing room information
+     *
+     * @param room Room object with updated data
+     * @return true if update successful
+     */
     public boolean updateRoom(Room room) {
 
         String sql = """
@@ -131,8 +147,7 @@ public class RoomDAO extends DBContext {
                      WHERE RoomID = ?
                      """;
 
-        try (PreparedStatement stm
-                = connection.prepareStatement(sql)) {
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setString(1, room.getRoomNumber());
             stm.setString(2, room.getRoomType());
@@ -149,6 +164,12 @@ public class RoomDAO extends DBContext {
         return false;
     }
 
+    /**
+     * Soft delete room (set IsActive = 0 instead of deleting record)
+     *
+     * @param roomId ID of room to deactivate
+     * @return true if update successful
+     */
     public boolean deleteRoom(int roomId) {
 
         String sql = """
@@ -157,8 +178,7 @@ public class RoomDAO extends DBContext {
                      WHERE RoomID = ?
                      """;
 
-        try (PreparedStatement stm
-                = connection.prepareStatement(sql)) {
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
 
             stm.setInt(1, roomId);
 

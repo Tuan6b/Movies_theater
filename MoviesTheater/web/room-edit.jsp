@@ -16,157 +16,85 @@
               content="text/html; charset=UTF-8">
 
         <title>Edit Room</title>
-
-        <link rel="stylesheet"
-              href="css/bootstrap.min.css">
     </head>
 
     <body>
 
-        <div class="container mt-5">
+        <h1>Edit Room</h1>
 
-            <div class="row justify-content-center">
+        <form action="RoomServlet" method="post">
 
-                <div class="col-md-8">
+            <input type="hidden" name="action" value="update">
 
-                    <div class="card">
+            <input type="hidden"
+                   name="roomId"
+                   value="<%= room.getRoomId() %>">
 
-                        <div class="card-header">
-                            Edit Room
-                        </div>
-
-                        <div class="card-body">
-
-                            <form action="RoomServlet"
-                                  method="post">
-
-                                <input type="hidden"
-                                       name="action"
-                                       value="update">
-
-                                <input type="hidden"
-                                       name="roomId"
-                                       value="<%= room.getRoomId()%>">
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Room Number
-                                    </label>
-
-                                    <input type="text"
-                                           name="roomNumber"
-                                           class="form-control"
-                                           value="<%= room.getRoomNumber()%>"
-                                           required>
-
-                                </div>
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Room Type
-                                    </label>
-
-                                    <select name="roomType"
-                                            class="form-select">
-
-                                        <option value="2D"
-                                                <%= room.getRoomType().equals("2D")
-                                                        ? "selected"
-                                                        : ""%>>
-
-                                            2D
-
-                                        </option>
-
-                                        <option value="3D"
-                                                <%= room.getRoomType().equals("3D")
-                                                        ? "selected"
-                                                        : ""%>>
-
-                                            3D
-
-                                        </option>
-
-                                        <option value="IMAX"
-                                                <%= room.getRoomType().equals("IMAX")
-                                                        ? "selected"
-                                                        : ""%>>
-
-                                            IMAX
-
-                                        </option>
-
-                                        <option value="VIP"
-                                                <%= room.getRoomType().equals("VIP")
-                                                        ? "selected"
-                                                        : ""%>>
-
-                                            VIP
-
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Capacity
-                                    </label>
-
-                                    <input type="number"
-                                           name="capacity"
-                                           class="form-control"
-                                           value="<%= room.getCapacity()%>"
-                                           required>
-
-                                </div>
-
-                                <div class="form-check mb-4">
-
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="active"
-                                           <%= room.isActive()
-                                                   ? "checked"
-                                                   : ""%>>
-
-                                    <label class="form-check-label">
-                                        Active
-                                    </label>
-
-                                </div>
-
-                                <button type="submit"
-                                        class="btn btn-primary">
-
-                                    Update Room
-
-                                </button>
-
-                                <a href="RoomServlet"
-                                   class="btn btn-secondary">
-
-                                    Back
-
-                                </a>
-
-                            </form>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
+            <div>
+                <label>Room Number</label><br>
+                <input type="text"
+                       name="roomNumber"
+                       value="<%= room.getRoomNumber() %>"
+                       required>
             </div>
 
-        </div>
+            <br>
 
-        <script src="js/bootstrap.bundle.min.js"></script>
+            <div>
+                <label>Room Type</label><br>
+                <select name="roomType">
+
+                    <option value="2D"
+                        <%= room.getRoomType().equals("2D") ? "selected" : "" %>>
+                        2D
+                    </option>
+
+                    <option value="3D"
+                        <%= room.getRoomType().equals("3D") ? "selected" : "" %>>
+                        3D
+                    </option>
+
+                    <option value="IMAX"
+                        <%= room.getRoomType().equals("IMAX") ? "selected" : "" %>>
+                        IMAX
+                    </option>
+
+                    <option value="VIP"
+                        <%= room.getRoomType().equals("VIP") ? "selected" : "" %>>
+                        VIP
+                    </option>
+
+                </select>
+            </div>
+
+            <br>
+
+            <div>
+                <label>Capacity</label><br>
+                <input type="number"
+                       name="capacity"
+                       value="<%= room.getCapacity() %>"
+                       required>
+            </div>
+
+            <br>
+
+            <div>
+                <label>
+                    <input type="checkbox"
+                           name="active"
+                        <%= room.isActive() ? "checked" : "" %>>
+                    Active
+                </label>
+            </div>
+
+            <br>
+
+            <button type="submit">Update Room</button>
+
+            <a href="RoomServlet">Back</a>
+
+        </form>
 
     </body>
 </html>
