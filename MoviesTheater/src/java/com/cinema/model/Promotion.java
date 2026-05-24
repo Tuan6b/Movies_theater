@@ -25,7 +25,7 @@ public class Promotion {
     private LocalDateTime endDate;
     private Integer usageLimit;
     private int usedCount;
-    private boolean isActive;
+    private boolean active;
 
     public Promotion() {
     }
@@ -33,7 +33,7 @@ public class Promotion {
     public Promotion(int promotionId, String promotionCode, String description,
             String discountType, BigDecimal discountValue, BigDecimal minOrderAmount,
             BigDecimal maxDiscountAmount, LocalDateTime startDate, LocalDateTime endDate,
-            Integer usageLimit, int usedCount, boolean isActive) {
+            Integer usageLimit, int usedCount, boolean active) {
         this.promotionId = promotionId;
         this.promotionCode = promotionCode;
         this.description = description;
@@ -45,7 +45,7 @@ public class Promotion {
         this.endDate = endDate;
         this.usageLimit = usageLimit;
         this.usedCount = usedCount;
-        this.isActive = isActive;
+        this.active = active;
     }
 
     public int getPromotionId() {
@@ -136,12 +136,19 @@ public class Promotion {
         this.usedCount = usedCount;
     }
 
-    public boolean isIsActive() {
-        return isActive;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getStatus() {
+        if (endDate != null && endDate.isBefore(java.time.LocalDateTime.now())) {
+            return "expired";
+        }
+        return active ? "active" : "inactive";
     }
 
     public String getStartDateDisplay() {
@@ -164,6 +171,6 @@ public class Promotion {
                 + ", promotionCode=" + promotionCode
                 + ", discountType=" + discountType
                 + ", discountValue=" + discountValue
-                + ", isActive=" + isActive + '}';
+                + ", active=" + active + '}';
     }
 }

@@ -50,7 +50,7 @@ public class PromotionResponseDTO {
         dto.setEndDate(p.getEndDate() != null ? p.getEndDate().toString() : null);
         dto.setUsageLimit(p.getUsageLimit());
         dto.setUsedCount(p.getUsedCount());
-        dto.setIsActive(p.isIsActive());
+        dto.setIsActive(p.isActive());
 
         // Compute status dynamically
         dto.setStatus(computeStatus(p));
@@ -68,7 +68,7 @@ public class PromotionResponseDTO {
         if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
             return "expired";
         }
-        if (!p.isIsActive()) {
+        if (!p.isActive()) {
             return "inactive";
         }
         return "active";

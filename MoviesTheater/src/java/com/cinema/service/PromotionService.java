@@ -372,7 +372,7 @@ public class PromotionService {
         p.setStartDate(parseDateTime(dto.getStartDate().trim()));
         p.setEndDate(parseDateTime(dto.getEndDate().trim()));
         p.setUsageLimit(dto.getUsageLimit());
-        p.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+        p.setActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         return p;
     }
 
@@ -418,7 +418,7 @@ public class PromotionService {
             existing.setUsageLimit(dto.getUsageLimit());
         }
         if (dto.getIsActive() != null) {
-            existing.setIsActive(dto.getIsActive());
+            existing.setActive(dto.getIsActive());
         }
     }
 
