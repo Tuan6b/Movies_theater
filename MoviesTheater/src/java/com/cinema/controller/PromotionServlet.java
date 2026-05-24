@@ -329,6 +329,8 @@ public class PromotionServlet extends HttpServlet {
         String isActiveStr = request.getParameter("isActive");
         dto.setIsActive("on".equals(isActiveStr) || "true".equals(isActiveStr));
 
+        dto.setUsedCount(parseIntParam(request.getParameter("usedCount"), 0));
+
         return dto;
     }
 

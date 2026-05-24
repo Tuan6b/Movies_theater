@@ -22,6 +22,7 @@ public class PromotionRequestDTO {
     private String endDate;
     private Integer usageLimit;
     private Boolean isActive;
+    private int usedCount;
 
     public PromotionRequestDTO() {
     }
@@ -102,7 +103,19 @@ public class PromotionRequestDTO {
         return isActive;
     }
 
+    public boolean isActive() {
+        return Boolean.TRUE.equals(isActive);
+    }
+
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public int getUsedCount() {
+        return usedCount;
+    }
+
+    public void setUsedCount(int usedCount) {
+        this.usedCount = usedCount;
     }
 }

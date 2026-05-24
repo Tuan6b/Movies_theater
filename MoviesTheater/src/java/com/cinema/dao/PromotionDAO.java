@@ -54,7 +54,7 @@ public class PromotionDAO {
         }
 
         p.setUsedCount(rs.getInt("UsedCount"));
-        p.setIsActive(rs.getBoolean("IsActive"));
+        p.setActive(rs.getBoolean("IsActive"));
         return p;
     }
 
@@ -139,7 +139,7 @@ public class PromotionDAO {
                 ps.setNull(9, Types.INTEGER);
             }
 
-            ps.setBoolean(10, p.isIsActive());
+            ps.setBoolean(10, p.isActive());
 
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -187,7 +187,7 @@ public class PromotionDAO {
                 ps.setNull(9, Types.INTEGER);
             }
 
-            ps.setBoolean(10, p.isIsActive());
+            ps.setBoolean(10, p.isActive());
             ps.setInt(11, p.getPromotionId());
 
             ps.executeUpdate();
