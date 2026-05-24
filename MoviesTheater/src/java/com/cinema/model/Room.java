@@ -4,39 +4,26 @@
  */
 package com.cinema.model;
 
-/**
- * Represents a cinema room entity mapped to the Room table in the database.
- * Follows standard JavaBean conventions with encapsulation.
- * * @author Tuan Phong Nguyen
- */
 public class Room {
-    
+
     private int roomId;
     private String roomNumber;
     private String roomType;
     private int capacity;
-    private boolean isActive;
+    private boolean active;
 
-    /**
-     * Default constructor required for JavaBean standard.
-     */
     public Room() {
     }
 
-    /**
-     * Overloaded constructor to initialize a complete Room object.
-     * * @param roomId     the unique identifier of the room
-     * @param roomNumber the display name or number of the room
-     * @param roomType   the type format (e.g., 2D, 3D, IMAX)
-     * @param capacity   the total number of seats configured
-     * @param isActive   the operational status of the room
-     */
-    public Room(int roomId, String roomNumber, String roomType, int capacity, boolean isActive) {
+    public Room(int roomId, String roomNumber,
+            String roomType, int capacity,
+            boolean active) {
+
         this.roomId = roomId;
         this.roomNumber = roomNumber;
         this.roomType = roomType;
         this.capacity = capacity;
-        this.isActive = isActive;
+        this.active = active;
     }
 
     public int getRoomId() {
@@ -71,11 +58,22 @@ public class Room {
         this.capacity = capacity;
     }
 
-    public boolean isIsActive() {
-        return isActive;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    @Override
+    public String toString() {
+        return "Room{"
+                + "roomId=" + roomId
+                + ", roomNumber=" + roomNumber
+                + ", roomType=" + roomType
+                + ", capacity=" + capacity
+                + ", active=" + active
+                + '}';
     }
 }
