@@ -20,7 +20,7 @@ public class DBUtils {
     // Connection parameters — update these to match your environment
     static final String SERVER = "localhost";
     static final String PORT = "1433";
-    private static final String DATABASE = "CinemaBookingDB_Test";
+    private static final String DATABASE = "CinemaBookingDB";
     static final String USER = "sa";
     static final String PASSWORD = "123";
 

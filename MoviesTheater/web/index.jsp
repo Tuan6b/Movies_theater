@@ -1,11 +1,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="com.cinema.dao.tbMovie" %>
+<%@ page import="com.cinema.model.clsMovie" %>
+<%@ page import="java.util.List" %>
+<%
+    tbMovie movieDAO = new tbMovie();
+    List<clsMovie> activeMovies = movieDAO.getAllActiveMovies();
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CGV Cinema — Đặt vé xem phim trực tuyến</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
 </head>
 <body>
 
@@ -19,7 +26,7 @@
     <nav class="site-nav">
         <a href="${pageContext.request.contextPath}/" class="active">Trang chủ</a>
         <a href="#">Phim đang chiếu</a>
-        <a href="#">Lịch chiếu</a>
+        <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= (activeMovies != null && !activeMovies.isEmpty()) ? activeMovies.get(0).getMovieId() : 1 %>">Lịch chiếu</a>
         <a href="#">Ưu đãi</a>
     </nav>
 
@@ -35,8 +42,8 @@
     <h1 class="hero-title">Đặt vé xem phim<br>trực tuyến dễ dàng</h1>
     <p class="hero-sub">Chọn phim yêu thích, đặt chỗ ngay hôm nay và tận hưởng trải nghiệm điện ảnh đỉnh cao.</p>
     <div class="hero-actions">
-        <a href="#" class="btn btn-primary lg">Xem phim ngay</a>
-        <a href="#" class="btn btn-outline lg" style="color:#fff; border-color:rgba(255,255,255,0.4);">Lịch chiếu hôm nay</a>
+        <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= (activeMovies != null && !activeMovies.isEmpty()) ? activeMovies.get(0).getMovieId() : 1 %>" class="btn btn-primary lg">Xem phim ngay</a>
+        <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= (activeMovies != null && !activeMovies.isEmpty()) ? activeMovies.get(0).getMovieId() : 1 %>" class="btn btn-outline lg" style="color:#fff; border-color:rgba(255,255,255,0.4);">Lịch chiếu hôm nay</a>
     </div>
 </section>
 
@@ -47,52 +54,32 @@
         <a href="#" class="section-link">Xem tất cả →</a>
     </div>
     <div class="movie-grid">
-
-        <a href="#" class="movie-card">
-            <div class="movie-poster">Poster phim</div>
+        <%
+            if (activeMovies != null && !activeMovies.isEmpty()) {
+                for (clsMovie movie : activeMovies) {
+        %>
+        <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= movie.getMovieId() %>" class="movie-card">
+            <div class="movie-poster">
+                <% if (movie.getPoster() != null && !movie.getPoster().trim().isEmpty()) { %>
+                    <img src="<%= movie.getPoster() %>" alt="<%= movie.getMovieName() %>" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                <% } else { %>
+                    <div style="padding: 20px; font-weight: bold; color: #fff;"><%= movie.getMovieName() %></div>
+                <% } %>
+            </div>
             <div class="movie-info">
-                <div class="movie-title">Tên phim 1</div>
-                <div class="movie-meta">110 phút · Hành động</div>
-                <span class="movie-badge">2D</span>
+                <div class="movie-title"><%= movie.getMovieName() %></div>
+                <div class="movie-meta"><%= movie.getDuration() %> phút · <%= movie.getLanguage() %></div>
+                <span class="movie-badge"><%= movie.getAgeRestriction() > 0 ? "C" + movie.getAgeRestriction() : "P" %></span>
             </div>
         </a>
-
-        <a href="#" class="movie-card">
-            <div class="movie-poster">Poster phim</div>
-            <div class="movie-info">
-                <div class="movie-title">Tên phim 2</div>
-                <div class="movie-meta">125 phút · Phiêu lưu</div>
-                <span class="movie-badge">IMAX</span>
-            </div>
-        </a>
-
-        <a href="#" class="movie-card">
-            <div class="movie-poster">Poster phim</div>
-            <div class="movie-info">
-                <div class="movie-title">Tên phim 3</div>
-                <div class="movie-meta">95 phút · Hài</div>
-                <span class="movie-badge">2D</span>
-            </div>
-        </a>
-
-        <a href="#" class="movie-card">
-            <div class="movie-poster">Poster phim</div>
-            <div class="movie-info">
-                <div class="movie-title">Tên phim 4</div>
-                <div class="movie-meta">138 phút · Kinh dị</div>
-                <span class="movie-badge">3D</span>
-            </div>
-        </a>
-
-        <a href="#" class="movie-card">
-            <div class="movie-poster">Poster phim</div>
-            <div class="movie-info">
-                <div class="movie-title">Tên phim 5</div>
-                <div class="movie-meta">102 phút · Tâm lý</div>
-                <span class="movie-badge">2D</span>
-            </div>
-        </a>
-
+        <%
+                }
+            } else {
+        %>
+        <p>Không có phim nào đang chiếu.</p>
+        <%
+            }
+        %>
     </div>
 </section>
 
