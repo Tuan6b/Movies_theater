@@ -87,8 +87,8 @@
                         </div>
                     </div>
                     <div class="module-actions">
-                        <a href="#" class="btn btn-outline">Danh sách phòng</a>
-                        <a href="#" class="btn btn-outline">Thêm phòng mới</a>
+                        <a href="${pageContext.request.contextPath}/RoomServlet" class="btn btn-outline">Danh sách phòng</a>
+                        <a href="${pageContext.request.contextPath}/RoomServlet" class="btn btn-outline">Thêm phòng mới</a>
                     </div>
                 </div>
 
