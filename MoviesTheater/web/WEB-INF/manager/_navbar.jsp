@@ -2,7 +2,7 @@
 <%@ page pageEncoding="UTF-8" %>
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="${pageContext.request.contextPath}/manager" class="navbar-brand">
+        <a href="${pageContext.request.contextPath}" class="navbar-brand">
             <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV">
             <span class="navbar-brand-name">Cinema Admin</span>
         </a>
