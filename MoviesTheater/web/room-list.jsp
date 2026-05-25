@@ -47,7 +47,6 @@
                     <option value="2D">2D</option>
                     <option value="3D">3D</option>
                     <option value="IMAX">IMAX</option>
-                    <option value="VIP">VIP</option>
                     <option value="4DX">4DX</option>
                 </select>
             </div>
