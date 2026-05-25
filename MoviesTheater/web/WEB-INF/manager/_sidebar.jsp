@@ -6,7 +6,6 @@
         <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV Cinema">
         <div class="sidebar-brand-text">
             <h1>Cinema Admin</h1>
-            <p>Hệ thống quản lý</p>
         </div>
     </div>
 
@@ -28,9 +27,9 @@
             Đánh giá phim
         </a>
 
-        <div class="nav-section-label">Vận hành</div>
-        <a href="#" class="nav-item ${activeNav eq 'rooms' ? 'active' : ''}">
-            Phòng chiếu
+        <div class="nav-section-label">Vận Hành</div>
+        <a href="${pageContext.request.contextPath}/RoomServlet" class="nav-item ${activeNav eq 'rooms' ? 'active' : ''}">
+            phòng chiếu
         </a>
         <a href="#" class="nav-item ${activeNav eq 'schedules' ? 'active' : ''}">
             Lịch chiếu
@@ -41,7 +40,7 @@
 
         <div class="nav-section-label">Kinh doanh</div>
         <a href="#" class="nav-item ${activeNav eq 'booking' ? 'active' : ''}">
-            Đặt vé
+            Thanh toán
         </a>
         <a href="${pageContext.request.contextPath}/manager/promotions"
            class="nav-item done ${activeNav eq 'promotions' ? 'active' : ''}">
