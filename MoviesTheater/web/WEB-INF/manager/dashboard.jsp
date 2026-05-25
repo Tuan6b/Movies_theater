@@ -51,7 +51,7 @@
                     <div class="module-actions">
                         <a href="#" class="btn btn-outline">Danh sách phim</a>
                         <a href="#" class="btn btn-outline">Thêm phim mới</a>
-                        <a href="#" class="btn btn-outline">Thể loại</a>
+                        <a href="${pageContext.request.contextPath}/admin/genre" class="btn btn-outline">Thể loại</a>
                     </div>
                 </div>
 
@@ -138,8 +138,8 @@
                         </div>
                     </div>
                     <div class="module-actions">
-                        <a href="${pageContext.request.contextPath}/manager/promotions" class="btn btn-success">Danh sách khuyến mãi</a>
-                        <a href="${pageContext.request.contextPath}/manager/promotions?action=add" class="btn btn-primary">Thêm khuyến mãi</a>
+                        <a href="${pageContext.request.contextPath}/manager/promotions" class="btn btn-outline">Danh sách khuyến mãi</a>
+                        <a href="${pageContext.request.contextPath}/manager/promotions?action=add" class="btn btn-outline">Thêm khuyến mãi</a>
                     </div>
                 </div>
 
