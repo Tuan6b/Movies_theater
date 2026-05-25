@@ -1,0 +1,299 @@
+/* ============================================================
+   Cinema — Customer-facing light theme (CGV palette)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+    --primary:        #BA1A1A;
+    --primary-dark:   #930006;
+    --on-primary:     #ffffff;
+    --primary-container: #ffdad4;
+
+    --surface:        #fff8f6;
+    --surface-low:    #fff0ec;
+    --surface-card:   #ffffff;
+    --on-surface:     #201a19;
+    --on-surface-var: #534341;
+    --outline:        #857371;
+    --outline-var:    #d8c2bf;
+
+    --font-display: 'Roboto Flex', system-ui, sans-serif;
+    --font-body:    'Roboto', system-ui, sans-serif;
+
+    --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+    --dur: 0.2s;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--on-surface);
+    background: var(--surface);
+    -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 64px;
+    background: rgba(255, 248, 246, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--outline-var);
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    gap: 32px;
+}
+
+.site-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.site-logo img { height: 28px; width: auto; }
+
+.site-logo-text {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--on-surface);
+}
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.site-nav a {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--on-surface-var);
+    text-decoration: none;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.site-nav a:hover { background: var(--surface-low); color: var(--on-surface); text-decoration: none; }
+.site-nav a.active { color: var(--primary); background: var(--primary-container); }
+
+.site-header-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: var(--r-md);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--dur) var(--ease);
+    white-space: nowrap;
+}
+
+.btn:hover { text-decoration: none; }
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: 0 1px 4px rgba(186, 26, 26, 0.3);
+}
+.btn-primary:hover { background: var(--primary-dark); color: #fff; }
+
+.btn-outline {
+    background: transparent;
+    color: var(--on-surface);
+    border: 1px solid var(--outline);
+}
+.btn-outline:hover { background: var(--surface-low); }
+
+.btn-ghost {
+    background: transparent;
+    color: var(--on-surface-var);
+}
+.btn-ghost:hover { background: var(--surface-low); color: var(--on-surface); }
+
+.btn.lg { height: 48px; padding: 0 28px; font-size: 15px; }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+    background: linear-gradient(135deg, #1a0a09 0%, #3d1010 60%, #5c1515 100%);
+    color: #fff;
+    padding: 80px 40px;
+    text-align: center;
+}
+
+.hero-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #ffb4ac;
+    margin-bottom: 16px;
+}
+
+.hero-title {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+
+.hero-sub {
+    font-size: 17px;
+    color: rgba(255,255,255,0.72);
+    max-width: 480px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+}
+
+.hero-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* ============================================================
+   SECTION
+   ============================================================ */
+.section {
+    padding: 56px 40px;
+}
+
+.section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--on-surface);
+}
+
+.section-link {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* ============================================================
+   MOVIE CARD
+   ============================================================ */
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 20px;
+}
+
+.movie-card {
+    background: var(--surface-card);
+    border: 1px solid var(--outline-var);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+    cursor: pointer;
+}
+
+.movie-card:hover {
+    box-shadow: 0 6px 24px rgba(32, 26, 25, 0.12);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.movie-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: var(--outline-var);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--outline);
+    font-style: italic;
+}
+
+.movie-info { padding: 12px 14px 14px; }
+
+.movie-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--on-surface);
+    line-height: 1.35;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.movie-meta {
+    font-size: 12px;
+    color: var(--on-surface-var);
+    margin-bottom: 10px;
+}
+
+.movie-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    background: var(--primary-container);
+    color: #410001;
+    border-radius: var(--r-sm);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.site-footer {
+    background: #1a0a09;
+    color: rgba(255,255,255,0.6);
+    padding: 32px 40px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.site-footer a { color: rgba(255,255,255,0.7); }
+.site-footer a:hover { color: #fff; }
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.3s var(--ease) both; }

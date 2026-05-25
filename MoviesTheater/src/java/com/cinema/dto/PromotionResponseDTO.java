@@ -2,17 +2,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.cinema.model;
+package com.cinema.dto;
 
+import com.cinema.model.Promotion;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  *
  * @author tuan6b
  */
-public class Promotion {
+public class PromotionResponseDTO {
 
     private int promotionId;
     private String promotionCode;
@@ -21,31 +21,57 @@ public class Promotion {
     private BigDecimal discountValue;
     private BigDecimal minOrderAmount;
     private BigDecimal maxDiscountAmount;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private String startDate;
+    private String endDate;
     private Integer usageLimit;
     private int usedCount;
-    private boolean active;
+    private boolean isActive;
+    private String status;
 
-    public Promotion() {
+    public PromotionResponseDTO() {
     }
 
-    public Promotion(int promotionId, String promotionCode, String description,
-            String discountType, BigDecimal discountValue, BigDecimal minOrderAmount,
-            BigDecimal maxDiscountAmount, LocalDateTime startDate, LocalDateTime endDate,
-            Integer usageLimit, int usedCount, boolean active) {
-        this.promotionId = promotionId;
-        this.promotionCode = promotionCode;
-        this.description = description;
-        this.discountType = discountType;
-        this.discountValue = discountValue;
-        this.minOrderAmount = minOrderAmount;
-        this.maxDiscountAmount = maxDiscountAmount;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.usageLimit = usageLimit;
-        this.usedCount = usedCount;
-        this.active = active;
+    /**
+     * Build response DTO from Promotion entity with computed status.
+     *
+     * @param p the Promotion entity
+     * @return populated PromotionResponseDTO
+     */
+    public static PromotionResponseDTO fromEntity(Promotion p) {
+        PromotionResponseDTO dto = new PromotionResponseDTO();
+        dto.setPromotionId(p.getPromotionId());
+        dto.setPromotionCode(p.getPromotionCode());
+        dto.setDescription(p.getDescription());
+        dto.setDiscountType(p.getDiscountType());
+        dto.setDiscountValue(p.getDiscountValue());
+        dto.setMinOrderAmount(p.getMinOrderAmount());
+        dto.setMaxDiscountAmount(p.getMaxDiscountAmount());
+        dto.setStartDate(p.getStartDate() != null ? p.getStartDate().toString() : null);
+        dto.setEndDate(p.getEndDate() != null ? p.getEndDate().toString() : null);
+        dto.setUsageLimit(p.getUsageLimit());
+        dto.setUsedCount(p.getUsedCount());
+        dto.setIsActive(p.isActive());
+
+        // Compute status dynamically
+        dto.setStatus(computeStatus(p));
+        return dto;
+    }
+
+    /**
+     * Compute status based on business rules:
+     * - "expired" if EndDate is before now (regardless of IsActive)
+     * - "inactive" if IsActive=false and EndDate >= now
+     * - "active" if IsActive=true and EndDate >= now
+     */
+    private static String computeStatus(Promotion p) {
+        LocalDateTime now = LocalDateTime.now();
+        if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
+            return "expired";
+        }
+        if (!p.isActive()) {
+            return "inactive";
+        }
+        return "active";
     }
 
     public int getPromotionId() {
@@ -104,19 +130,19 @@ public class Promotion {
         this.maxDiscountAmount = maxDiscountAmount;
     }
 
-    public LocalDateTime getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public String getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
 
@@ -136,41 +162,19 @@ public class Promotion {
         this.usedCount = usedCount;
     }
 
-    public boolean isActive() {
-        return active;
+    public boolean isIsActive() {
+        return isActive;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
     public String getStatus() {
-        if (endDate != null && endDate.isBefore(java.time.LocalDateTime.now())) {
-            return "expired";
-        }
-        return active ? "active" : "inactive";
+        return status;
     }
 
-    public String getStartDateDisplay() {
-        if (startDate == null) {
-            return "";
-        }
-        return startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-    }
-
-    public String getEndDateDisplay() {
-        if (endDate == null) {
-            return "";
-        }
-        return endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-    }
-
-    @Override
-    public String toString() {
-        return "Promotion{" + "promotionId=" + promotionId
-                + ", promotionCode=" + promotionCode
-                + ", discountType=" + discountType
-                + ", discountValue=" + discountValue
-                + ", active=" + active + '}';
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
