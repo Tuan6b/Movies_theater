@@ -9,16 +9,10 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body>
-<div class="layout">
-
-    <%@ include file="_sidebar.jsp" %>
-
-    <div class="main">
+<%@ include file="_navbar.jsp" %>
+<div class="main">
         <div class="topbar">
             <div class="topbar-title">Tổng quan hệ thống</div>
-            <div class="topbar-action">
-                <div class="topbar-avatar">MG</div>
-            </div>
         </div>
 
         <div class="page-content fade-in">
@@ -209,7 +203,5 @@
 
         </div><!-- /page-content -->
     </div><!-- /main -->
-
-</div><!-- /layout -->
 </body>
 </html>

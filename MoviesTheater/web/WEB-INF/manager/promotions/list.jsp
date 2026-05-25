@@ -10,11 +10,8 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body>
-<div class="layout">
-
-    <%@ include file="../_sidebar.jsp" %>
-
-    <div class="main">
+<%@ include file="../_navbar.jsp" %>
+<div class="main">
         <div class="topbar">
             <div>
                 <div class="topbar-title">Quản lý Khuyến mãi</div>
@@ -26,7 +23,6 @@
             <div class="topbar-action">
                 <a href="${pageContext.request.contextPath}/manager/promotions?action=add"
                    class="btn btn--primary">+ Thêm mới</a>
-                <div class="topbar-avatar">MG</div>
             </div>
         </div>
 
@@ -175,7 +171,5 @@
 
         </div><!-- /page-content -->
     </div><!-- /main -->
-
-</div><!-- /layout -->
 </body>
 </html>
