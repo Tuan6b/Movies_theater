@@ -8,6 +8,11 @@
 <%@page import="com.cinema.model.Room"%>
 <%
     Room room = (Room) request.getAttribute("room");
+    String origPage = (String) request.getAttribute("currentPage");
+    if (origPage == null) {
+        origPage = request.getParameter("page");
+    }
+    if (origPage == null || origPage.isEmpty()) origPage = "1";
 %>
 <!DOCTYPE html>
 <html>
@@ -20,9 +25,13 @@
 
     <body>
 
+        <% if ("capacity_invalid".equals(request.getParameter("error"))) { %>
+        <script>alert('Capacity must be greater than 0!');</script>
+        <% } %>
+
         <h1>Edit Room</h1>
 
-        <form action="RoomServlet" method="post">
+        <form action="RoomServlet?page=<%= origPage %>" method="post">
 
             <input type="hidden" name="action" value="update">
 
@@ -45,22 +54,22 @@
                 <select name="roomType">
 
                     <option value="2D"
-                        <%= room.getRoomType().equals("2D") ? "selected" : "" %>>
+                            <%= room.getRoomType().equals("2D") ? "selected" : "" %>>
                         2D
                     </option>
 
                     <option value="3D"
-                        <%= room.getRoomType().equals("3D") ? "selected" : "" %>>
+                            <%= room.getRoomType().equals("3D") ? "selected" : "" %>>
                         3D
                     </option>
 
                     <option value="IMAX"
-                        <%= room.getRoomType().equals("IMAX") ? "selected" : "" %>>
+                            <%= room.getRoomType().equals("IMAX") ? "selected" : "" %>>
                         IMAX
                     </option>
 
                     <option value="VIP"
-                        <%= room.getRoomType().equals("VIP") ? "selected" : "" %>>
+                            <%= room.getRoomType().equals("VIP") ? "selected" : "" %>>
                         VIP
                     </option>
 
@@ -83,7 +92,7 @@
                 <label>
                     <input type="checkbox"
                            name="active"
-                        <%= room.isActive() ? "checked" : "" %>>
+                           <%= room.isActive() ? "checked" : "" %>>
                     Active
                 </label>
             </div>
@@ -92,7 +101,7 @@
 
             <button type="submit">Update Room</button>
 
-            <a href="RoomServlet">Back</a>
+            <a href="RoomServlet?page=<%= origPage %>">Back</a>
 
         </form>
 

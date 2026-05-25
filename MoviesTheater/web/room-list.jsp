@@ -16,11 +16,23 @@
 
     <body>
 
+        <% if ("capacity_invalid".equals(request.getParameter("error"))) { %>
+        <script>alert('Capacity must be greater than 0!');</script>
+        <% } %>
+
         <h1>Room Management</h1>
+
+        <%
+            Integer currentPage = (Integer) request.getAttribute("currentPage");
+            Integer totalPages = (Integer) request.getAttribute("totalPages");
+
+            if (currentPage == null) currentPage = 1;
+            if (totalPages == null) totalPages = 1;
+        %>
 
         <h2>Add New Room</h2>
 
-        <form action="RoomServlet" method="post">
+        <form action="RoomServlet?page=<%= currentPage %>" method="post">
 
             <input type="hidden" name="action" value="add">
 
@@ -82,13 +94,11 @@
                         <%= room.isActive() ? "Active" : "Inactive" %>
                     </td>
                     <td>
-                        <a href="RoomServlet?action=edit&id=<%= room.getRoomId() %>">
+                        <a href="RoomServlet?action=edit&id=<%= room.getRoomId() %>&page=<%= currentPage %>">
                             Edit
                         </a>
-
                         |
-
-                        <a href="RoomServlet?action=delete&id=<%= room.getRoomId() %>"
+                        <a href="RoomServlet?action=delete&id=<%= room.getRoomId() %>&page=<%= currentPage %>"
                            onclick="return confirm('Deactivate this room?')">
                             Deactivate
                         </a>
@@ -102,6 +112,40 @@
             </tbody>
 
         </table>
+
+        <br>
+        <%
+            if (totalPages > 1) {
+        %>
+        <div>
+            <% if (currentPage > 1) { %>
+            <a href="RoomServlet?action=list&page=<%= currentPage - 1 %>">Previous</a> |
+            <% } %>
+
+            <% 
+                for (int i = 1; i <= totalPages; i++) { 
+                    if (i == currentPage) { 
+            %>
+            <b>[<%= i %>]</b>
+            <%      } else { %>
+            <a href="RoomServlet?action=list&page=<%= i %>"><%= i %></a>
+            <% 
+                    }
+                    if (i < totalPages) { 
+            %>
+            |
+            <% 
+                    }
+                } 
+            %>
+
+            <% if (currentPage < totalPages) { %>
+            | <a href="RoomServlet?action=list&page=<%= currentPage + 1 %>">Next</a>
+            <% } %>
+        </div>
+        <% 
+            } 
+        %>
 
     </body>
 </html>
