@@ -3,7 +3,7 @@
    Implements: ui_kits/admin/kit.css + material3-palette.css (light)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;500;600&family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 /* ============================================================
    MATERIAL 3 LIGHT PALETTE TOKENS  (CGV — warm cream + deep red)
@@ -836,3 +836,731 @@ table:not(.dt) tbody tr:last-child td { border-bottom: none; }
     to   { opacity: 1; transform: translateY(0); }
 }
 .fade-in { animation: fadeIn 0.2s var(--ease-default) both; }
+
+/* ============================================================
+   CGV FIGMA DESIGN SYSTEM — Sidebar layout additions
+   Derived from CGV-cinema Figma file (minimalist admin screens)
+   ============================================================ */
+
+/* CGV color tokens */
+:root {
+    --cgv-red:      #bd0000;
+    --cgv-dark:     #1b1b1b;
+    --cgv-brown:    #5e3f3a;
+    --cgv-border:   #e8bcb5;
+    --cgv-bg:       #f9f9f9;
+    --cgv-amber:    #865300;
+    --cgv-sidebar-w: 256px;
+    --cgv-header-h:  80px;
+    --font-cgv-display: 'Anton', 'Roboto Flex', sans-serif;
+    --font-cgv-ui:     'Be Vietnam Pro', 'Roboto', sans-serif;
+}
+
+/* --- Full-page sidebar layout --- */
+.cgv-body {
+    flex-direction: row !important;
+    background: var(--cgv-bg);
+    font-family: var(--font-cgv-ui);
+    color: var(--cgv-dark);
+}
+
+/* --- Sidebar --- */
+.cgv-sidebar {
+    width: var(--cgv-sidebar-w);
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--cgv-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 50;
+    overflow-y: auto;
+}
+
+.cgv-sidebar-top {
+    padding: 0 32px 48px;
+}
+
+.cgv-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+}
+
+.cgv-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.cgv-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 32px;
+    font-family: var(--font-cgv-ui);
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    color: var(--cgv-brown);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    border-right: 4px solid transparent;
+    white-space: nowrap;
+}
+
+.cgv-nav-link:hover {
+    background: #f8f4f3;
+    color: var(--cgv-brown);
+    text-decoration: none;
+}
+
+.cgv-nav-link.active {
+    background: #f3f3f3;
+    color: var(--cgv-red);
+    border-right-color: var(--cgv-red);
+}
+
+.cgv-nav-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.65;
+}
+
+.cgv-nav-link.active .cgv-nav-icon {
+    opacity: 1;
+}
+
+.cgv-sidebar-bottom {
+    border-top: 1px solid var(--cgv-border);
+    padding: 32px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* --- Main content area --- */
+.cgv-main {
+    flex: 1;
+    margin-left: var(--cgv-sidebar-w);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Sticky header --- */
+.cgv-header {
+    height: var(--cgv-header-h);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--cgv-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.cgv-header-title {
+    font-family: var(--font-cgv-display);
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--cgv-dark);
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.cgv-header-right {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.cgv-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cgv-search-icon {
+    position: absolute;
+    left: 0;
+    width: 18px;
+    height: 18px;
+    color: rgba(94, 63, 58, 0.5);
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.cgv-search {
+    width: 192px;
+    height: 42px;
+    border: none;
+    border-bottom: 1px solid var(--cgv-border);
+    background: transparent;
+    padding: 0 16px 0 30px;
+    font-family: var(--font-cgv-ui);
+    font-size: 16px;
+    color: var(--cgv-brown);
+    outline: none;
+}
+
+.cgv-search::placeholder {
+    color: rgba(94, 63, 58, 0.5);
+}
+
+.cgv-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.cgv-bell-btn {
+    width: 20px;
+    height: 20px;
+    color: var(--cgv-brown);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cgv-header-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--cgv-border);
+}
+
+.cgv-user-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cgv-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--cgv-red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: var(--font-cgv-ui);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.cgv-user-name {
+    font-size: 16px;
+    color: var(--cgv-brown);
+    font-family: var(--font-cgv-ui);
+    white-space: nowrap;
+}
+
+/* --- Page layout --- */
+.cgv-page {
+    display: flex;
+    gap: 48px;
+    padding: 48px 40px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.cgv-list-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    align-self: stretch;
+}
+
+.cgv-table-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.cgv-aside {
+    width: 288px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+/* --- Filter pills --- */
+.cgv-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.cgv-pills {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cgv-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 21px;
+    border: 1px solid var(--cgv-border);
+    border-radius: 9999px;
+    background: #fff;
+    font-family: var(--font-cgv-ui);
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    color: var(--cgv-dark);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.cgv-pill:hover {
+    background: #f8f4f3;
+    text-decoration: none;
+    color: var(--cgv-dark);
+}
+
+.cgv-pill.active {
+    background: var(--cgv-red);
+    color: #fff;
+    border-color: var(--cgv-red);
+}
+
+/* --- CGV buttons --- */
+.btn--cgv {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--cgv-red);
+    color: #fff;
+    border: none;
+    border-radius: 9999px;
+    font-family: var(--font-cgv-ui);
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn--cgv:hover {
+    background: #8c0000;
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn--cgv-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: #fff;
+    color: var(--cgv-brown);
+    border: 1px solid var(--cgv-border);
+    border-radius: 9999px;
+    font-family: var(--font-cgv-ui);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn--cgv-outline:hover {
+    background: #f8f4f3;
+    text-decoration: none;
+    color: var(--cgv-brown);
+}
+
+/* --- Movie grid --- */
+.cgv-movie-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 40px;
+    row-gap: 64px;
+}
+
+.cgv-movie-card {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.cgv-movie-thumb {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+    height: 432px;
+    background: var(--md-surface-container-high);
+}
+
+.cgv-movie-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cgv-movie-thumb-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8e0df;
+    color: var(--cgv-brown);
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.cgv-movie-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.cgv-movie-thumb:hover .cgv-movie-overlay {
+    opacity: 1;
+}
+
+.cgv-movie-overlay-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: var(--cgv-dark);
+    transition: transform 0.15s;
+    font-size: 16px;
+}
+
+.cgv-movie-overlay-btn:hover {
+    transform: scale(1.1);
+    text-decoration: none;
+    color: var(--cgv-dark);
+}
+
+.cgv-movie-status {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    padding: 2px 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    font-family: var(--font-cgv-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.cgv-movie-status.now-showing { color: var(--cgv-dark); }
+.cgv-movie-status.coming-soon { color: var(--cgv-amber); }
+.cgv-movie-status.hidden      { color: rgba(94, 63, 58, 0.6); }
+
+.cgv-movie-title {
+    font-family: var(--font-cgv-display);
+    font-size: 24px;
+    color: var(--cgv-dark);
+    line-height: 1.25;
+}
+
+.cgv-movie-meta {
+    font-size: 16px;
+    color: var(--cgv-brown);
+    opacity: 0.6;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+/* --- Stats aside --- */
+.cgv-stats-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.cgv-aside-heading {
+    font-family: var(--font-cgv-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(94, 63, 58, 0.5);
+    margin-bottom: 24px;
+}
+
+.cgv-stats-group {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.cgv-stat-num {
+    font-family: var(--font-cgv-display);
+    font-size: 30px;
+    color: var(--cgv-dark);
+    line-height: 1.2;
+}
+
+.cgv-stat-num.amber { color: var(--cgv-amber); }
+.cgv-stat-num.red   { color: var(--cgv-red); }
+
+.cgv-stat-key {
+    font-family: var(--font-cgv-ui);
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(94, 63, 58, 0.7);
+    margin-top: 4px;
+}
+
+.cgv-aside-divider {
+    border-top: 1px solid rgba(232, 188, 181, 0.3);
+    padding-top: 48px;
+    margin-top: 48px;
+}
+
+.cgv-events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.cgv-event-title {
+    font-family: var(--font-cgv-ui);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--cgv-dark);
+    line-height: 1.33;
+}
+
+.cgv-event-desc {
+    font-size: 12px;
+    color: rgba(94, 63, 58, 0.6);
+    line-height: 1.33;
+    margin-top: 2px;
+}
+
+/* --- General data table for CGV pages --- */
+.cgv-data-wrap {
+    background: #fff;
+    border: 1px solid var(--cgv-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cgv-data-toolbar {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cgv-border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+table.cgv-dt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: var(--font-cgv-ui);
+}
+
+table.cgv-dt thead th {
+    background: #faf6f5;
+    color: rgba(94, 63, 58, 0.7);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: left;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--cgv-border);
+    white-space: nowrap;
+}
+
+table.cgv-dt tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(232, 188, 181, 0.4);
+    color: var(--cgv-dark);
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+table.cgv-dt tbody tr { transition: background 0.12s; }
+table.cgv-dt tbody tr:hover { background: #fdf8f7; }
+table.cgv-dt tbody tr:last-child td { border-bottom: none; }
+
+.cgv-pager {
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(94, 63, 58, 0.6);
+    border-top: 1px solid var(--cgv-border);
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: var(--font-cgv-ui);
+}
+
+.cgv-pager-pages { display: flex; gap: 4px; }
+
+.cgv-pager-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--cgv-border);
+    background: transparent;
+    color: var(--cgv-brown);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    font-family: var(--font-cgv-ui);
+}
+
+.cgv-pager-btn:hover { background: #f8f4f3; }
+.cgv-pager-btn.active { background: var(--cgv-red); color: #fff; border-color: var(--cgv-red); }
+
+/* --- CGV form fields --- */
+.cgv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.cgv-label {
+    font-family: var(--font-cgv-ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(94, 63, 58, 0.6);
+}
+
+.cgv-input, .cgv-select, .cgv-textarea {
+    height: 44px;
+    background: #fff;
+    border: 1px solid var(--cgv-border);
+    border-radius: 8px;
+    padding: 0 14px;
+    color: var(--cgv-dark);
+    font-size: 14px;
+    font-family: var(--font-cgv-ui);
+    width: 100%;
+    transition: border-color 0.15s;
+    outline: none;
+}
+
+.cgv-input:focus, .cgv-select:focus { border-color: var(--cgv-red); }
+.cgv-input::placeholder { color: rgba(94, 63, 58, 0.4); }
+.cgv-textarea { height: auto; padding: 12px 14px; min-height: 100px; resize: vertical; }
+.cgv-textarea:focus { border-color: var(--cgv-red); }
+
+/* --- CGV badges (status) --- */
+.cgv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-family: var(--font-cgv-ui);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.cgv-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.cgv-badge.active    { background: #D7F3DD; color: #0D5023; }
+.cgv-badge.inactive  { background: #faeae5; color: rgba(94, 63, 58, 0.7); }
+.cgv-badge.upcoming  { background: #ffe8c7; color: var(--cgv-amber); }
+.cgv-badge.danger    { background: #ffdad4; color: var(--cgv-red); }
+
+/* --- CGV page heading row --- */
+.cgv-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.cgv-page-title {
+    font-family: var(--font-cgv-display);
+    font-size: 20px;
+    color: var(--cgv-dark);
+    margin: 0;
+}
+
+.cgv-page-subtitle {
+    font-size: 13px;
+    color: rgba(94, 63, 58, 0.6);
+    margin-top: 4px;
+}
+
+/* --- Flash alerts for CGV pages --- */
+.cgv-alert {
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 24px;
+    font-family: var(--font-cgv-ui);
+    border-left: 4px solid;
+}
+
+.cgv-alert-success { background: #D7F3DD; border-color: #0D5023; color: #0D5023; }
+.cgv-alert-danger  { background: #ffdad4; border-color: var(--cgv-red); color: #410001; }
