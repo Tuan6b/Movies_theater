@@ -190,4 +190,60 @@ public class RoomDAO extends DBContext {
 
         return false;
     }
+    
+    /**
+     * Fetch a subset of rooms from the database based on offset and limit
+     * @param offset the starting index of the records
+     * @param noOfRecords the number of records to return
+     * @return list of Room objects for the current page
+     */
+    public List<Room> getRoomsByPage(int offset, int noOfRecords) {
+        List<Room> list = new ArrayList<>();
+        
+        // SQL Syntax for SQL Server (Requires ORDER BY to use OFFSET)
+        String sql = """
+                     SELECT RoomID, RoomNumber, RoomType, Capacity, IsActive
+                     FROM Room
+                     ORDER BY RoomID
+                     OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                     """;
+
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, offset);
+            stm.setInt(2, noOfRecords);
+
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    Room room = new Room(
+                            rs.getInt("RoomID"),
+                            rs.getString("RoomNumber"),
+                            rs.getString("RoomType"),
+                            rs.getInt("Capacity"),
+                            rs.getBoolean("IsActive")
+                    );
+                    list.add(room);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Count the total number of room records in the database
+     * @return total row count of Room table
+     */
+    public int getTotalRoomsCount() {
+        String sql = "SELECT COUNT(*) FROM Room";
+        try (PreparedStatement stm = connection.prepareStatement(sql);
+             ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
 }
