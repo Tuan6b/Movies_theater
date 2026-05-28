@@ -1,4 +1,4 @@
-package model;
+package com.cinema.model;
 
 /**
  * Represent the Movie Genre entity in the system.

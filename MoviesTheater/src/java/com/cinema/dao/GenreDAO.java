@@ -1,6 +1,6 @@
-package dao;
+package com.cinema.dao;
 
-import model.Genre;
+import com.cinema.model.Genre;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
