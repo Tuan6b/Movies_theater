@@ -1,7 +1,7 @@
-package Controller;
+package com.cinema.controller;
 
-import dao.GenreDAO;
-import model.Genre;
+import com.cinema.dao.GenreDAO;
+import com.cinema.model.Genre;
 import java.util.List;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
