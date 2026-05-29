@@ -1,0 +1,183 @@
+/* ============================================================
+   AUTH (Login / Register)
+   ============================================================ */
+.auth-body {
+    background: linear-gradient(145deg, #0f0000 0%, #2a0000 50%, #bd0000 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-wrap {
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: var(--r-2xl);
+    padding: 40px 36px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.35);
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 24px;
+}
+
+.auth-logo img { height: 28px; width: auto; }
+
+.auth-logo span {
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    color: var(--cgv-red);
+}
+
+.auth-title {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cgv-text);
+    margin-bottom: 24px;
+}
+
+.auth-error {
+    background: #fff0f0;
+    border: 1px solid #ffc0c0;
+    border-radius: var(--r-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #cc0000;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+
+.auth-field { display: flex; flex-direction: column; gap: 5px; }
+
+.auth-field label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--cgv-text-muted);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.required { color: var(--cgv-red); }
+
+.auth-field input[type="text"],
+.auth-field input[type="email"],
+.auth-field input[type="tel"],
+.auth-field input[type="password"] {
+    height: 44px;
+    padding: 0 14px;
+    border: 1.5px solid var(--cgv-border);
+    border-radius: var(--r-md);
+    font-size: 14px;
+    font-family: var(--font-body);
+    color: var(--cgv-text);
+    background: #fff;
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    outline: none;
+    width: 100%;
+}
+
+.auth-field input:focus {
+    border-color: var(--cgv-red);
+    box-shadow: 0 0 0 3px rgba(189,0,0,0.12);
+}
+
+.auth-password-wrap {
+    position: relative;
+}
+
+.auth-password-wrap input { padding-right: 44px; }
+
+.auth-toggle-pw {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--cgv-text-dim);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-sm);
+    transition: color var(--dur) var(--ease);
+}
+
+.auth-toggle-pw:hover { color: var(--cgv-text-muted); }
+
+.auth-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.auth-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--cgv-text-muted);
+    cursor: pointer;
+}
+
+.auth-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cgv-red);
+}
+
+.auth-btn {
+    height: 46px;
+    background: var(--cgv-red);
+    color: #fff;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    box-shadow: 0 3px 12px rgba(189,0,0,0.3);
+}
+
+.auth-btn:hover { background: var(--cgv-red-dark); box-shadow: 0 5px 18px rgba(189,0,0,0.4); }
+
+.auth-footer {
+    text-align: center;
+    font-size: 13px;
+    color: var(--cgv-text-muted);
+    margin-top: 20px;
+}
+
+.auth-footer a { font-weight: 600; }
+
+.auth-back {
+    display: block;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--cgv-text-dim);
+    margin-top: 12px;
+}
+
+.auth-back:hover { color: var(--cgv-red); }
+
+@media (max-width: 480px) {
+    .auth-card { padding: 28px 20px; }
+}
