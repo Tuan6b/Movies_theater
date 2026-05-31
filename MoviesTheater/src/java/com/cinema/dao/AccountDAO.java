@@ -108,6 +108,28 @@ public class AccountDAO {
         return null;
     }
 
+    public Account getAccountByEmail(String email) {
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "FROM Account a "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
+                + "WHERE a.Email = ?";
+
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAccount(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Account mapAccount(ResultSet rs) throws SQLException {
         Account account = new Account();
         account.setAccountId(rs.getInt("AccountID"));

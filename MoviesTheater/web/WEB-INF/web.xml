@@ -70,6 +70,16 @@
         <url-pattern>/Logout</url-pattern>
     </servlet-mapping>
 
+    <!-- Google OAuth -->
+    <servlet>
+        <servlet-name>LoginGoogleController</servlet-name>
+        <servlet-class>com.cinema.controller.LoginGoogleController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginGoogleController</servlet-name>
+        <url-pattern>/LoginGoogle/*</url-pattern>
+    </servlet-mapping>
+
     <!-- Auth Filter -->
     <filter>
         <filter-name>AuthFilter</filter-name>

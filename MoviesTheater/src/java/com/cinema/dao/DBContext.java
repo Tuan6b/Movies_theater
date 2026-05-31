@@ -25,7 +25,7 @@ public class DBContext {
         try {
             // SQL Server name and password
             String user = "sa";
-            String pass = "123456";
+            String pass = "123";
             
             // Connection string pointing to the CinemaBookingDB database
             String url = "jdbc:sqlserver://localhost:1433;databaseName=CinemaBookingDB;encrypt=true;trustServerCertificate=true";
