@@ -144,40 +144,78 @@
 }
 
 .auth-btn {
-    height: 46px;
-    background: var(--cgv-red);
+    position: relative;
+    overflow: hidden;
+
+    height: 48px;
+    width: 100%;
+
+    background: linear-gradient(135deg, #bd0000 0%, #ff1f1f 100%);
     color: #fff;
+
     border: none;
-    border-radius: var(--r-md);
+    border-radius: 14px;
+
     font-size: 15px;
     font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     font-family: var(--font-body);
+
     cursor: pointer;
-    transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-    box-shadow: 0 3px 12px rgba(189,0,0,0.3);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+
+    box-shadow:
+        0 6px 18px rgba(189, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
-.auth-btn:hover { background: var(--cgv-red-dark); box-shadow: 0 5px 18px rgba(189,0,0,0.4); }
+/* Hover */
+.auth-btn:hover {
+    transform: translateY(-2px);
 
-.auth-footer {
-    text-align: center;
-    font-size: 13px;
-    color: var(--cgv-text-muted);
-    margin-top: 20px;
+    background: linear-gradient(135deg, #d10000 0%, #ff3434 100%);
+
+    box-shadow:
+        0 10px 24px rgba(189, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
-.auth-footer a { font-weight: 600; }
-
-.auth-back {
-    display: block;
-    text-align: center;
-    font-size: 12.5px;
-    color: var(--cgv-text-dim);
-    margin-top: 12px;
+/* Click */
+.auth-btn:active {
+    transform: scale(0.98);
 }
 
-.auth-back:hover { color: var(--cgv-red); }
+/* Focus accessibility */
+.auth-btn:focus-visible {
+    outline: 3px solid rgba(189,0,0,0.25);
+    outline-offset: 3px;
+}
 
-@media (max-width: 480px) {
-    .auth-card { padding: 28px 20px; }
+/* Shine effect */
+.auth-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+
+    width: 100%;
+    height: 100%;
+
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255,255,255,0.35) 50%,
+        transparent 100%
+    );
+
+    transition: left 0.6s ease;
+}
+
+.auth-btn:hover::before {
+    left: 120%;
 }
