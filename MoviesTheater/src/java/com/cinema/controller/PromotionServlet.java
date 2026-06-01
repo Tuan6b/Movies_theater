@@ -1,12 +1,10 @@
-
 package com.cinema.controller;
 
-import com.cinema.dto.PromotionRequestDTO;
+import com.cinema.dao.PromotionDAO;
 import com.cinema.exception.ConflictException;
 import com.cinema.exception.NotFoundException;
 import com.cinema.exception.ValidationException;
 import com.cinema.model.Promotion;
-import com.cinema.service.PromotionService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,36 +12,144 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-/**
- *
- * @author tuan6b
- */
 public class PromotionServlet extends HttpServlet {
 
-    private final PromotionService promotionService = new PromotionService();
+    private final PromotionDAO promotionDAO = new PromotionDAO();
 
     private static final int ROLE_MANAGER = 4;
     private static final int PAGE_SIZE = 10;
     private static final DateTimeFormatter FORM_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    private static final String LIST_JSP =
-            "/WEB-INF/manager/promotions/list.jsp";
-    private static final String FORM_JSP =
-            "/WEB-INF/manager/promotions/form.jsp";
+    private static final String LIST_JSP = "/WEB-INF/manager/promotions/list.jsp";
+    private static final String FORM_JSP = "/WEB-INF/manager/promotions/form.jsp";
     private static final String LIST_URL = "/manager/promotions";
+    private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z0-9\\-_]+$");
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    // ========== INNER DTO CLASSES ==========
+
+    public static class PromotionRequestDTO {
+        private String promotionCode;
+        private String description;
+        private String discountType;
+        private BigDecimal discountValue;
+        private BigDecimal minOrderAmount;
+        private BigDecimal maxDiscountAmount;
+        private String startDate;
+        private String endDate;
+        private Integer usageLimit;
+        private Boolean isActive;
+        private int usedCount;
+
+        public PromotionRequestDTO() {}
+
+        public String getPromotionCode() { return promotionCode; }
+        public void setPromotionCode(String promotionCode) { this.promotionCode = promotionCode; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public String getDiscountType() { return discountType; }
+        public void setDiscountType(String discountType) { this.discountType = discountType; }
+        public BigDecimal getDiscountValue() { return discountValue; }
+        public void setDiscountValue(BigDecimal discountValue) { this.discountValue = discountValue; }
+        public BigDecimal getMinOrderAmount() { return minOrderAmount; }
+        public void setMinOrderAmount(BigDecimal minOrderAmount) { this.minOrderAmount = minOrderAmount; }
+        public BigDecimal getMaxDiscountAmount() { return maxDiscountAmount; }
+        public void setMaxDiscountAmount(BigDecimal maxDiscountAmount) { this.maxDiscountAmount = maxDiscountAmount; }
+        public String getStartDate() { return startDate; }
+        public void setStartDate(String startDate) { this.startDate = startDate; }
+        public String getEndDate() { return endDate; }
+        public void setEndDate(String endDate) { this.endDate = endDate; }
+        public Integer getUsageLimit() { return usageLimit; }
+        public void setUsageLimit(Integer usageLimit) { this.usageLimit = usageLimit; }
+        public Boolean getIsActive() { return isActive; }
+        public boolean isActive() { return Boolean.TRUE.equals(isActive); }
+        public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+        public int getUsedCount() { return usedCount; }
+        public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
+    }
+
+    public static class PromotionResponseDTO {
+        private int promotionId;
+        private String promotionCode;
+        private String description;
+        private String discountType;
+        private BigDecimal discountValue;
+        private BigDecimal minOrderAmount;
+        private BigDecimal maxDiscountAmount;
+        private String startDate;
+        private String endDate;
+        private Integer usageLimit;
+        private int usedCount;
+        private boolean isActive;
+        private String status;
+
+        public PromotionResponseDTO() {}
+
+        public static PromotionResponseDTO fromEntity(Promotion p) {
+            PromotionResponseDTO dto = new PromotionResponseDTO();
+            dto.setPromotionId(p.getPromotionId());
+            dto.setPromotionCode(p.getPromotionCode());
+            dto.setDescription(p.getDescription());
+            dto.setDiscountType(p.getDiscountType());
+            dto.setDiscountValue(p.getDiscountValue());
+            dto.setMinOrderAmount(p.getMinOrderAmount());
+            dto.setMaxDiscountAmount(p.getMaxDiscountAmount());
+            dto.setStartDate(p.getStartDate() != null ? p.getStartDate().toString() : null);
+            dto.setEndDate(p.getEndDate() != null ? p.getEndDate().toString() : null);
+            dto.setUsageLimit(p.getUsageLimit());
+            dto.setUsedCount(p.getUsedCount());
+            dto.setIsActive(p.isActive());
+            dto.setStatus(computeStatus(p));
+            return dto;
+        }
+
+        private static String computeStatus(Promotion p) {
+            LocalDateTime now = LocalDateTime.now();
+            if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
+                return "expired";
+            }
+            return p.isActive() ? "active" : "inactive";
+        }
+
+        public int getPromotionId() { return promotionId; }
+        public void setPromotionId(int promotionId) { this.promotionId = promotionId; }
+        public String getPromotionCode() { return promotionCode; }
+        public void setPromotionCode(String promotionCode) { this.promotionCode = promotionCode; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public String getDiscountType() { return discountType; }
+        public void setDiscountType(String discountType) { this.discountType = discountType; }
+        public BigDecimal getDiscountValue() { return discountValue; }
+        public void setDiscountValue(BigDecimal discountValue) { this.discountValue = discountValue; }
+        public BigDecimal getMinOrderAmount() { return minOrderAmount; }
+        public void setMinOrderAmount(BigDecimal minOrderAmount) { this.minOrderAmount = minOrderAmount; }
+        public BigDecimal getMaxDiscountAmount() { return maxDiscountAmount; }
+        public void setMaxDiscountAmount(BigDecimal maxDiscountAmount) { this.maxDiscountAmount = maxDiscountAmount; }
+        public String getStartDate() { return startDate; }
+        public void setStartDate(String startDate) { this.startDate = startDate; }
+        public String getEndDate() { return endDate; }
+        public void setEndDate(String endDate) { this.endDate = endDate; }
+        public Integer getUsageLimit() { return usageLimit; }
+        public void setUsageLimit(Integer usageLimit) { this.usageLimit = usageLimit; }
+        public int getUsedCount() { return usedCount; }
+        public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
+        public boolean isIsActive() { return isActive; }
+        public void setIsActive(boolean isActive) { this.isActive = isActive; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+    }
+
+    // ========== SERVLET DISPATCH ==========
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -61,7 +167,6 @@ public class PromotionServlet extends HttpServlet {
         }
 
         if ("GET".equalsIgnoreCase(method)) {
-            // === GET LOGIC ===
             switch (action) {
                 case "add":
                     showAddForm(request, response);
@@ -75,7 +180,6 @@ public class PromotionServlet extends HttpServlet {
             }
         } else if ("POST".equalsIgnoreCase(method)) {
             request.setCharacterEncoding("UTF-8");
-            // === POST LOGIC ===
             switch (action) {
                 case "create":
                     handleCreate(request, response);
@@ -93,9 +197,8 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Show the promotion list with optional filters and pagination.
-     */
+    // ========== CONTROLLER HANDLERS ==========
+
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
@@ -106,7 +209,6 @@ public class PromotionServlet extends HttpServlet {
             page = 1;
         }
 
-        // Transfer flash messages from session to request then clear them
         HttpSession session = request.getSession(false);
         if (session != null) {
             transferFlash(session, request, "flashSuccess");
@@ -114,9 +216,8 @@ public class PromotionServlet extends HttpServlet {
         }
 
         try {
-            List<Promotion> promotions = promotionService.findPromotions(
-                    keyword, type, status, page, PAGE_SIZE);
-            int totalItems = promotionService.countPromotions(keyword, type, status);
+            List<Promotion> promotions = findPromotions(keyword, type, status, page, PAGE_SIZE);
+            int totalItems = countPromotions(keyword, type, status);
             int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
 
             request.setAttribute("promotions", promotions);
@@ -134,9 +235,6 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Show the blank add form.
-     */
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("formAction", "create");
@@ -144,9 +242,6 @@ public class PromotionServlet extends HttpServlet {
         request.getRequestDispatcher(FORM_JSP).forward(request, response);
     }
 
-    /**
-     * Show the edit form pre-filled with existing promotion data.
-     */
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = parseIntParam(request.getParameter("id"), 0);
@@ -156,19 +251,15 @@ public class PromotionServlet extends HttpServlet {
         }
 
         try {
-            Promotion p = promotionService.getById(id);
-
+            Promotion p = getById(id);
             request.setAttribute("promotion", p);
             request.setAttribute("promotionId", id);
-
-            // Pre-format LocalDateTime for datetime-local input
             if (p.getStartDate() != null) {
                 request.setAttribute("startDateStr", p.getStartDate().format(FORM_FORMATTER));
             }
             if (p.getEndDate() != null) {
                 request.setAttribute("endDateStr", p.getEndDate().format(FORM_FORMATTER));
             }
-
             request.setAttribute("formAction", "update");
             request.setAttribute("pageTitle", "Edit Promotion");
             request.getRequestDispatcher(FORM_JSP).forward(request, response);
@@ -180,15 +271,11 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle POST create: validate, insert, redirect on success or forward on error.
-     */
     private void handleCreate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         PromotionRequestDTO dto = buildDtoFromRequest(request);
-
         try {
-            promotionService.create(dto);
+            create(dto);
             request.getSession().setAttribute("flashSuccess", "Promotion created successfully.");
             response.sendRedirect(request.getContextPath() + LIST_URL);
         } catch (ValidationException e) {
@@ -211,9 +298,6 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle POST update: validate, update, redirect on success or forward on error.
-     */
     private void handleUpdate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = parseIntParam(request.getParameter("promotionId"), 0);
@@ -221,11 +305,9 @@ public class PromotionServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + LIST_URL);
             return;
         }
-
         PromotionRequestDTO dto = buildDtoFromRequest(request);
-
         try {
-            promotionService.update(id, dto);
+            update(id, dto);
             request.getSession().setAttribute("flashSuccess", "Promotion updated successfully.");
             response.sendRedirect(request.getContextPath() + LIST_URL);
         } catch (ValidationException e) {
@@ -254,15 +336,12 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle POST delete: soft-delete, always redirect back to list.
-     */
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = parseIntParam(request.getParameter("promotionId"), 0);
         if (id > 0) {
             try {
-                promotionService.delete(id);
+                delete(id);
                 request.getSession().setAttribute("flashSuccess",
                         "Promotion deactivated successfully.");
             } catch (ConflictException e) {
@@ -271,16 +350,306 @@ public class PromotionServlet extends HttpServlet {
                 // Already gone — no action needed
             } catch (Exception e) {
                 e.printStackTrace();
-                request.getSession().setAttribute("flashError",
-                        "System error. Please try again.");
+                request.getSession().setAttribute("flashError", "System error. Please try again.");
             }
         }
         response.sendRedirect(request.getContextPath() + LIST_URL);
     }
 
-    /**
-     * Build a PromotionRequestDTO from HTML form parameters.
-     */
+    // ========== BUSINESS LOGIC (merged from PromotionService) ==========
+
+    private List<Promotion> findPromotions(String keyword, String type, String status,
+            int page, int pageSize) throws SQLException {
+        return promotionDAO.search(keyword, normalizeType(type), status, page, pageSize);
+    }
+
+    private int countPromotions(String keyword, String type, String status) throws SQLException {
+        return promotionDAO.countTotal(keyword, normalizeType(type), status);
+    }
+
+    private Promotion getById(int id) throws NotFoundException, SQLException {
+        Promotion p = promotionDAO.findById(id);
+        if (p == null) {
+            throw new NotFoundException("Promotion not found");
+        }
+        return p;
+    }
+
+    private void create(PromotionRequestDTO dto) throws ValidationException, SQLException {
+        Map<String, String> errors = validateForCreate(dto);
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Validation failed", errors);
+        }
+        promotionDAO.insert(buildEntity(dto));
+    }
+
+    private void update(int id, PromotionRequestDTO dto)
+            throws NotFoundException, ConflictException, ValidationException, SQLException {
+        Promotion existing = promotionDAO.findById(id);
+        if (existing == null) {
+            throw new NotFoundException("Promotion not found");
+        }
+        if (existing.getUsedCount() > 0) {
+            checkUsedRestrictions(existing, dto);
+        }
+        if (dto.getIsActive() != null && dto.getIsActive()
+                && existing.getEndDate() != null
+                && existing.getEndDate().isBefore(LocalDateTime.now())) {
+            throw new ConflictException("Cannot reactivate an expired promotion");
+        }
+        Map<String, String> errors = validateForUpdate(dto, existing);
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Validation failed", errors);
+        }
+        applyUpdates(existing, dto);
+        promotionDAO.update(existing);
+    }
+
+    private void delete(int id) throws NotFoundException, ConflictException, SQLException {
+        Promotion existing = promotionDAO.findById(id);
+        if (existing == null) {
+            throw new NotFoundException("Promotion not found");
+        }
+        if (promotionDAO.hasInvoicePaid(id)) {
+            throw new ConflictException("Cannot delete promotion used in paid invoices");
+        }
+        promotionDAO.softDelete(id);
+    }
+
+    // ========== VALIDATION ==========
+
+    private Map<String, String> validateForCreate(PromotionRequestDTO dto) throws SQLException {
+        Map<String, String> errors = new LinkedHashMap<>();
+        validatePromotionCode(dto.getPromotionCode(), 0, errors);
+        validateDiscountType(dto.getDiscountType(), errors);
+        validateDiscountValue(dto.getDiscountValue(), dto.getDiscountType(), errors);
+        validateMinOrderAmount(dto.getMinOrderAmount(), errors);
+        validateDates(dto.getStartDate(), dto.getEndDate(), errors);
+        validateUsageLimit(dto.getUsageLimit(), errors);
+        return errors;
+    }
+
+    private Map<String, String> validateForUpdate(PromotionRequestDTO dto, Promotion existing)
+            throws SQLException {
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (dto.getPromotionCode() != null && existing.getUsedCount() == 0) {
+            validatePromotionCode(dto.getPromotionCode(), existing.getPromotionId(), errors);
+        }
+        if (dto.getDiscountType() != null) {
+            validateDiscountType(dto.getDiscountType(), errors);
+        }
+        if (dto.getDiscountValue() != null) {
+            String effectiveType = dto.getDiscountType() != null
+                    ? dto.getDiscountType() : existing.getDiscountType();
+            validateDiscountValue(dto.getDiscountValue(), effectiveType, errors);
+        }
+        if (dto.getMinOrderAmount() != null) {
+            validateMinOrderAmount(dto.getMinOrderAmount(), errors);
+        }
+        if (dto.getStartDate() != null || dto.getEndDate() != null) {
+            String effectiveStart = dto.getStartDate() != null
+                    ? dto.getStartDate() : existing.getStartDate().format(FORM_FORMATTER);
+            String effectiveEnd = dto.getEndDate() != null
+                    ? dto.getEndDate() : existing.getEndDate().format(FORM_FORMATTER);
+            validateDates(effectiveStart, effectiveEnd, errors);
+        }
+        if (dto.getUsageLimit() != null) {
+            validateUsageLimit(dto.getUsageLimit(), errors);
+        }
+        return errors;
+    }
+
+    private void validatePromotionCode(String code, int excludeId, Map<String, String> errors)
+            throws SQLException {
+        if (code == null || code.trim().isEmpty()) {
+            errors.put("promotionCode", "Promotion code is required");
+            return;
+        }
+        String upper = code.trim().toUpperCase();
+        if (upper.length() > 50) {
+            errors.put("promotionCode", "Promotion code must not exceed 50 characters");
+            return;
+        }
+        if (!CODE_PATTERN.matcher(upper).matches()) {
+            errors.put("promotionCode",
+                    "Promotion code may only contain A-Z, 0-9, hyphens and underscores");
+            return;
+        }
+        if (promotionDAO.existsByCode(upper, excludeId)) {
+            errors.put("promotionCode", "Promotion code already exists");
+        }
+    }
+
+    private void validateDiscountType(String discountType, Map<String, String> errors) {
+        if (discountType == null || discountType.trim().isEmpty()) {
+            errors.put("discountType", "Discount type is required");
+            return;
+        }
+        if (!"Percentage".equals(discountType) && !"FlatAmount".equals(discountType)) {
+            errors.put("discountType", "Discount type must be Percentage or FlatAmount");
+        }
+    }
+
+    private void validateDiscountValue(BigDecimal value, String type,
+            Map<String, String> errors) {
+        if (value == null) {
+            errors.put("discountValue", "Discount value is required");
+            return;
+        }
+        if (value.compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("discountValue", "Discount value must be greater than 0");
+            return;
+        }
+        if ("Percentage".equals(type) && value.compareTo(new BigDecimal("100")) > 0) {
+            errors.put("discountValue", "Percentage discount cannot exceed 100");
+        }
+    }
+
+    private void validateMinOrderAmount(BigDecimal amount, Map<String, String> errors) {
+        if (amount != null && amount.compareTo(BigDecimal.ZERO) < 0) {
+            errors.put("minOrderAmount", "Minimum order amount must be >= 0");
+        }
+    }
+
+    private void validateDates(String startDateStr, String endDateStr,
+            Map<String, String> errors) {
+        LocalDateTime startDate = null;
+        LocalDateTime endDate = null;
+
+        if (startDateStr == null || startDateStr.trim().isEmpty()) {
+            errors.put("startDate", "Start date is required");
+        } else {
+            startDate = parseDateTime(startDateStr);
+            if (startDate == null) {
+                errors.put("startDate", "Invalid start date format");
+            }
+        }
+
+        if (endDateStr == null || endDateStr.trim().isEmpty()) {
+            errors.put("endDate", "End date is required");
+        } else {
+            endDate = parseDateTime(endDateStr);
+            if (endDate == null) {
+                errors.put("endDate", "Invalid end date format");
+            }
+        }
+
+        if (startDate != null && endDate != null
+                && ChronoUnit.HOURS.between(startDate, endDate) < 24) {
+            errors.put("endDate", "End date must be at least 1 day after start date");
+        }
+    }
+
+    private void validateUsageLimit(Integer usageLimit, Map<String, String> errors) {
+        if (usageLimit != null && usageLimit <= 0) {
+            errors.put("usageLimit", "Usage limit must be greater than 0");
+        }
+    }
+
+    private void checkUsedRestrictions(Promotion existing, PromotionRequestDTO dto) {
+        if (dto.getPromotionCode() != null
+                && !dto.getPromotionCode().trim().toUpperCase().equals(existing.getPromotionCode())) {
+            throw new ConflictException(
+                    "Cannot change code, type, or value of a promotion that has been used");
+        }
+        if (dto.getDiscountType() != null
+                && !dto.getDiscountType().equals(existing.getDiscountType())) {
+            throw new ConflictException(
+                    "Cannot change code, type, or value of a promotion that has been used");
+        }
+        if (dto.getDiscountValue() != null
+                && dto.getDiscountValue().compareTo(existing.getDiscountValue()) != 0) {
+            throw new ConflictException(
+                    "Cannot change code, type, or value of a promotion that has been used");
+        }
+    }
+
+    private Promotion buildEntity(PromotionRequestDTO dto) {
+        Promotion p = new Promotion();
+        p.setPromotionCode(dto.getPromotionCode().trim().toUpperCase());
+        p.setDescription(dto.getDescription());
+        p.setDiscountType(dto.getDiscountType());
+        p.setDiscountValue(dto.getDiscountValue());
+        p.setMinOrderAmount(dto.getMinOrderAmount() != null
+                ? dto.getMinOrderAmount() : BigDecimal.ZERO);
+        p.setMaxDiscountAmount("Percentage".equals(dto.getDiscountType())
+                ? dto.getMaxDiscountAmount() : null);
+        p.setStartDate(parseDateTime(dto.getStartDate().trim()));
+        p.setEndDate(parseDateTime(dto.getEndDate().trim()));
+        p.setUsageLimit(dto.getUsageLimit());
+        p.setActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+        return p;
+    }
+
+    private void applyUpdates(Promotion existing, PromotionRequestDTO dto) {
+        if (dto.getPromotionCode() != null) {
+            existing.setPromotionCode(dto.getPromotionCode().trim().toUpperCase());
+        }
+        if (dto.getDescription() != null) {
+            existing.setDescription(dto.getDescription());
+        }
+        if (dto.getDiscountType() != null) {
+            existing.setDiscountType(dto.getDiscountType());
+        }
+        if (dto.getDiscountValue() != null) {
+            existing.setDiscountValue(dto.getDiscountValue());
+        }
+        if (dto.getMinOrderAmount() != null) {
+            existing.setMinOrderAmount(dto.getMinOrderAmount());
+        }
+        if (dto.getMaxDiscountAmount() != null) {
+            String effectiveType = dto.getDiscountType() != null
+                    ? dto.getDiscountType() : existing.getDiscountType();
+            if ("Percentage".equals(effectiveType)) {
+                existing.setMaxDiscountAmount(dto.getMaxDiscountAmount());
+            }
+        }
+        if (dto.getStartDate() != null) {
+            LocalDateTime parsed = parseDateTime(dto.getStartDate().trim());
+            if (parsed != null) {
+                existing.setStartDate(parsed);
+            }
+        }
+        if (dto.getEndDate() != null) {
+            LocalDateTime parsed = parseDateTime(dto.getEndDate().trim());
+            if (parsed != null) {
+                existing.setEndDate(parsed);
+            }
+        }
+        if (dto.getUsageLimit() != null) {
+            existing.setUsageLimit(dto.getUsageLimit());
+        }
+        if (dto.getIsActive() != null) {
+            existing.setActive(dto.getIsActive());
+        }
+    }
+
+    // ========== UTILITY HELPERS ==========
+
+    private String normalizeType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return null;
+        }
+        String t = type.trim();
+        return ("Percentage".equals(t) || "FlatAmount".equals(t)) ? t : null;
+    }
+
+    private LocalDateTime parseDateTime(String str) {
+        if (str == null || str.trim().isEmpty()) {
+            return null;
+        }
+        String s = str.trim();
+        try {
+            return LocalDateTime.parse(s);
+        } catch (DateTimeParseException e1) {
+            try {
+                return LocalDateTime.parse(s, FORM_FORMATTER);
+            } catch (DateTimeParseException e2) {
+                return null;
+            }
+        }
+    }
+
     private PromotionRequestDTO buildDtoFromRequest(HttpServletRequest request) {
         PromotionRequestDTO dto = new PromotionRequestDTO();
         dto.setPromotionCode(request.getParameter("promotionCode"));
@@ -289,26 +658,20 @@ public class PromotionServlet extends HttpServlet {
 
         String discountValueStr = request.getParameter("discountValue");
         if (discountValueStr != null && !discountValueStr.trim().isEmpty()) {
-            try {
-                dto.setDiscountValue(new BigDecimal(discountValueStr.trim()));
-            } catch (NumberFormatException ignored) {
-            }
+            try { dto.setDiscountValue(new BigDecimal(discountValueStr.trim())); }
+            catch (NumberFormatException ignored) {}
         }
 
         String minOrderStr = request.getParameter("minOrderAmount");
         if (minOrderStr != null && !minOrderStr.trim().isEmpty()) {
-            try {
-                dto.setMinOrderAmount(new BigDecimal(minOrderStr.trim()));
-            } catch (NumberFormatException ignored) {
-            }
+            try { dto.setMinOrderAmount(new BigDecimal(minOrderStr.trim())); }
+            catch (NumberFormatException ignored) {}
         }
 
         String maxDiscountStr = request.getParameter("maxDiscountAmount");
         if (maxDiscountStr != null && !maxDiscountStr.trim().isEmpty()) {
-            try {
-                dto.setMaxDiscountAmount(new BigDecimal(maxDiscountStr.trim()));
-            } catch (NumberFormatException ignored) {
-            }
+            try { dto.setMaxDiscountAmount(new BigDecimal(maxDiscountStr.trim())); }
+            catch (NumberFormatException ignored) {}
         }
 
         dto.setStartDate(request.getParameter("startDate"));
@@ -316,24 +679,16 @@ public class PromotionServlet extends HttpServlet {
 
         String usageLimitStr = request.getParameter("usageLimit");
         if (usageLimitStr != null && !usageLimitStr.trim().isEmpty()) {
-            try {
-                dto.setUsageLimit(Integer.parseInt(usageLimitStr.trim()));
-            } catch (NumberFormatException ignored) {
-            }
+            try { dto.setUsageLimit(Integer.parseInt(usageLimitStr.trim())); }
+            catch (NumberFormatException ignored) {}
         }
 
-        // Checkbox: "on" when checked, absent (null) when unchecked
         String isActiveStr = request.getParameter("isActive");
         dto.setIsActive("on".equals(isActiveStr) || "true".equals(isActiveStr));
-
         dto.setUsedCount(parseIntParam(request.getParameter("usedCount"), 0));
-
         return dto;
     }
 
-    /**
-     * Move a flash attribute from session to request and clear it from session.
-     */
     private void transferFlash(HttpSession session, HttpServletRequest request, String key) {
         Object value = session.getAttribute(key);
         if (value != null) {
@@ -342,16 +697,10 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Return empty string if input is null, otherwise return the input.
-     */
     private String nullToEmpty(String s) {
         return s != null ? s : "";
     }
 
-    /**
-     * Parse an int from a String, returning defaultValue on failure or null.
-     */
     private int parseIntParam(String value, int defaultValue) {
         if (value == null || value.trim().isEmpty()) {
             return defaultValue;
@@ -363,30 +712,6 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Check session authorization for manager role.
-     * Redirects to login if unauthorized and returns false.
-     */
-    /*
-    private boolean checkAuthorization(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("account") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        int roleId = getRoleId(session.getAttribute("account"));
-        if (roleId != ROLE_MANAGER) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-        return true;
-    }
-    */
-
-    /**
-     * Extract roleId from account session object via reflection.
-     */
     private int getRoleId(Object account) {
         try {
             java.lang.reflect.Method m = account.getClass().getMethod("getRoleId");
@@ -400,43 +725,20 @@ public class PromotionServlet extends HttpServlet {
         return -1;
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Promotion Manager Servlet - UC43 Manage Promotion + UC44 View Promotion List";
-    }// </editor-fold>
-
+    }
 }
