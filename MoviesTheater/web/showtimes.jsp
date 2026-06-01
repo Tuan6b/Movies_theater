@@ -62,7 +62,6 @@
         <nav class="site-nav">
             <a href="${pageContext.request.contextPath}/">Trang chủ</a>
             <a href="#">Phim đang chiếu</a>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>" class="active">Lịch chiếu</a>
             <a href="#">Ưu đãi</a>
             <a href="#">Góc điện ảnh</a>
         </nav>
@@ -272,7 +271,7 @@
                                     <div class="showtime-slots-grid">
                                         <% for (clsSchedule s : roomSlots) { %>
                                             <a href="#" class="showtime-slot-btn" onclick="handleBooking(event, <%= s.getScheduleId() %>, '<%= timeFormat.format(s.getStartTime()) %>')">
-                                                <span class="showtime-slot-time"><%= timeFormat.format(s.getStartTime()) %></span>
+                                                <span class="showtime-slot-time"><%= timeFormat.format(s.getStartTime()) %></span> 
                                                 <span class="showtime-slot-price"><%= String.format("%,.0f", s.getBaseTicketPrice()) %> đ</span>
                                             </a>
                                         <% } %>
