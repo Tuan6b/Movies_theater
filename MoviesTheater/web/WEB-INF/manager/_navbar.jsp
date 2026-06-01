@@ -8,12 +8,14 @@
         </a>
         <div class="navbar-sep"></div>
         <div class="navbar-links">
-            <a href="${pageContext.request.contextPath}/manager"
-               class="nlink ${activeNav eq 'dashboard' ? 'active' : ''}">Dashboard</a>
-            <a href="${pageContext.request.contextPath}/RoomServlet"
-               class="nlink ${activeNav eq 'rooms' ? 'active' : ''}">Phòng chiếu</a>
+               <a href="${pageContext.request.contextPath}/manager"
+               class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Dashboard</a>
+               <a href="${pageContext.request.contextPath}/RoomServlet"
+               class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Khuyến mãi</a>
             <a href="${pageContext.request.contextPath}/manager/promotions"
-               class="nlink done ${activeNav eq 'promotions' ? 'active' : ''}">Khuyến mãi</a>
+               class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Khuyến mãi</a>
+            <a href="${pageContext.request.contextPath}/admin/genre"
+               class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Thể loai phim</a>
         </div>
         <div class="navbar-end">
             <span class="navbar-role">Manager</span>

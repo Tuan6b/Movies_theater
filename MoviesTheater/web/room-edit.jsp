@@ -1,109 +1,108 @@
-<%-- 
-    Document   : room-edit
-    Created on : May 24, 2026, 10:29:51 PM
-    Author     : Tuan Phong Nguyen
---%>
-
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="com.cinema.model.Room"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="com.cinema.model.Room" %>
 <%
     Room room = (Room) request.getAttribute("room");
     String origPage = (String) request.getAttribute("currentPage");
-    if (origPage == null) {
-        origPage = request.getParameter("page");
-    }
+    if (origPage == null) origPage = request.getParameter("page");
     if (origPage == null || origPage.isEmpty()) origPage = "1";
+    request.setAttribute("origPage", origPage);
+    request.setAttribute("activeNav", "rooms");
 %>
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type"
-              content="text/html; charset=UTF-8">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Room — CGV Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
+</head>
+<body class="cgv-body">
 
-        <title>Edit Room</title>
-    </head>
+<%@ include file="WEB-INF/manager/_sidebar.jsp" %>
 
-    <body>
+<div class="cgv-main">
 
-        <% if ("capacity_invalid".equals(request.getParameter("error"))) { %>
-        <script>alert('Capacity must be greater than 0!');</script>
-        <% } %>
+    <header class="cgv-header">
+        <h1 class="cgv-header-title">Edit Room</h1>
+        <div class="cgv-header-right">
+            <div class="cgv-header-actions">
+                <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}"
+                   class="btn--cgv-outline" style="margin-right:8px;">
+                    ← Back to Rooms
+                </a>
+                <div class="cgv-header-divider"></div>
+                <div class="cgv-user-wrap">
+                    <div class="cgv-avatar">MG</div>
+                    <span class="cgv-user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
+                            <c:otherwise>Manager</c:otherwise>
+                        </c:choose>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        <h1>Edit Room</h1>
+    <div class="cgv-page">
+        <div class="cgv-list-wrap" style="max-width:640px;">
 
-        <form action="RoomServlet?page=<%= origPage %>" method="post">
+            <c:if test="${param.error eq 'capacity_invalid'}">
+                <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
+            </c:if>
 
-            <input type="hidden" name="action" value="update">
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
+                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+                    ROOM DETAILS
+                </div>
 
-            <input type="hidden"
-                   name="roomId"
-                   value="<%= room.getRoomId() %>">
+                <form action="${pageContext.request.contextPath}/RoomServlet?page=${origPage}" method="post">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="roomId" value="${room.roomId}">
 
-            <div>
-                <label>Room Number</label><br>
-                <input type="text"
-                       name="roomNumber"
-                       value="<%= room.getRoomNumber() %>"
-                       required>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Room Number</label>
+                        <input class="cgv-input" type="text" name="roomNumber"
+                               value="${room.roomNumber}" required>
+                    </div>
+
+                    <div class="cgv-field">
+                        <label class="cgv-label">Room Type</label>
+                        <select class="cgv-select" name="roomType">
+                            <option value="2D"   ${room.roomType eq '2D'   ? 'selected' : ''}>2D</option>
+                            <option value="3D"   ${room.roomType eq '3D'   ? 'selected' : ''}>3D</option>
+                            <option value="IMAX" ${room.roomType eq 'IMAX' ? 'selected' : ''}>IMAX</option>
+                            <option value="4DX"  ${room.roomType eq '4DX'  ? 'selected' : ''}>4DX</option>
+                            <option value="VIP"  ${room.roomType eq 'VIP'  ? 'selected' : ''}>VIP</option>
+                        </select>
+                    </div>
+
+                    <div class="cgv-field">
+                        <label class="cgv-label">Capacity</label>
+                        <input class="cgv-input" type="number" name="capacity"
+                               value="${room.capacity}" min="1" required>
+                    </div>
+
+                    <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
+                        <input type="checkbox" name="active" id="activeCheck"
+                               ${room.active ? 'checked' : ''}
+                               style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
+                        <label class="cgv-label" for="activeCheck" style="margin-bottom:0;cursor:pointer;">
+                            Active (uncheck to deactivate)
+                        </label>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:24px;">
+                        <button type="submit" class="btn--cgv">Save Changes</button>
+                        <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}"
+                           class="btn--cgv-outline">Cancel</a>
+                    </div>
+                </form>
             </div>
 
-            <br>
-
-            <div>
-                <label>Room Type</label><br>
-                <select name="roomType">
-
-                    <option value="2D"
-                            <%= room.getRoomType().equals("2D") ? "selected" : "" %>>
-                        2D
-                    </option>
-
-                    <option value="3D"
-                            <%= room.getRoomType().equals("3D") ? "selected" : "" %>>
-                        3D
-                    </option>
-
-                    <option value="IMAX"
-                            <%= room.getRoomType().equals("IMAX") ? "selected" : "" %>>
-                        IMAX
-                    </option>
-
-                    <option value="VIP"
-                            <%= room.getRoomType().equals("VIP") ? "selected" : "" %>>
-                        VIP
-                    </option>
-
-                </select>
-            </div>
-
-            <br>
-
-            <div>
-                <label>Capacity</label><br>
-                <input type="number"
-                       name="capacity"
-                       value="<%= room.getCapacity() %>"
-                       required>
-            </div>
-
-            <br>
-
-            <div>
-                <label>
-                    <input type="checkbox"
-                           name="active"
-                           <%= room.isActive() ? "checked" : "" %>>
-                    Active
-                </label>
-            </div>
-
-            <br>
-
-            <button type="submit">Update Room</button>
-
-            <a href="RoomServlet?page=<%= origPage %>">Back</a>
-
-        </form>
-
-    </body>
+        </div>
+    </div>
+</div>
+</body>
 </html>

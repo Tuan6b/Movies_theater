@@ -10,7 +10,6 @@
         <servlet-name>ManagerServlet</servlet-name>
         <url-pattern>/manager</url-pattern>
     </servlet-mapping>
-
     <servlet>
         <servlet-name>PromotionServlet</servlet-name>
         <servlet-class>com.cinema.controller.PromotionServlet</servlet-class>
@@ -35,10 +34,9 @@
         <servlet-name>ShowtimeServlet</servlet-name>
         <url-pattern>/showtimes</url-pattern>
     </servlet-mapping>
-
     <servlet>
         <servlet-name>GenreController</servlet-name>
-        <servlet-class>Controller.GenreController</servlet-class>
+        <servlet-class>com.cinema.controller.GenreController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>GenreController</servlet-name>

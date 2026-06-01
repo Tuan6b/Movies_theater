@@ -1,11 +1,12 @@
-package dao;
+package com.cinema.dao;
 
-import model.Genre;
+import com.cinema.model.Genre;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.cinema.util.DBContext;
 
 /**
  * Data Access Object (DAO) for the Genre entity.
