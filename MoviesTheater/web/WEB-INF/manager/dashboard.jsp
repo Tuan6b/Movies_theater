@@ -63,7 +63,7 @@
                     <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Thêm, sửa, ẩn phim và quản lý thể loại</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <a href="${pageContext.request.contextPath}/manager/movies" class="btn--cgv-outline">Danh sách phim</a>
-                        <a href="${pageContext.request.contextPath}/admin/genre" class="btn--cgv-outline">Thể loại</a>
+                        <a href="${pageContext.request.contextPath}/manager/genre" class="btn--cgv-outline">Thể loại</a>
                     </div>
                 </div>
 
@@ -74,7 +74,7 @@
                         <a href="${pageContext.request.contextPath}/RoomServlet" class="btn--cgv-outline">Danh sách phòng</a>
                     </div>
                 </div>
-
+8   
                 <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
                     <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Lịch chiếu</div>
                     <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Tạo, sửa và huỷ các suất chiếu</div>
