@@ -54,11 +54,14 @@ public class LoginGoogleController extends HttpServlet {
                     return;
                 }
 
-                String email = getUserEmail(accessToken);
-                if (email == null) {
+                JsonObject userInfo = getUserInfo(accessToken);
+                if (userInfo == null || !userInfo.has("email")) {
                     response.sendRedirect(request.getContextPath() + "/Login");
                     return;
                 }
+
+                String email = userInfo.get("email").getAsString();
+                String fullName = userInfo.has("name") ? userInfo.get("name").getAsString() : email.substring(0, email.indexOf('@'));
 
                 Account account = accountDAO.getAccountByEmail(email);
                 if (account == null) {
@@ -66,6 +69,7 @@ public class LoginGoogleController extends HttpServlet {
                     account.setEmail(email);
                     account.setPassword("");
                     account.setRoleId(2);
+                    account.setFullName(fullName);
                     int id = accountDAO.register(account);
                     if (id > 0) {
                         account = accountDAO.getAccountById(id);
@@ -111,7 +115,7 @@ public class LoginGoogleController extends HttpServlet {
         return obj.has("access_token") ? obj.get("access_token").getAsString() : null;
     }
 
-    private String getUserEmail(String accessToken) throws Exception {
+    private JsonObject getUserInfo(String accessToken) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(GoogleOAuthConfig.USERINFO_URL))
@@ -122,7 +126,6 @@ public class LoginGoogleController extends HttpServlet {
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
         String json = new String(response.body().readAllBytes(), StandardCharsets.UTF_8);
 
-        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
-        return obj.has("email") ? obj.get("email").getAsString() : null;
+        return JsonParser.parseString(json).getAsJsonObject();
     }
 }
