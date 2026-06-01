@@ -52,8 +52,9 @@
 </header>
 
 <!-- Hero -->
-<section class="hero fade-up">
-    <div class="hero-inner">
+<section class="hero fade-up" style="background-image: url('${pageContext.request.contextPath}/Image/Hero/cgv-trang-tien-plaza.png'); background-size: cover; background-position: center; position: relative;">
+    <div style="position:absolute;inset:0;background:linear-gradient(155deg,rgba(5,0,0,0.90) 0%,rgba(30,0,0,0.82) 45%,rgba(130,0,0,0.68) 100%);pointer-events:none;z-index:0;"></div>
+    <div class="hero-inner" style="position:relative;z-index:1;">
         <div class="hero-eyebrow">Hệ thống rạp chiếu phim hàng đầu Việt Nam</div>
         <h1 class="hero-title">Trải nghiệm<br>điện ảnh<br>đỉnh cao</h1>
         <p class="hero-sub">Đặt vé ngay hôm nay — chọn phim, chọn ghế, thanh toán trong 60 giây.</p>
