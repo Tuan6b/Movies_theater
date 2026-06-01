@@ -41,6 +41,10 @@
                 <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
             </c:if>
 
+            <c:if test="${param.error eq 'room_number_exists'}">
+                <div class="cgv-alert cgv-alert-danger">Room number already exists. Please use a different room number.</div>
+            </c:if>
+
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
                     <a href="RoomServlet" class="cgv-pill active">All Rooms</a>

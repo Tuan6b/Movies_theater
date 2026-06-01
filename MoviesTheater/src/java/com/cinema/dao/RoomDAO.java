@@ -231,6 +231,37 @@ public class RoomDAO extends DBContext {
     }
 
     /**
+     * Check whether a room number already exists in the database
+     *
+     * @param roomNumber the room number to check
+     * @return true if a room with the given number already exists
+     */
+    public boolean isRoomNumberExists(String roomNumber) {
+
+        String sql = """
+                     SELECT COUNT(*)
+                     FROM Room
+                     WHERE RoomNumber = ?
+                     """;
+
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+
+            stm.setString(1, roomNumber);
+
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
      * Count the total number of room records in the database
      * @return total row count of Room table
      */
