@@ -29,7 +29,6 @@
         <nav class="site-nav">
             <a href="${pageContext.request.contextPath}/" class="active">Trang chủ</a>
             <a href="#">Phim đang chiếu</a>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>">Lịch chiếu</a>
             <a href="#">Ưu đãi</a>
             <a href="#">Góc điện ảnh</a>
         </nav>
@@ -61,8 +60,7 @@
         <div class="hero-actions">
             <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>"
                class="btn btn-primary btn-lg">Đặt vé ngay</a>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>"
-               class="btn btn-outline-light btn-lg">Lịch chiếu hôm nay</a>
+           
         </div>
 
         <div class="hero-stats">
