@@ -524,3 +524,4 @@ a:hover { text-decoration: underline; }
     .experience-grid { grid-template-columns: 1fr; }
     .movie-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
