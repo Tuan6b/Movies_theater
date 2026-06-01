@@ -49,6 +49,7 @@
                     <input type="checkbox" name="remember">
                     <span>Ghi nhớ đăng nhập</span>
                 </label>
+                <a href="${pageContext.request.contextPath}/forgot-password" class="auth-forgot">Quên mật khẩu?</a>
             </div>
 
             <button type="submit" class="auth-btn">Đăng nhập</button>

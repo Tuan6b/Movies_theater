@@ -20,6 +20,7 @@ public class AuthFilter extends HttpFilter implements Filter {
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
             "/Login", "/Register", "/login.jsp", "/register.jsp",
             "/LoginGoogle", "/LoginGoogle/",
+            "/forgot-password", "/new-password",
             "/css/", "/Image/", "/js/",
             "/showtimes", "/RoomServlet",
             "/admin/genre",
