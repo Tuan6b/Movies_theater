@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="com.cinema.dao.tbMovie" %>
 <%@ page import="com.cinema.model.clsMovie" %>
 <%@ page import="java.util.List" %>
@@ -34,8 +35,18 @@
         </nav>
 
         <div class="site-header-actions">
-            <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
-            <a href="${pageContext.request.contextPath}/Register" class="btn btn-primary">Đăng ký</a>
+            <c:choose>
+                <c:when test="${not empty sessionScope.account}">
+                    <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
+                        Xin chào, <strong>${sessionScope.account.fullName}</strong>
+                    </span>
+                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/Register" class="btn btn-primary">Đăng ký</a>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 </header>
