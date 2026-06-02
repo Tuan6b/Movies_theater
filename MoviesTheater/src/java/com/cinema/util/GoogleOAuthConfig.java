@@ -2,8 +2,8 @@ package com.cinema.util;
 
 public class GoogleOAuthConfig {
 
-    public static final String CLIENT_ID = System.getenv().getOrDefault("GOOGLE_CLIENT_ID", "");
-    public static final String CLIENT_SECRET = System.getenv().getOrDefault("GOOGLE_CLIENT_SECRET", "");
+    public static final String CLIENT_ID = "900589394450-iu48et791q5ibg09n1vepdrus59m5j29.apps.googleusercontent.com";
+    public static final String CLIENT_SECRET = "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";
     public static final String REDIRECT_URI = "http://localhost:8080/MoviesTheater/LoginGoogle/callback";
     public static final String SCOPE = "openid email profile";
 
