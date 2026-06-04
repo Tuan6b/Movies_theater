@@ -1,5 +1,5 @@
 /* ============================================================
-   AUTH (Login / Register / Forgot / Change Password)
+   REGISTER — CGV Cinema
    ============================================================ */
 
 .auth-body {
@@ -105,36 +105,6 @@
     justify-content: center;
 }
 
-.auth-success {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #166534;
-    margin-bottom: 20px;
-    line-height: 1.4;
-}
-
-.auth-success::before {
-    content: "✓";
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #16a34a;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -227,30 +197,6 @@
     background: rgba(94,63,58,0.06);
 }
 
-.auth-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 2px;
-}
-
-.auth-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--cgv-text-muted);
-    cursor: pointer;
-    user-select: none;
-}
-
-.auth-checkbox input[type="checkbox"] {
-    width: 17px;
-    height: 17px;
-    accent-color: var(--cgv-red);
-    cursor: pointer;
-}
-
 .auth-btn {
     position: relative;
     overflow: hidden;
@@ -330,70 +276,6 @@
     transform: none;
 }
 
-/* === Divider + Google === */
-.auth-divider {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: 20px 0;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--cgv-border));
-}
-
-.auth-divider::after {
-    background: linear-gradient(to left, transparent, var(--cgv-border));
-}
-
-.auth-divider span {
-    font-size: 11px;
-    color: var(--cgv-text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600;
-}
-
-.auth-btn-google {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    height: 48px;
-    border: 2px solid var(--cgv-border);
-    border-radius: 12px;
-    background: #fff;
-    color: var(--cgv-text);
-    font-size: 14px;
-    font-weight: 600;
-    font-family: var(--font-body);
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        border-color var(--dur) var(--ease),
-        box-shadow var(--dur) var(--ease),
-        background var(--dur) var(--ease),
-        transform 0.2s ease;
-    user-select: none;
-}
-
-.auth-btn-google:hover {
-    border-color: #4285F4;
-    background: #f8faff;
-    box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
-    transform: translateY(-1px);
-    text-decoration: none;
-}
-
-.auth-btn-google:active {
-    transform: scale(0.98);
-}
-
 /* === Footer === */
 .auth-footer {
     text-align: center;
@@ -429,19 +311,6 @@
 .auth-back:hover {
     color: var(--cgv-text-muted);
     text-decoration: none;
-}
-
-.auth-forgot {
-    font-size: 13px;
-    color: var(--cgv-red);
-    text-decoration: none;
-    font-weight: 500;
-    transition: opacity var(--dur) var(--ease);
-}
-
-.auth-forgot:hover {
-    opacity: 0.8;
-    text-decoration: underline;
 }
 
 /* === Field-level validation states === */
@@ -508,5 +377,4 @@
     .auth-card { padding: 32px 24px 28px; border-radius: 16px; }
     .auth-title { font-size: 18px; }
     .auth-btn { height: 48px; font-size: 14px; }
-    .auth-btn-google { height: 46px; font-size: 13px; }
 }
