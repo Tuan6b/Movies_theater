@@ -31,19 +31,20 @@ public class tbMovie {
     private clsMovie mapRow(ResultSet rs) throws SQLException {
         clsMovie movie = new clsMovie();
         movie.setMovieId(rs.getInt("MovieID"));
-        movie.setMovieName(rs.getNString("MovieName"));
-        movie.setDescription(rs.getNString("Description"));
+        movie.setMovieName(rs.getString("MovieName"));
+        movie.setDescription(rs.getString("Description"));
         movie.setDuration(rs.getInt("Duration"));
         movie.setReleaseDate(rs.getDate("ReleaseDate"));
         movie.setPoster(rs.getString("Poster"));
         movie.setTrailer(rs.getString("Trailer"));
-        movie.setLanguage(rs.getNString("Language"));
-        movie.setSubtitle(rs.getNString("Subtitle"));
-        movie.setDirector(rs.getNString("Director"));
-        movie.setCast(rs.getNString("Cast"));
-        movie.setCountry(rs.getNString("Country"));
+        movie.setLanguage(rs.getString("Language"));
+        movie.setSubtitle(rs.getString("Subtitle"));
+        movie.setDirector(rs.getString("Director"));
+        movie.setCast(rs.getString("Cast"));
+        movie.setCountry(rs.getString("Country"));
         movie.setAgeRestriction(rs.getInt("AgeRestriction"));
         movie.setActive(rs.getBoolean("IsActive"));
+        
         return movie;
     }
 
@@ -91,5 +92,56 @@ public class tbMovie {
             ex.printStackTrace();
         }
         return null;
+    }
+    
+    /**
+     * Insert a new movie into the database
+     * 
+     * @param movie clsMovie object containing new movie data
+     * @return boolean true if success, false if failed
+     */
+    public boolean insertMovie(clsMovie movie) {
+        String sql = "INSERT INTO Movie (MovieName, Description, Duration, ReleaseDate, Poster, Trailer, "
+                + "Language, Subtitle, Director, Cast, Country, AgeRestriction, IsActive) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            
+            ps.setNString(1, movie.getMovieName());
+            ps.setNString(2, movie.getDescription());
+            ps.setInt(3, movie.getDuration());
+            ps.setDate(4, movie.getReleaseDate());
+            ps.setString(5, movie.getPoster());
+            ps.setString(6, movie.getTrailer());
+            ps.setNString(7, movie.getLanguage());
+            ps.setNString(8, movie.getSubtitle());
+            ps.setNString(9, movie.getDirector());
+            ps.setNString(10, movie.getCast());
+            ps.setNString(11, movie.getCountry());
+            ps.setInt(12, movie.getAgeRestriction());
+            ps.setBoolean(13, movie.isActive());
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public List<clsMovie> getAllMoviesAdmin() {
+        List<clsMovie> list = new ArrayList<>();
+        String sql = "SELECT * FROM Movie ORDER BY MovieID DESC";
+        
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
     }
 }
