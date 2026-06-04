@@ -14,23 +14,26 @@
 
         <aside class="cgv-sidebar">
             <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/admin/dashboard">
+                <a href="${pageContext.request.contextPath}/">
                     <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
                 </a>
             </div>
 
             <nav class="cgv-nav">
-                <a href="#" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
                     <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/movie" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link">
                     <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/schedule" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
                     <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/genre" class="cgv-nav-link active">
+                <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link active">
                     <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
+                </a>
+                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
+                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
                 </a>
             </nav>
 
@@ -103,7 +106,7 @@
                                         <td style="font-weight: 600; color: rgba(94,63,58,0.7);">#${g.genreID}</td>
 
                                         <td>
-                                            <form action="${pageContext.request.contextPath}/admin/genre" method="POST" style="display: flex; gap: 8px; align-items: center;">
+                                            <form action="${pageContext.request.contextPath}/GenreController" method="POST" style="display: flex; gap: 8px; align-items: center;">
                                                 <input type="hidden" name="action" value="edit">
                                                 <input type="hidden" name="genreID" value="${g.genreID}">
                                                 <input type="text" name="genreName" value="${g.genreName}" class="cgv-input" style="height: 36px;" required>
@@ -116,7 +119,7 @@
                                         </td>
 
                                         <td style="text-align: right; padding-right: 24px;">
-                                            <form action="${pageContext.request.contextPath}/admin/genre" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thể loại này?');">
+                                            <form action="${pageContext.request.contextPath}/GenreController" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thể loại này?');">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="genreID" value="${g.genreID}">
                                                 <button type="submit" class="btn btn--ghost" style="color: var(--cgv-red); padding: 0;">Xóa</button>
@@ -140,7 +143,7 @@
 
                     <div>
                         <h3 class="cgv-aside-heading">Thêm Thể loại Mới</h3>
-                        <form action="${pageContext.request.contextPath}/admin/genre" method="POST">
+                        <form action="${pageContext.request.contextPath}/GenreController" method="POST">
                             <input type="hidden" name="action" value="add">
 
                             <div class="cgv-field">

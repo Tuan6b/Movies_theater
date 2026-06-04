@@ -3,9 +3,11 @@
 <aside class="cgv-sidebar">
 
     <div class="cgv-sidebar-top">
-        <img class="cgv-logo"
-             src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
-             alt="CGV Cinema">
+        <a href="${pageContext.request.contextPath}/">
+            <img class="cgv-logo"
+                 src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
+                 alt="CGV Cinema">
+        </a>
     </div>
 
     <nav class="cgv-nav">

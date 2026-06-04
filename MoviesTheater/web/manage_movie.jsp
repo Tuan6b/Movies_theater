@@ -14,23 +14,26 @@
 
         <aside class="cgv-sidebar">
             <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/DashboardController">
+                <a href="${pageContext.request.contextPath}/">
                     <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
                 </a>
             </div>
 
             <nav class="cgv-nav">
-                <a href="${pageContext.request.contextPath}/DashboardController" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
                     <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
                 </a>
                 <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link active">
                     <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
                 </a>
-                <a href="${pageContext.request.contextPath}/ScheduleController" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
                     <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
                 </a>
                 <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link">
                     <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
+                </a>
+                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
+                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
                 </a>
             </nav>
 
@@ -38,7 +41,7 @@
                 <a href="#" class="cgv-nav-link">
                     <i class="fa-solid fa-gear cgv-nav-icon"></i> Cài đặt
                 </a>
-                <a href="${pageContext.request.contextPath}/LogoutController" class="cgv-nav-link" style="color: var(--cgv-red);">
+                <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link" style="color: var(--cgv-red);">
                     <i class="fa-solid fa-arrow-right-from-bracket cgv-nav-icon"></i> Đăng xuất
                 </a>
             </div>

@@ -19,23 +19,26 @@
 
         <aside class="cgv-sidebar">
             <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/admin/dashboard">
+                <a href="${pageContext.request.contextPath}/">
                     <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
                 </a>
             </div>
 
             <nav class="cgv-nav">
-                <a href="#" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
                     <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/movie" class="cgv-nav-link active">
+                <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link active">
                     <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/schedule" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
                     <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
                 </a>
-                <a href="${pageContext.request.contextPath}/admin/genre" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link">
                     <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
+                </a>
+                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
+                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
                 </a>
             </nav>
 
@@ -55,7 +58,7 @@
                 <h1 class="cgv-header-title">Thêm Phim Mới</h1>
 
                 <div class="cgv-header-right">
-                    <a href="${pageContext.request.contextPath}/admin/movie" class="btn--cgv-outline">
+                    <a href="${pageContext.request.contextPath}/MovieController" class="btn--cgv-outline">
                         <i class="fa-solid fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -66,7 +69,7 @@
                     
                     <h2 class="cgv-page-title" style="margin-bottom: 24px;">Thông tin chi tiết</h2>
                     
-                    <form action="${pageContext.request.contextPath}/admin/movie" method="POST">
+                    <form action="${pageContext.request.contextPath}/MovieController" method="POST">
                         <input type="hidden" name="action" value="add">
                         
                         <div class="cgv-form-grid">
