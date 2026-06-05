@@ -28,6 +28,9 @@ public class PasswordHash {
     public static boolean verify(String password, String storedHash) {
         try {
             byte[] hashWithSalt = Base64.getDecoder().decode(storedHash);
+            if (hashWithSalt.length <= 16) {
+                return false;
+            }
             byte[] salt = new byte[16];
             byte[] storedHashBytes = new byte[hashWithSalt.length - 16];
             System.arraycopy(hashWithSalt, 0, salt, 0, 16);
@@ -40,7 +43,7 @@ public class PasswordHash {
             return MessageDigest.isEqual(computedHash, storedHashBytes);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not available", e);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return false;
         }
     }

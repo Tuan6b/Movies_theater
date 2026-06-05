@@ -45,7 +45,10 @@
             </div>
 
             <div class="auth-row">
-                
+                <label class="auth-checkbox">
+                    <input type="checkbox" name="remember" value="on">
+                    Ghi nhớ đăng nhập
+                </label>
                 <a href="${pageContext.request.contextPath}/forgot-password" class="auth-forgot">Quên mật khẩu?</a>
             </div>
 

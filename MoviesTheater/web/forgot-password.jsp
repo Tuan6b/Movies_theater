@@ -24,8 +24,28 @@
         <% } %>
 
         <% String message = (String) request.getAttribute("message"); %>
+        <% Long expirySeconds = (Long) request.getAttribute("expirySeconds"); %>
         <% if (message != null) { %>
             <div class="auth-success"><%= message %></div>
+            <div id="countdown" style="text-align:center;font-size:13px;color:var(--cgv-text-muted);margin-top:12px;"></div>
+            <script>
+                var totalSec = <%= expirySeconds != null ? expirySeconds : 3600 %>;
+                var cd = document.getElementById("countdown");
+                function updateCountdown() {
+                    if (totalSec <= 0) {
+                        cd.innerHTML = "Link đã hết hạn.";
+                        cd.style.color = "#b91c1c";
+                        return;
+                    }
+                    var m = Math.floor(totalSec / 60);
+                    var s = totalSec % 60;
+                    cd.innerHTML = "Link hết hạn sau: <strong>" +
+                        String(m).padStart(2, '0') + ":" + String(s).padStart(2, '0') + "</strong>";
+                    totalSec--;
+                }
+                updateCountdown();
+                setInterval(updateCountdown, 1000);
+            </script>
         <% } else { %>
         <form action="${pageContext.request.contextPath}/forgot-password" method="post" class="auth-form">
             <p style="font-size:13px;color:var(--cgv-text-muted);margin-bottom:8px;">

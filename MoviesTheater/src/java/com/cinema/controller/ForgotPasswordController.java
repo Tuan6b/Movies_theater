@@ -47,6 +47,8 @@ public class ForgotPasswordController extends HttpServlet {
 
         String resetLink = request.getRequestURL().toString().replace("/forgot-password", "/new-password")
                 + "?token=" + token;
+        long expirySeconds = java.time.Duration.between(LocalDateTime.now(), expiry).getSeconds();
+        request.setAttribute("expirySeconds", expirySeconds);
         request.setAttribute("message", "Link đặt lại mật khẩu đã được tạo.<br>"
                 + "<a href=\"" + resetLink + "\" style=\"color:#bd0000;\">Nhấp vào đây để đặt lại mật khẩu</a>");
         request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
