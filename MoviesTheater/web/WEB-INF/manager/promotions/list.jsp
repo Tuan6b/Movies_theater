@@ -18,14 +18,6 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">Promotions</h1>
         <div class="cgv-header-right">
-            <div class="cgv-search-wrap">
-                <svg class="cgv-search-icon" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input class="cgv-search" type="text" placeholder="Search promotions..." value="${param.keyword}">
-            </div>
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
@@ -54,10 +46,10 @@
 
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
-                    <a href="?status=all"      class="cgv-pill ${empty param.status || param.status eq 'all'     ? 'active' : ''}">All</a>
-                    <a href="?status=active"   class="cgv-pill ${param.status eq 'active'   ? 'active' : ''}">Active</a>
+                    <a href="?status="        class="cgv-pill ${empty param.status ? 'active' : ''}">All</a>
                     <a href="?status=upcoming" class="cgv-pill ${param.status eq 'upcoming' ? 'active' : ''}">Upcoming</a>
-                    <a href="?status=ended"    class="cgv-pill ${param.status eq 'ended'    ? 'active' : ''}">Ended</a>
+                    <a href="?status=active"   class="cgv-pill ${param.status eq 'active'   ? 'active' : ''}">Active</a>
+                    <a href="?status=expired"  class="cgv-pill ${param.status eq 'expired'  ? 'active' : ''}">Expired</a>
                 </div>
                 <a href="${pageContext.request.contextPath}/manager/promotions?action=add" class="btn--cgv">
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none"
@@ -109,10 +101,16 @@
                                             </code>
                                         </td>
                                         <td style="font-weight:500;">${p.description}</td>
-                                        <td style="color:rgba(94,63,58,0.7);">${p.discountType}</td>
+                                        <td style="color:rgba(94,63,58,0.7);">
+                                            <c:choose>
+                                                <c:when test="${p.discountType eq 'Percentage' or p.discountType eq 'PERCENT'}">Percentage</c:when>
+                                                <c:when test="${p.discountType eq 'FlatAmount' or p.discountType eq 'FIXED'}">Fixed Amount</c:when>
+                                                <c:otherwise>${p.discountType}</c:otherwise>
+                                            </c:choose>
+                                        </td>
                                         <td style="font-weight:600;">
                                             <c:choose>
-                                                <c:when test="${p.discountType eq 'PERCENT'}">${p.discountValue}%</c:when>
+                                                <c:when test="${p.discountType eq 'Percentage' or p.discountType eq 'PERCENT'}">${p.discountValue}%</c:when>
                                                 <c:otherwise>${p.discountValue} VND</c:otherwise>
                                             </c:choose>
                                         </td>
@@ -120,7 +118,7 @@
                                         <td style="font-size:13px;">${p.endDateDisplay}</td>
                                         <td>${p.usedCount} / ${not empty p.usageLimit ? p.usageLimit : '∞'}</td>
                                         <td>
-                                            <span class="cgv-badge ${p.status eq 'active' ? 'active' : p.status eq 'upcoming' ? 'upcoming' : 'inactive'}">
+                                            <span class="cgv-badge ${p.status eq 'active' ? 'active' : p.status eq 'upcoming' ? 'upcoming' : p.status eq 'expired' ? 'danger' : 'inactive'}">
                                                 ${p.status}
                                             </span>
                                         </td>
@@ -133,7 +131,7 @@
                                                     <input type="hidden" name="promotionId" value="${p.promotionId}">
                                                     <button type="submit" class="btn--cgv-outline"
                                                             style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                            onclick="return confirm('Delete promotion ${p.promotionCode}?')">Delete</button>
+                                                            onclick="return confirm('Delete promotion ${p.promotionCode}?')">deactivate</button>
                                                 </form>
                                             </div>
                                         </td>

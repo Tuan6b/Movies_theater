@@ -27,7 +27,7 @@ public class PromotionServlet extends HttpServlet {
     private final PromotionDAO promotionDAO = new PromotionDAO();
 
     private static final int ROLE_MANAGER = 4;
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 5;
     private static final DateTimeFormatter FORM_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final String LIST_JSP = "/WEB-INF/manager/promotions/list.jsp";
@@ -37,7 +37,7 @@ public class PromotionServlet extends HttpServlet {
 
     // ========== INNER DTO CLASSES ==========
 
-    public static class PromotionRequestDTO {
+    public static class PromotionRequestDTO { 
         private String promotionCode;
         private String description;
         private String discountType;
@@ -116,6 +116,9 @@ public class PromotionServlet extends HttpServlet {
             LocalDateTime now = LocalDateTime.now();
             if (p.getEndDate() != null && p.getEndDate().isBefore(now)) {
                 return "expired";
+            }
+            if (p.getStartDate() != null && p.getStartDate().isAfter(now)) {
+                return "upcoming";
             }
             return p.isActive() ? "active" : "inactive";
         }
@@ -574,10 +577,12 @@ public class PromotionServlet extends HttpServlet {
                 ? dto.getMinOrderAmount() : BigDecimal.ZERO);
         p.setMaxDiscountAmount("Percentage".equals(dto.getDiscountType())
                 ? dto.getMaxDiscountAmount() : null);
-        p.setStartDate(parseDateTime(dto.getStartDate().trim()));
+        LocalDateTime startDate = parseDateTime(dto.getStartDate().trim());
+        p.setStartDate(startDate);
         p.setEndDate(parseDateTime(dto.getEndDate().trim()));
         p.setUsageLimit(dto.getUsageLimit());
-        p.setActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+        // Auto-determine: upcoming promotions (startDate in the future) are inactive until the scheduler activates them
+        p.setActive(startDate != null && !startDate.isAfter(LocalDateTime.now()));
         return p;
     }
 

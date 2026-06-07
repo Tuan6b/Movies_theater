@@ -145,8 +145,12 @@ public class Promotion {
     }
 
     public String getStatus() {
-        if (endDate != null && endDate.isBefore(java.time.LocalDateTime.now())) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (endDate != null && endDate.isBefore(now)) {
             return "expired";
+        }
+        if (startDate != null && startDate.isAfter(now)) {
+            return "upcoming";
         }
         return active ? "active" : "inactive";
     }

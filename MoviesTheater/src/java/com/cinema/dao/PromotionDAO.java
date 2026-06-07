@@ -210,6 +210,32 @@ public class PromotionDAO {
     }
 
     /**
+     * Sync IsActive flag based on StartDate/EndDate for all promotions.
+     * Expires promotions whose end date has passed; activates promotions that have reached their start date.
+     *
+     * @throws SQLException on database error
+     */
+    public void syncStatusByDates() throws SQLException {
+        try (Connection conn = DBUtils.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE Promotion SET IsActive = 0 WHERE EndDate < GETDATE() AND IsActive = 1")) {
+                int expired = ps.executeUpdate();
+                if (expired > 0) {
+                    System.out.println("[PromotionStatusScheduler] Expired " + expired + " promotion(s).");
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE Promotion SET IsActive = 1"
+                    + " WHERE StartDate <= GETDATE() AND EndDate >= GETDATE() AND IsActive = 0")) {
+                int activated = ps.executeUpdate();
+                if (activated > 0) {
+                    System.out.println("[PromotionStatusScheduler] Activated " + activated + " promotion(s).");
+                }
+            }
+        }
+    }
+
+    /**
      * Check if a promotion is referenced by any paid invoice.
      *
      * @param promotionId the promotion ID
@@ -322,7 +348,10 @@ public class PromotionDAO {
         if (status != null && !status.trim().isEmpty()) {
             switch (status.trim().toLowerCase()) {
                 case "active":
-                    sql.append(" AND IsActive = 1 AND EndDate >= GETDATE()");
+                    sql.append(" AND IsActive = 1 AND StartDate <= GETDATE() AND EndDate >= GETDATE()");
+                    break;
+                case "upcoming":
+                    sql.append(" AND StartDate > GETDATE()");
                     break;
                 case "expired":
                     sql.append(" AND EndDate < GETDATE()");
