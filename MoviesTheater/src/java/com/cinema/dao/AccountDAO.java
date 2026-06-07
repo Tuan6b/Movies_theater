@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class AccountDAO {
 
@@ -128,6 +129,66 @@ public class AccountDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean updatePassword(int accountId, String newPassword) {
+        String sql = "UPDATE Account SET Password = ? WHERE AccountID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, PasswordHash.hash(newPassword));
+            ps.setInt(2, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateResetToken(String email, String token, LocalDateTime expiry) {
+        String sql = "UPDATE Account SET ResetToken = ?, ResetTokenExpiry = ? WHERE Email = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ps.setTimestamp(2, Timestamp.valueOf(expiry));
+            ps.setString(3, email);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Account getAccountByResetToken(String token) {
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "FROM Account a "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
+                + "WHERE a.ResetToken = ? AND a.ResetTokenExpiry > GETDATE()";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, token);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAccount(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean clearResetToken(int accountId) {
+        String sql = "UPDATE Account SET ResetToken = NULL, ResetTokenExpiry = NULL WHERE AccountID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private Account mapAccount(ResultSet rs) throws SQLException {
