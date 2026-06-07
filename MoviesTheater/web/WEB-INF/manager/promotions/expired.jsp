@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Promotions — CGV Admin</title>
+    <title>Expired Promotions — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body class="cgv-body">
@@ -16,7 +16,7 @@
 <div class="cgv-main">
 
     <header class="cgv-header">
-        <h1 class="cgv-header-title">Promotions</h1>
+        <h1 class="cgv-header-title">Expired Promotions</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
@@ -34,7 +34,6 @@
     </header>
 
     <div class="cgv-page">
-
         <div class="cgv-table-wrap">
 
             <c:if test="${not empty flashSuccess}">
@@ -46,35 +45,23 @@
 
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
-                    <a href="${pageContext.request.contextPath}/manager/promotions"
-                       class="cgv-pill active">All</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=upcoming"
-                       class="cgv-pill">Upcoming</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=active"
-                       class="cgv-pill">Active</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=expired"
-                       class="cgv-pill">Expired</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=inactive"
-                       class="cgv-pill">Inactive</a>
+                    <a href="${pageContext.request.contextPath}/manager/promotions?view=upcoming" class="cgv-pill">Upcoming</a>
+                    <a href="${pageContext.request.contextPath}/manager/promotions?view=active" class="cgv-pill">Active</a>
+                    <a href="${pageContext.request.contextPath}/manager/promotions?view=expired" class="cgv-pill active">Expired</a>
+                    <a href="${pageContext.request.contextPath}/manager/promotions?view=inactive" class="cgv-pill">Inactive</a>
                 </div>
-                <a href="${pageContext.request.contextPath}/manager/promotions?action=add" class="btn--cgv">
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none"
-                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                        <line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/>
-                    </svg>
-                    Add Promotion
-                </a>
             </div>
 
             <div class="cgv-data-wrap">
                 <div class="cgv-data-toolbar">
                     <form method="get" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <input type="hidden" name="view" value="expired">
                         <input class="cgv-input" style="max-width:220px;height:38px;"
-                               type="text" name="keyword" placeholder="Code or name…" value="${param.keyword}">
+                               type="text" name="keyword" placeholder="Code or name…" value="${keyword}">
                         <select class="cgv-select" style="max-width:160px;height:38px;" name="type">
                             <option value="">All Types</option>
-                            <option value="PERCENT" ${param.type eq 'PERCENT' ? 'selected' : ''}>Percentage</option>
-                            <option value="FIXED"   ${param.type eq 'FIXED'   ? 'selected' : ''}>Fixed Amount</option>
+                            <option value="Percentage" ${filterType eq 'Percentage' ? 'selected' : ''}>Percentage</option>
+                            <option value="FlatAmount"  ${filterType eq 'FlatAmount'  ? 'selected' : ''}>Fixed Amount</option>
                         </select>
                         <button type="submit" class="btn--cgv-outline">Filter</button>
                     </form>
@@ -90,8 +77,7 @@
                             <th>Value</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>Uses / Limit</th>
-                            <th>Status</th>
+                            <th>Total Uses</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -121,23 +107,20 @@
                                             </c:choose>
                                         </td>
                                         <td style="font-size:13px;">${p.startDateDisplay}</td>
-                                        <td style="font-size:13px;">${p.endDateDisplay}</td>
-                                        <td>${p.usedCount} / ${not empty p.usageLimit ? p.usageLimit : '∞'}</td>
+                                        <td style="font-size:13px;color:var(--cgv-red);">${p.endDateDisplay}</td>
+                                        <td style="font-weight:600;">${p.usedCount}</td>
                                         <td>
-                                            <span class="cgv-badge ${p.status eq 'active' ? 'active' : p.status eq 'upcoming' ? 'upcoming' : p.status eq 'expired' ? 'danger' : 'inactive'}">
-                                                ${p.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style="display:flex;gap:8px;">
-                                                <a href="${pageContext.request.contextPath}/manager/promotions?action=edit&id=${p.promotionId}"
-                                                   class="btn--cgv-outline">Edit</a>
+                                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                                <button type="button" class="btn--cgv-outline"
+                                                        style="color:#2e7d32;border-color:#2e7d32;"
+                                                        onclick="showExtend(${p.promotionId}, '${p.promotionCode}')">Extend</button>
                                                 <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="action" value="hardDelete">
+                                                    <input type="hidden" name="returnTo" value="expired">
                                                     <input type="hidden" name="promotionId" value="${p.promotionId}">
                                                     <button type="submit" class="btn--cgv-outline"
                                                             style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                            onclick="return confirm('Delete promotion ${p.promotionCode}?')">deactivate</button>
+                                                            onclick="return confirm('Archive and permanently delete ${p.promotionCode}?')">Archive</button>
                                                 </form>
                                             </div>
                                         </td>
@@ -145,21 +128,18 @@
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <tr><td colspan="10" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No promotions found.</td></tr>
+                                <tr><td colspan="9" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No expired promotions.</td></tr>
                             </c:otherwise>
                         </c:choose>
                     </tbody>
                 </table>
 
                 <div class="cgv-pager">
-                    <span>
-                        Showing ${not empty promotions ? promotions.size() : 0}
-                        of ${not empty totalItems ? totalItems : 0} promotions
-                    </span>
+                    <span>Showing ${not empty promotions ? promotions.size() : 0} of ${not empty totalItems ? totalItems : 0} promotions</span>
                     <div class="cgv-pager-pages">
                         <c:forEach begin="1" end="${not empty totalPages ? totalPages : 1}" var="pg">
                             <button class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
-                                    onclick="location.href='?page=${pg}&keyword=${param.keyword}&type=${param.type}'">${pg}</button>
+                                    onclick="location.href='?view=expired&page=${pg}&keyword=${keyword}&type=${filterType}'">${pg}</button>
                         </c:forEach>
                     </div>
                 </div>
@@ -168,11 +148,11 @@
 
         <aside class="cgv-aside">
             <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">OVERVIEW</div>
+                <div class="cgv-aside-heading">EXPIRED OVERVIEW</div>
                 <div class="cgv-stats-group">
                     <div>
                         <div class="cgv-stat-num">${not empty totalItems ? totalItems : '0'}</div>
-                        <div class="cgv-stat-key">TOTAL PROMOTIONS</div>
+                        <div class="cgv-stat-key">TOTAL EXPIRED</div>
                     </div>
                     <div>
                         <div class="cgv-stat-num amber">${not empty totalPages ? totalPages : '1'}</div>
@@ -183,9 +163,48 @@
                         <div class="cgv-stat-key">SHOWING</div>
                     </div>
                 </div>
+                <div style="margin-top:20px;font-size:12px;color:rgba(94,63,58,0.6);line-height:1.6;border-top:1px solid var(--cgv-border);padding-top:16px;">
+                    <strong>Extend</strong> — sets a new end date and reactivates the promotion.<br><br>
+                    <strong>Archive</strong> — permanently removes expired promotions that have no paid invoices.
+                </div>
             </div>
         </aside>
     </div>
 </div>
+
+<!-- Extend modal overlay -->
+<div id="extendOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:32px;max-width:440px;width:100%;margin:16px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:16px;">EXTEND PROMOTION</div>
+        <p style="font-size:14px;margin-bottom:20px;color:rgba(94,63,58,0.8);">
+            Set a new end date for
+            <code id="extendCode" style="background:#f3f3f3;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:1px;"></code>
+        </p>
+        <form method="post" action="${pageContext.request.contextPath}/manager/promotions">
+            <input type="hidden" name="action" value="extend">
+            <input type="hidden" name="promotionId" id="extendId">
+            <div class="cgv-field">
+                <label class="cgv-label">New End Date <span style="color:var(--cgv-red)">*</span></label>
+                <input class="cgv-input" type="datetime-local" name="newEndDate" required>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:20px;">
+                <button type="submit" class="btn--cgv">Extend &amp; Reactivate</button>
+                <button type="button" class="btn--cgv-outline" onclick="closeExtend()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showExtend(id, code) {
+    document.getElementById('extendId').value = id;
+    document.getElementById('extendCode').textContent = code;
+    document.getElementById('extendOverlay').style.display = 'flex';
+}
+function closeExtend() {
+    document.getElementById('extendOverlay').style.display = 'none';
+}
+</script>
+
 </body>
 </html>
