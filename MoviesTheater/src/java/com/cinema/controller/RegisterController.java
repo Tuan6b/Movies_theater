@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class RegisterController extends HttpServlet {
@@ -38,15 +40,17 @@ public class RegisterController extends HttpServlet {
         String confirmPassword = request.getParameter("confirmPassword");
         String phoneNumber = request.getParameter("phoneNumber");
 
-        String error = validateInput(fullName, email, password, confirmPassword);
-        if (error != null) {
-            setFormAttributes(request, fullName, email, phoneNumber, error);
+        Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword);
+        if (!fieldErrors.isEmpty()) {
+            setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);
             request.getRequestDispatcher("/register.jsp").forward(request, response);
             return;
         }
 
         if (accountDAO.isEmailExist(email.trim())) {
-            setFormAttributes(request, fullName, email, phoneNumber, "Email này đã được đăng ký.");
+            Map<String, String> emailErr = new HashMap<>();
+            emailErr.put("email", "Email này đã được đăng ký.");
+            setFormAttributes(request, fullName, email, phoneNumber, emailErr, "Email này đã được đăng ký.");
             request.getRequestDispatcher("/register.jsp").forward(request, response);
             return;
         }
@@ -69,37 +73,39 @@ public class RegisterController extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/");
         } else {
+            Map<String, String> sysErr = new HashMap<>();
+            sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
             setFormAttributes(request, fullName, email, phoneNumber,
-                    "Đăng ký thất bại. Vui lòng thử lại sau.");
+                    sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/register.jsp").forward(request, response);
         }
     }
 
-    private String validateInput(String fullName, String email, String password, String confirmPassword) {
+    private Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword) {
+        Map<String, String> errors = new HashMap<>();
         if (fullName == null || fullName.trim().isEmpty()) {
-            return "Vui lòng nhập họ tên.";
+            errors.put("fullName", "Vui lòng nhập họ tên.");
         }
         if (email == null || email.trim().isEmpty()) {
-            return "Vui lòng nhập email.";
-        }
-        if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
-            return "Email không hợp lệ.";
+            errors.put("email", "Vui lòng nhập email.");
+        } else if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
+            errors.put("email", "Email không hợp lệ.");
         }
         if (password == null || password.isEmpty()) {
-            return "Vui lòng nhập mật khẩu.";
-        }
-        if (password.length() < 6) {
-            return "Mật khẩu phải có ít nhất 6 ký tự.";
+            errors.put("password", "Vui lòng nhập mật khẩu.");
+        } else if (password.length() < 6) {
+            errors.put("password", "Mật khẩu phải có ít nhất 6 ký tự.");
         }
         if (confirmPassword == null || !confirmPassword.equals(password)) {
-            return "Xác nhận mật khẩu không khớp.";
+            errors.put("confirmPassword", "Xác nhận mật khẩu không khớp.");
         }
-        return null;
+        return errors;
     }
 
     private void setFormAttributes(HttpServletRequest request, String fullName,
-            String email, String phoneNumber, String error) {
-        request.setAttribute("error", error);
+            String email, String phoneNumber, Map<String, String> fieldErrors, String generalError) {
+        request.setAttribute("fieldErrors", fieldErrors);
+        request.setAttribute("error", generalError);
         request.setAttribute("fullName", fullName);
         request.setAttribute("email", email);
         request.setAttribute("phoneNumber", phoneNumber);
