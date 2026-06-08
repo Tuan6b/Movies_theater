@@ -6,15 +6,10 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author vjphoalac
- */
 public class MovieController extends HttpServlet {
 
     private final tbMovie movieDAO = new tbMovie();
@@ -28,16 +23,29 @@ public class MovieController extends HttpServlet {
         try {
             if ("add".equals(action)) {
                 request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+                
+            } else if ("edit".equals(action)) {
+                // UC-15: Get ID from URL, get data from the database then forward to edit_movie.jsp
+                int movieId = Integer.parseInt(request.getParameter("id"));
+                clsMovie movie = movieDAO.getMovieById(movieId);
+                request.setAttribute("movie", movie);
+                request.getRequestDispatcher("edit_movie.jsp").forward(request, response);
+                
             } else {
-                // permanently display movie list (instead of edit and soft delete movie
-                List<clsMovie> movieList = movieDAO.getAllMoviesAdmin();
+                String filter = request.getParameter("filter");
+                if (filter == null || filter.isEmpty()) {
+                    filter = "upcoming";
+                }
+                
+                List<clsMovie> movieList = movieDAO.getMoviesByFilter(filter);
                 request.setAttribute("movieList", movieList);
+                request.setAttribute("currentFilter", filter);
                 request.getRequestDispatcher("manage_movie.jsp").forward(request, response);
             }
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi tải trang: " + e.getMessage());
-            request.getRequestDispatcher("Error.jsp").forward(request, response);
+            request.getRequestDispatcher("manage_movie.jsp").forward(request, response);
         }
     }
 
@@ -49,8 +57,20 @@ public class MovieController extends HttpServlet {
         String action = request.getParameter("action");
         
         try {
-            if ("add".equals(action)) {
-                // Get data from Add Movie form
+            if ("toggleStatus".equals(action)) {
+                // UC-16: Toggle enable - disable movie
+                int movieId = Integer.parseInt(request.getParameter("movieId"));
+                boolean isSuccess = movieDAO.toggleMovieStatus(movieId);
+                
+                if (isSuccess) {
+                    request.getSession().setAttribute("success", "Đã thay đổi trạng thái hiển thị của phim!");
+                } else {
+                    request.getSession().setAttribute("error", "Lỗi: Không thể thay đổi trạng thái phim.");
+                }
+                response.sendRedirect(request.getContextPath() + "/MovieController");
+                
+            } else if ("add".equals(action) || "edit".equals(action)) {
+                // use the same data for add and edit movie
                 String movieName = request.getParameter("movieName");
                 Date releaseDate = Date.valueOf(request.getParameter("releaseDate"));
                 int duration = Integer.parseInt(request.getParameter("duration"));
@@ -63,28 +83,36 @@ public class MovieController extends HttpServlet {
                 String poster = request.getParameter("poster");
                 String trailer = request.getParameter("trailer");
                 String description = request.getParameter("description");
-                boolean isActive = request.getParameter("isActive") != null; // Checkbox
+                boolean isActive = request.getParameter("isActive") != null; // Có tick là true, không tick là false
 
-                clsMovie newMovie = new clsMovie(0, movieName, description, duration, releaseDate, 
+                clsMovie movie = new clsMovie(0, movieName, description, duration, releaseDate, 
                                               poster, trailer, language, subtitle, director, 
                                               cast, country, ageRestriction, isActive);
 
-                // Insert movie
-                boolean isSuccess = movieDAO.insertMovie(newMovie);
+                boolean isSuccess;
+                if ("add".equals(action)) {
+                    isSuccess = movieDAO.insertMovie(movie);
+                    if (isSuccess) request.getSession().setAttribute("success", "Đã thêm phim mới thành công!");
+                } else {
+                    movie.setMovieId(Integer.parseInt(request.getParameter("movieId")));
+                    isSuccess = movieDAO.updateMovie(movie);
+                    if (isSuccess) request.getSession().setAttribute("success", "Đã cập nhật thông tin phim thành công!");
+                }
 
-                // Return result
                 if (isSuccess) {
-                    request.getSession().setAttribute("success", "Đã thêm phim mới thành công!");
                     response.sendRedirect(request.getContextPath() + "/MovieController");
                 } else {
-                    request.setAttribute("error", "Không thể lưu phim vào hệ thống.");
-                    request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+                    request.setAttribute("error", "Lỗi DB: Không thể lưu thông tin phim.");
+                    request.setAttribute("movie", movie); // Giữ lại thông tin đang nhập dở
+                    String targetJSP = "add".equals(action) ? "add_movie.jsp" : "edit_movie.jsp";
+                    request.getRequestDispatcher(targetJSP).forward(request, response);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Lỗi thao tác hoặc sai định dạng dữ liệu: " + e.getMessage());
-            request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+            request.setAttribute("error", "Lỗi dữ liệu: " + e.getMessage());
+            String targetJSP = "add".equals(action) ? "add_movie.jsp" : "edit_movie.jsp";
+            request.getRequestDispatcher(targetJSP).forward(request, response);
         }
     }
 }

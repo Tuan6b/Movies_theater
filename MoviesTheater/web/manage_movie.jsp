@@ -90,10 +90,10 @@
 
                 <div class="cgv-toolbar" style="margin-bottom: 24px;">
                     <div class="cgv-pills">
-                        <a href="#" class="cgv-pill active">Tất cả phim</a>
-                        <a href="#" class="cgv-pill">Đang chiếu</a>
-                        <a href="#" class="cgv-pill">Sắp chiếu</a>
-                        <a href="#" class="cgv-pill">Đã ẩn</a>
+                        <a href="${pageContext.request.contextPath}/MovieController?filter=upcoming" class="cgv-pill ${currentFilter == 'upcoming' ? 'active' : ''}">Sắp chiếu</a>
+                        <a href="${pageContext.request.contextPath}/MovieController?filter=showing" class="cgv-pill ${currentFilter == 'showing' ? 'active' : ''}">Đang chiếu</a>
+                        <a href="${pageContext.request.contextPath}/MovieController?filter=ended" class="cgv-pill ${currentFilter == 'ended' ? 'active' : ''}">Đã chiếu</a>
+                        <a href="${pageContext.request.contextPath}/MovieController?filter=hidden" class="cgv-pill ${currentFilter == 'hidden' ? 'active' : ''}">Đã ẩn</a>
                     </div>
                 </div>
 
@@ -115,8 +115,15 @@
                                     <td style="font-weight: 600; color: rgba(94,63,58,0.7);">#${m.movieId}</td>
                                     
                                     <td>
-                                        <div style="width: 48px; height: 68px; border-radius: 4px; overflow: hidden; background: #e8e0df;">
-                                            <img src="${m.poster}" alt="Poster" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div style="width: 48px; height: 68px; border-radius: 4px; overflow: hidden; background: #e8e0df; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10px; color: #888; padding: 2px;">
+                                            <c:choose>
+                                                <c:when test="${not empty m.poster}">
+                                                    <img src="${m.poster}" alt="Poster" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Chưa có poster cho phim này.
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </td>
 
@@ -130,6 +137,15 @@
                                                 <c:otherwise>P - Phổ biến</c:otherwise>
                                             </c:choose> 
                                             • Khởi chiếu: ${m.releaseDate}
+                                            <br>
+                                            <c:choose>
+                                                <c:when test="${not empty m.trailer}">
+                                                    <a href="${m.trailer}" target="_blank" style="color: var(--cgv-red); text-decoration: none;">Xem Trailer</a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Chưa có trailer cho phim này.
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </td>
                                     
@@ -137,11 +153,17 @@
 
                                     <td>
                                         <c:choose>
-                                            <c:when test="${m.active}">
-                                                <span class="cgv-badge active">Đang chiếu</span>
+                                            <c:when test="${currentFilter == 'hidden'}">
+                                                <span class="cgv-badge inactive"><i class="fa-solid fa-eye-slash" style="margin-right:4px;"></i> Đã ẩn</span>
+                                            </c:when>
+                                            <c:when test="${currentFilter == 'ended'}">
+                                                <span class="cgv-badge" style="background: #e0e0e0; color: #555; padding: 4px 12px; border-radius: 100px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center;"><i class="fa-solid fa-clock-rotate-left" style="margin-right:4px;"></i> Đã chiếu</span>
+                                            </c:when>
+                                            <c:when test="${currentFilter == 'upcoming'}">
+                                                <span class="cgv-badge" style="background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 100px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center;"><i class="fa-regular fa-calendar-plus" style="margin-right:4px;"></i> Sắp chiếu</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="cgv-badge inactive">Đã ẩn</span>
+                                                <span class="cgv-badge active"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i> Đang chiếu</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>

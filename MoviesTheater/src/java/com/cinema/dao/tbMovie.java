@@ -128,9 +128,37 @@ public class tbMovie {
         }
     }
     
-    public List<clsMovie> getAllMoviesAdmin() {
+    /**
+     * Get movies based on a specific filter
+     * 
+     * @param filter 'upcoming', 'showing', 'ended', 'hidden'
+     * @return list of filtered movies
+     */
+    public List<clsMovie> getMoviesByFilter(String filter) {
         List<clsMovie> list = new ArrayList<>();
-        String sql = "SELECT * FROM Movie ORDER BY MovieID DESC";
+        String sql = "";
+        
+        switch (filter) {
+            case "hidden":
+                sql = "SELECT * FROM Movie WHERE IsActive = 0 ORDER BY MovieID DESC";
+                break;
+            case "showing":
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 AND m.ReleaseDate <= CAST(GETDATE() AS DATE) " +
+                      "AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) " +
+                      "OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())) " +
+                      "ORDER BY m.MovieID DESC";
+                break;
+            case "ended":
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 AND m.ReleaseDate <= CAST(GETDATE() AS DATE) " +
+                      "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) " +
+                      "AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) " +
+                      "ORDER BY m.MovieID DESC";
+                break;
+            case "upcoming":
+            default:
+                sql = "SELECT * FROM Movie WHERE IsActive = 1 AND ReleaseDate > CAST(GETDATE() AS DATE) ORDER BY MovieID DESC";
+                break;
+        }
         
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -143,5 +171,48 @@ public class tbMovie {
             ex.printStackTrace();
         }
         return list;
+    }
+    
+    public boolean updateMovie(clsMovie movie) {
+        String sql = "UPDATE Movie SET MovieName=?, Description=?, Duration=?, ReleaseDate=?, Poster=?, Trailer=?, Language=?, "
+                + "Subtitle=?, Director=?, Cast=?, Country=?, AgeRestriction=?, IsActive=? WHERE MovieID=?";
+        
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, movie.getMovieName());
+            ps.setString(2, movie.getDescription());
+            ps.setInt(3, movie.getDuration());
+            ps.setDate(4, movie.getReleaseDate());
+            ps.setString(5, movie.getPoster());
+            ps.setString(6, movie.getTrailer());
+            ps.setString(7, movie.getLanguage());
+            ps.setString(8, movie.getSubtitle());
+            ps.setString(9, movie.getDirector());
+            ps.setString(10, movie.getCast());
+            ps.setString(11, movie.getCountry());
+            ps.setInt(12, movie.getAgeRestriction());
+            ps.setBoolean(13, movie.isActive());
+            ps.setInt(14, movie.getMovieId());
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean toggleMovieStatus(int movieId) {
+        // Revert movie status (0 to 1, 1 to 0)
+        String sql = "UPDATE Movie SET IsActive = CASE WHEN IsActive = 1 THEN 0 ELSE 1 END WHERE MovieID = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, movieId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
 }

@@ -5,12 +5,11 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Thêm Phim Mới - CGV Manager</title>
+        <title>Sửa Thông Tin Phim - CGV Manager</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            /* Class hỗ trợ chia form 2 cột cho ngay ngắn */
             .cgv-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
             .cgv-form-full { grid-column: span 2; }
         </style>
@@ -19,34 +18,29 @@
 
         <aside class="cgv-sidebar">
             <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/">
+                <a href="${pageContext.request.contextPath}/DashboardController">
                     <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
                 </a>
             </div>
 
             <nav class="cgv-nav">
-                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/DashboardController" class="cgv-nav-link">
                     <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
                 </a>
                 <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link active">
                     <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
                 </a>
-                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
+                <a href="${pageContext.request.contextPath}/ScheduleController" class="cgv-nav-link">
                     <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
                 </a>
                 <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link">
                     <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
                 </a>
-                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
-                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
-                </a>
             </nav>
 
             <div class="cgv-sidebar-bottom">
-                <a href="#" class="cgv-nav-link">
-                    <i class="fa-solid fa-gear cgv-nav-icon"></i> Cài đặt
-                </a>
-                <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link" style="color: var(--cgv-red);">
+                <a href="#" class="cgv-nav-link"><i class="fa-solid fa-gear cgv-nav-icon"></i> Cài đặt</a>
+                <a href="${pageContext.request.contextPath}/LogoutController" class="cgv-nav-link" style="color: var(--cgv-red);">
                     <i class="fa-solid fa-arrow-right-from-bracket cgv-nav-icon"></i> Đăng xuất
                 </a>
             </div>
@@ -55,7 +49,7 @@
         <main class="cgv-main">
 
             <header class="cgv-header">
-                <h1 class="cgv-header-title">Thêm Phim Mới</h1>
+                <h1 class="cgv-header-title">Cập Nhật Phim: #${movie.movieId}</h1>
 
                 <div class="cgv-header-right">
                     <a href="${pageContext.request.contextPath}/MovieController" class="btn--cgv-outline">
@@ -65,130 +59,103 @@
             </header>
 
             <div class="cgv-page" style="flex-direction: column;">
+                
+                <c:if test="${not empty error}">
+                    <div class="cgv-alert cgv-alert-danger fade-in">
+                        <strong>Lỗi!</strong> ${error}
+                    </div>
+                </c:if>
+                
                 <div class="cgv-data-wrap fade-in" style="padding: 32px; max-width: 900px; margin: 0 auto; width: 100%;">
                     
-                    <h2 class="cgv-page-title" style="margin-bottom: 24px;">Thông tin chi tiết</h2>
+                    <h2 class="cgv-page-title" style="margin-bottom: 24px;">Chỉnh sửa thông tin phim</h2>
                     
                     <form action="${pageContext.request.contextPath}/MovieController" method="POST">
-                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="movieId" value="${movie.movieId}">
                         
                         <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
-                                <input type="text" name="movieName" class="cgv-input" required>
+                                <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" required>
                             </div>
                             
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngày khởi chiếu *</label>
-                                <input type="date" id="releaseDate" name="releaseDate" class="cgv-input" required>
+                                <input type="date" name="releaseDate" class="cgv-input" value="${movie.releaseDate}" required>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
-                                <input type="number" name="duration" class="cgv-input" min="40" max="300" required>
+                                <input type="number" name="duration" class="cgv-input" min="40" max="300" value="${movie.duration}" required>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Giới hạn độ tuổi</label>
                                 <select name="ageRestriction" class="cgv-select">
-                                    <option value="0">P - Phổ biến</option>
-                                    <option value="13">C13 - Khán giả từ 13 tuổi</option>
-                                    <option value="16">C16 - Khán giả từ 16 tuổi</option>
-                                    <option value="18">C18 - Khán giả từ 18 tuổi</option>
+                                    <option value="0" ${movie.ageRestriction == 0 ? 'selected' : ''}>P - Phổ biến</option>
+                                    <option value="13" ${movie.ageRestriction == 13 ? 'selected' : ''}>C13 - Khán giả từ 13 tuổi</option>
+                                    <option value="16" ${movie.ageRestriction == 16 ? 'selected' : ''}>C16 - Khán giả từ 16 tuổi</option>
+                                    <option value="18" ${movie.ageRestriction == 18 ? 'selected' : ''}>C18 - Khán giả từ 18 tuổi</option>
                                 </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngôn ngữ</label>
-                                <select name="language" class="cgv-select">
-                                    <option value="Tiếng Anh">Tiếng Anh</option>
-                                    <option value="Tiếng Việt">Tiếng Việt</option>
-                                    <option value="Tiếng Hàn">Tiếng Hàn</option>
-                                    <option value="Tiếng Nhật">Tiếng Nhật</option>
-                                    <option value="Tiếng Trung">Tiếng Trung</option>
-                                    <option value="Khác">Khác</option>
-                                </select>
+                                <input type="text" name="language" class="cgv-input" value="${movie.language}" placeholder="VD: Tiếng Anh">
                             </div>
                             
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
-                                <select name="subtitle" class="cgv-select">
-                                    <option value="Phụ đề Tiếng Việt">Phụ đề Tiếng Việt</option>
-                                    <option value="Lồng Tiếng Việt">Lồng Tiếng Việt</option>
-                                    <option value="Phụ đề Tiếng Anh">Phụ đề Tiếng Anh</option>
-                                    <option value="Không phụ đề">Không phụ đề</option>
-                                </select>
+                                <input type="text" name="subtitle" class="cgv-input" value="${movie.subtitle}" placeholder="VD: Phụ đề Tiếng Việt">
                             </div>
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Đạo diễn</label>
-                                <input type="text" name="director" class="cgv-input">
+                                <input type="text" name="director" class="cgv-input" value="${movie.director}">
                             </div>
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Quốc gia</label>
-                                <select name="country" class="cgv-select">
-                                    <option value="Mỹ">Mỹ</option>
-                                    <option value="Việt Nam">Việt Nam</option>
-                                    <option value="Hàn Quốc">Hàn Quốc</option>
-                                    <option value="Nhật Bản">Nhật Bản</option>
-                                    <option value="Trung Quốc">Trung Quốc</option>
-                                    <option value="Khác">Khác</option>
-                                </select>
+                                <input type="text" name="country" class="cgv-input" value="${movie.country}">
                             </div>
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Diễn viên</label>
-                                <input type="text" name="cast" class="cgv-input">
+                                <input type="text" name="cast" class="cgv-input" value="${movie.cast}">
                             </div>
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Ảnh Poster</label>
-                                <input type="url" name="poster" class="cgv-input" placeholder="https://...">
+                                <input type="url" name="poster" class="cgv-input" value="${movie.poster}">
                             </div>
                             
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Trailer (Youtube)</label>
-                                <input type="url" name="trailer" class="cgv-input" placeholder="https://youtube.com/...">
+                                <input type="url" name="trailer" class="cgv-input" value="${movie.trailer}">
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Nội dung tóm tắt *</label>
-                                <textarea name="description" class="cgv-textarea" rows="4" required></textarea>
+                                <textarea name="description" class="cgv-textarea" rows="4" required>${movie.description}</textarea>
                             </div>
                             
                             <div class="cgv-field cgv-form-full">
                                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cgv-dark); cursor: pointer;">
-                                    <input type="checkbox" name="isActive" value="true" checked style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
-                                    Hiển thị phim lên trang chủ (Active)
+                                    <input type="checkbox" name="isActive" value="true" ${movie.active ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
+                                    Hiển thị phim lên trang chủ ngay lập tức
                                 </label>
                             </div>
                         </div>
 
                         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--cgv-border); display: flex; justify-content: flex-end; gap: 16px;">
                             <a href="${pageContext.request.contextPath}/MovieController" class="btn--cgv-outline">Hủy bỏ</a>
-                            <button type="submit" class="btn--cgv"><i class="fa-solid fa-save"></i> Lưu thông tin</button>
+                            <button type="submit" class="btn--cgv"><i class="fa-solid fa-save"></i> Cập nhật thông tin</button>
                         </div>
                     </form>
                     
                 </div>
             </div>
         </main>
-
-        <script>
-            // Set min date for Release Date to tomorrow
-            document.addEventListener("DOMContentLoaded", function() {
-                var today = new Date();
-                var tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                
-                var dd = String(tomorrow.getDate()).padStart(2, '0');
-                var mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-                var yyyy = tomorrow.getFullYear();
-                
-                var minDate = yyyy + '-' + mm + '-' + dd;
-                document.getElementById("releaseDate").setAttribute("min", minDate);
-            });
-        </script>
     </body>
 </html>
