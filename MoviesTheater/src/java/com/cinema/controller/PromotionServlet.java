@@ -174,6 +174,9 @@ public class PromotionServlet extends HttpServlet {
                 case "edit":
                     showEditForm(request, response);
                     break;
+                case "generateCode":
+                    handleGenerateCode(request, response);
+                    break;
                 default: {
                     String view = request.getParameter("view");
                     if (view == null) {
@@ -226,6 +229,18 @@ public class PromotionServlet extends HttpServlet {
     }
 
     // ========== CONTROLLER HANDLERS ==========
+
+    private void handleGenerateCode(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            String code = promotionDAO.generateNextCode();
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":\"" + code + "\"}");
+        } catch (Exception e) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\":\"Kh\\u00f4ng th\\u1ec3 t\\u1ea1o m\\u00e3 t\\u1ef1 \\u0111\\u1ed9ng\"}");
+        }
+    }
 
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -548,6 +563,7 @@ public class PromotionServlet extends HttpServlet {
     }
 
     private String create(PromotionRequestDTO dto) throws ValidationException, SQLException {
+        dto.setPromotionCode(promotionDAO.generateNextCode());
         Map<String, String> errors = validateForCreate(dto);
         if (!errors.isEmpty()) {
             throw new ValidationException("Validation failed", errors);
@@ -590,11 +606,17 @@ public class PromotionServlet extends HttpServlet {
 
     private Map<String, String> validateForCreate(PromotionRequestDTO dto) throws SQLException {
         Map<String, String> errors = new LinkedHashMap<>();
-        validatePromotionCode(dto.getPromotionCode(), 0, errors);
         validateDiscountType(dto.getDiscountType(), errors);
         validateDiscountValue(dto.getDiscountValue(), dto.getDiscountType(), errors);
         validateMinOrderAmount(dto.getMinOrderAmount(), errors);
         validateDates(dto.getStartDate(), dto.getEndDate(), errors);
+        if (!errors.containsKey("startDate")
+                && dto.getStartDate() != null && !dto.getStartDate().trim().isEmpty()) {
+            LocalDateTime startDate = parseDateTime(dto.getStartDate().trim());
+            if (startDate != null && !startDate.isAfter(LocalDateTime.now())) {
+                errors.put("startDate", "Ngày bắt đầu phải là thời điểm trong tương lai");
+            }
+        }
         validateUsageLimit(dto.getUsageLimit(), errors);
         return errors;
     }

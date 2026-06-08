@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -419,6 +420,28 @@ public class PromotionDAO {
             ps.setInt(2, id);
             ps.executeUpdate();
         }
+    }
+
+    /**
+     * Generate the next unique promotion code based on current year/month and existing codes.
+     * Pattern: KM + YYYYMM + 3-digit sequence (e.g. KM202506001)
+     *
+     * @return a unique promotion code string
+     * @throws SQLException on database error
+     */
+    public String generateNextCode() throws SQLException {
+        String prefix = "KM" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String sql = "SELECT COUNT(*) FROM Promotion WHERE PromotionCode LIKE ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, prefix + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return String.format("%s%03d", prefix, rs.getInt(1) + 1);
+                }
+            }
+        }
+        return prefix + "001";
     }
 
     /**

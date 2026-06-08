@@ -75,6 +75,7 @@
                             <th>Description</th>
                             <th>Type</th>
                             <th>Value</th>
+                            <th>Giá trị đơn tối thiểu (VND)</th>
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Total Uses</th>
@@ -106,6 +107,12 @@
                                                 <c:otherwise>${p.discountValue} VND</c:otherwise>
                                             </c:choose>
                                         </td>
+                                        <td style="font-size:13px;">
+                                            <c:choose>
+                                                <c:when test="${empty p.minOrderAmount or p.minOrderAmount == 0}">—</c:when>
+                                                <c:otherwise>${p.minOrderAmount} VND</c:otherwise>
+                                            </c:choose>
+                                        </td>
                                         <td style="font-size:13px;">${p.startDateDisplay}</td>
                                         <td style="font-size:13px;color:var(--cgv-red);">${p.endDateDisplay}</td>
                                         <td style="font-weight:600;">${p.usedCount}</td>
@@ -128,7 +135,7 @@
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <tr><td colspan="9" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No expired promotions.</td></tr>
+                                <tr><td colspan="10" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No expired promotions.</td></tr>
                             </c:otherwise>
                         </c:choose>
                     </tbody>
