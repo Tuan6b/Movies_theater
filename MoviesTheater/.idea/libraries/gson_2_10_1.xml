@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="gson-2.10.1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/allowedlib/gson-2.10.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/allowedlib/jakarta.servlet.jsp.jstl-2.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/allowedlib/jakarta.servlet.jsp.jstl-api-2.0.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/allowedlib/mssql-jdbc-13.2.0.jre11.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
