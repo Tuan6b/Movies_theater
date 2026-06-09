@@ -122,7 +122,7 @@ public class LoginController extends HttpServlet {
 
                 case 5: // Admin
                     response.sendRedirect(
-                            request.getContextPath() + "/");
+                            request.getContextPath() + "/admin");
                     break;
 
                 case 4: // Manager

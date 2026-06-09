@@ -2,6 +2,7 @@ package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
 import com.cinema.model.Account;
+import com.cinema.model.UserProfile;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,11 +56,14 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
+        UserProfile profile = new UserProfile();
+        profile.setFullName(fullName.trim());
+        profile.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
+
         Account account = new Account();
-        account.setFullName(fullName.trim());
+        account.setProfile(profile);
         account.setEmail(email.trim());
         account.setPassword(password);
-        account.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
         account.setRoleId(2);
 
         int accountId = accountDAO.register(account);

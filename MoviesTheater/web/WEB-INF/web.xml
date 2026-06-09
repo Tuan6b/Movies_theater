@@ -118,6 +118,36 @@
         <url-pattern>/change-password</url-pattern>
     </servlet-mapping>
 
+    <!-- Profile -->
+    <servlet>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>com.cinema.controller.ProfileController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <!-- Account Management (Admin / Manager) -->
+    <servlet>
+        <servlet-name>AccountManageController</servlet-name>
+        <servlet-class>com.cinema.controller.AccountManageController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccountManageController</servlet-name>
+        <url-pattern>/manager/users</url-pattern>
+    </servlet-mapping>
+
+    <!-- Admin Dashboard -->
+    <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AdminServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/admin</url-pattern>
+    </servlet-mapping>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
