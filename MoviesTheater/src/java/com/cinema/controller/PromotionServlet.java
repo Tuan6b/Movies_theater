@@ -5,6 +5,7 @@ import com.cinema.exception.ConflictException;
 import com.cinema.exception.NotFoundException;
 import com.cinema.exception.ValidationException;
 import com.cinema.model.Promotion;
+import com.cinema.util.DBUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -226,6 +230,21 @@ public class PromotionServlet extends HttpServlet {
                     break;
             }
         }
+    }
+
+    public String generateNextCode() throws SQLException {
+        String prefix = "KM" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String sql = "SELECT COUNT(*) FROM Promotion WHERE PromotionCode LIKE ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, prefix + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return String.format("%s%03d", prefix, rs.getInt(1) + 1);
+                }
+            }
+        }
+        return prefix + "001";
     }
 
     // ========== CONTROLLER HANDLERS ==========
