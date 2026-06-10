@@ -39,8 +39,14 @@ public class RoomDAO extends DBContext {
                      FROM Room
                      """;
 
+<<<<<<< Updated upstream
         try (PreparedStatement stm = connection.prepareStatement(sql);
              ResultSet rs = stm.executeQuery()) {
+=======
+        try (PreparedStatement stm
+                = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+        try (PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+>>>>>>> Stashed changes
 
             // Loop through result set and map each row to Room object
             while (rs.next()) {
@@ -195,7 +201,11 @@ public class RoomDAO extends DBContext {
 
         return false;
     }
+<<<<<<< Updated upstream
     
+=======
+
+>>>>>>> Stashed changes
     /**
      * Fetch a subset of rooms from the database based on offset and limit
      * @param offset the starting index of the records
@@ -282,4 +292,37 @@ public class RoomDAO extends DBContext {
         }
         return 0;
     }
+<<<<<<< Updated upstream
 }
+=======
+
+    /**
+     * Get latest inserted room ID
+     *
+     * @return latest room ID
+     */
+    public int getLatestRoomId() {
+
+        String sql = """
+                 SELECT TOP 1 RoomID
+                 FROM Room
+                 ORDER BY RoomID DESC
+                 """;
+
+        try (PreparedStatement stm
+                = connection.prepareStatement(sql); ResultSet rs
+                = stm.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("RoomID");
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return -1;
+    }
+
+}
+>>>>>>> Stashed changes

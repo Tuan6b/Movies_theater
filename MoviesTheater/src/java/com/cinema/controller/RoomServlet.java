@@ -140,11 +140,30 @@ public class RoomServlet extends HttpServlet {
         room.setRoomType(roomType);
         room.setCapacity(capacity);
 
+        roomDAO.addRoom(room);
         // Insert room into database
         roomDAO.addRoom(room);
 
         // Redirect to list page after success
         response.sendRedirect("RoomServlet?page=" + currentPage);
+        /*
+        * Automatically generate seats
+        * after room creation
+         */
+        if (inserted) {
+
+            // Get newly created room ID
+            int roomId = roomDAO.getLatestRoomId();
+
+            // Generate seats
+            seatDAO.generateSeats(
+                    roomId,
+                    numberOfRows,
+                    seatsPerRow
+            );
+        }
+
+        response.sendRedirect("RoomServlet");
     }
 
     /**
@@ -190,11 +209,12 @@ public class RoomServlet extends HttpServlet {
         // Update database
         roomDAO.updateRoom(room);
 
-
         response.sendRedirect("RoomServlet?page=" + currentPage);
 
         response.sendRedirect("room");
 
+        response.sendRedirect("room");
+        response.sendRedirect("RoomServlet?page=" + currentPage);
     }
 
     /**
@@ -219,7 +239,6 @@ public class RoomServlet extends HttpServlet {
         // Redirect to list page
         response.sendRedirect("RoomServlet?page=" + currentPage);
     }
-
 
     /**
      * Show edit form for a specific room Loads room data and forwards it to
@@ -246,7 +265,6 @@ public class RoomServlet extends HttpServlet {
         request.getRequestDispatcher("room-edit.jsp")
                 .forward(request, response);
     }
-
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

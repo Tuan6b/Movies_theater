@@ -1,8 +1,9 @@
 package com.cinema.model;
 
 /**
- * Room model class represents a cinema room entity.
- * Used to store information about a movie room in the system.
+ * Room model class represents a cinema room entity. Used to store information
+ * about a movie room in the system.
+ *
  * @author Tuan Phong Nguyen
  */
 public class Room {
@@ -22,7 +23,21 @@ public class Room {
     // Status of the room (true = active, false = inactive)
     private boolean active;
 
-    /**
+    /*
+     * Total number of seat rows in the room
+     * Example:
+     * 5 rows -> A, B, C, D, E
+     */
+    private int numberOfRows;
+
+    /*
+     * Number of seats in each row
+     * Example:
+     * 8 seats -> A1 to A8
+     */
+    private int seatsPerRow;
+
+    /* 
      * Default constructor
      */
     public Room() {
@@ -31,15 +46,17 @@ public class Room {
     /**
      * Parameterized constructor to initialize all fields
      *
-     * @param roomId      unique room ID
-     * @param roomNumber   room number/code
-     * @param roomType     type of room
-     * @param capacity     seating capacity (must be > 0 in business logic)
-     * @param active       room status
+     * @param roomId unique room ID
+     * @param roomNumber room number/code
+     * @param roomType type of room
+     * @param capacity seating capacity (must be > 0 in business logic)
+     * @param active room status
      */
     public Room(int roomId, String roomNumber,
-                String roomType, int capacity,
-                boolean active) {
+            String roomType, int capacity,
+            boolean active,
+            int numberOfRows,
+            int seatsPerRow) {
 
         this.roomId = roomId;
         this.roomNumber = roomNumber;
@@ -84,8 +101,8 @@ public class Room {
     }
 
     /**
-     * Sets room capacity
-     * Note: should be validated (> 0) in service/controller layer
+     * Sets room capacity Note: should be validated (> 0) in service/controller
+     * layer
      */
     public void setCapacity(int capacity) {
         this.capacity = capacity;
@@ -101,6 +118,39 @@ public class Room {
         this.active = active;
     }
 
+    /**
+     * Get number of rows in room
+     *
+     * @return total row count
+     */
+    public int getNumberOfRows() {
+        return numberOfRows;
+    }
+
+    /**
+     * Set number of rows in room
+     *
+     * @param numberOfRows total row count
+     */
+    public void setNumberOfRows(int numberOfRows) {
+        this.numberOfRows = numberOfRows;
+    }
+
+    /**
+     * Get number of seats per row
+     *
+     * @return seats per row
+     */
+    public int getSeatsPerRow() {
+        return seatsPerRow;
+    }
+
+    /**
+     * Set number of seats per row
+     *
+     * @param seatsPerRow seats per row
+     */
+    public void setSeatsPerRow(int seatsPerRow) {
+        this.seatsPerRow = seatsPerRow;
+    }
 }
-
-
