@@ -5,7 +5,6 @@
 package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
-import com.cinema.dao.SeatDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,9 +21,6 @@ import java.util.List;
 public class RoomServlet extends HttpServlet {
 
     private final RoomDAO roomDAO = new RoomDAO();
-
-    // DAO used for seat operations
-    private final SeatDAO seatDAO = new SeatDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -53,10 +49,6 @@ public class RoomServlet extends HttpServlet {
                     break;
 
                 case "edit":
-                    showEditForm(request, response);
-                    break;
-
-                case "update":
                     updateRoom(request, response);
                     break;
 
@@ -89,82 +81,17 @@ public class RoomServlet extends HttpServlet {
 
         String roomNumber = request.getParameter("roomNumber");
         String roomType = request.getParameter("roomType");
-        // Get seat layout information
-        int numberOfRows = Integer.parseInt(
-                request.getParameter("numberOfRows"));
-
-        int seatsPerRow = Integer.parseInt(
-                request.getParameter("seatsPerRow"));
 
         int capacity = Integer.parseInt(
                 request.getParameter("capacity"));
 
-<<<<<<< Updated upstream
-=======
-        String currentPage = request.getParameter("page");
-        if (currentPage == null || currentPage.isEmpty()) {
-            currentPage = "1";
-        }
-
-        /*
-        * Validate seat layout
-        * Total seats must match room capacity
-         */
-        if ((numberOfRows * seatsPerRow) != capacity) {
-
-            response.sendRedirect(
-                    "RoomServlet?error=invalid_layout&page="
-                    + currentPage);
-
-            return;
-        }
-
-        // Validate capacity
-        if (capacity <= 0) {
-            response.sendRedirect("RoomServlet?action=list&error=capacity_invalid&page=" + currentPage);
-            return;
-        }
-
-        // Validate room number uniqueness
-        if (roomDAO.isRoomNumberExists(roomNumber)) {
-            response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
-            return;
-        }
-
-        // Create Room object and set values
->>>>>>> Stashed changes
         Room room = new Room();
 
         room.setRoomNumber(roomNumber);
         room.setRoomType(roomType);
         room.setCapacity(capacity);
-        // Set seat layout information
-        room.setNumberOfRows(numberOfRows);
-        room.setSeatsPerRow(seatsPerRow);
 
-<<<<<<< Updated upstream
         roomDAO.addRoom(room);
-=======
-        // Insert room into database
-        boolean inserted = roomDAO.addRoom(room);
-
-        /*
-        * Automatically generate seats
-        * after room creation
-         */
-        if (inserted) {
-
-            // Get newly created room ID
-            int roomId = roomDAO.getLatestRoomId();
-
-            // Generate seats
-            seatDAO.generateSeats(
-                    roomId,
-                    numberOfRows,
-                    seatsPerRow
-            );
-        }
->>>>>>> Stashed changes
 
         response.sendRedirect("RoomServlet");
     }
@@ -185,31 +112,6 @@ public class RoomServlet extends HttpServlet {
         boolean active = request.getParameter("active")
                 != null;
 
-<<<<<<< Updated upstream
-=======
-        // Validate capacity: If invalid, redirect back to the edit form with an error parameter
-        if (capacity <= 0) {
-            response.sendRedirect("RoomServlet?action=edit&id=" + roomId + "&error=capacity_invalid&page=" + currentPage);
-            return;
-        }
-
-        // Validate duplicate room number when updating room
-        if (roomDAO.isRoomNumberExists(roomNumber)) {
-
-            response.sendRedirect(
-                    "RoomServlet?action=edit&id="
-                    + roomId
-                    + "&error=room_number_exists&page="
-                    + currentPage);
-
-            return;
-        }
-
-        // Check checkbox status for active field
-        boolean active = request.getParameter("active") != null;
-
-        // Create updated Room object
->>>>>>> Stashed changes
         Room room = new Room();
 
         room.setRoomId(roomId);
@@ -220,11 +122,7 @@ public class RoomServlet extends HttpServlet {
 
         roomDAO.updateRoom(room);
 
-<<<<<<< Updated upstream
         response.sendRedirect("room");
-=======
-        response.sendRedirect("RoomServlet?page=" + currentPage);
->>>>>>> Stashed changes
     }
 
     private void deleteRoom(HttpServletRequest request,
@@ -239,35 +137,6 @@ public class RoomServlet extends HttpServlet {
         response.sendRedirect("RoomServlet");
     }
 
-<<<<<<< Updated upstream
-=======
-    /**
-     * Show edit form for a specific room Loads room data and forwards it to
-     * edit JSP
-     */
-    private void showEditForm(HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        // Get room ID from request
-        int roomId = Integer.parseInt(
-                request.getParameter("id"));
-
-        // Retrieve room from database
-        Room room = roomDAO.getRoomById(roomId);
-
-        String currentPage = request.getParameter("page");
-        request.setAttribute("currentPage", currentPage);
-
-        // Send room data to JSP
-        request.setAttribute("room", room);
-
-        // Forward to edit page
-        request.getRequestDispatcher("room-edit.jsp")
-                .forward(request, response);
-    }
-
->>>>>>> Stashed changes
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
