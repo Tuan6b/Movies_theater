@@ -1,6 +1,9 @@
 <%-- CGV Sidebar navigation. Set request attribute "activeNav" before including. --%>
 <%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <aside class="cgv-sidebar">
+
+    <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
         <img class="cgv-logo"
@@ -21,6 +24,7 @@
             Dashboard
         </a>
 
+        <c:if test="${r ge 3}">
         <a href="${pageContext.request.contextPath}/manager/movies"
            class="cgv-nav-link ${activeNav eq 'movies' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -48,7 +52,9 @@
             </svg>
             Schedules
         </a>
+        </c:if>
 
+        <c:if test="${r ge 4}">
         <a href="${pageContext.request.contextPath}/manager/promotions"
            class="cgv-nav-link ${activeNav eq 'promotions' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -57,6 +63,18 @@
                 <line x1="7" y1="7" x2="7.01" y2="7"/>
             </svg>
             Promotions
+        </a>
+
+        <a href="${pageContext.request.contextPath}/manager/employees"
+           class="cgv-nav-link ${activeNav eq 'employees' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Employees
         </a>
 
         <a href="${pageContext.request.contextPath}/RoomServlet"
@@ -79,9 +97,11 @@
             </svg>
             Analytics
         </a>
+        </c:if>
     </nav>
 
     <div class="cgv-sidebar-bottom">
+        <c:if test="${r ge 4}">
         <a href="${pageContext.request.contextPath}/manager/settings"
            class="cgv-nav-link ${activeNav eq 'settings' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -99,6 +119,7 @@
             </svg>
             Settings
         </a>
+        </c:if>
 
         <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
