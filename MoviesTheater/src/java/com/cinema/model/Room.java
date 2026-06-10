@@ -37,7 +37,7 @@ public class Room {
      */
     private int seatsPerRow;
 
-    /* 
+    /**
      * Default constructor
      */
     public Room() {
@@ -51,6 +51,8 @@ public class Room {
      * @param roomType type of room
      * @param capacity seating capacity (must be > 0 in business logic)
      * @param active room status
+     * @param numberOfRows total row count
+     * @param seatsPerRow seats per row
      */
     public Room(int roomId, String roomNumber,
             String roomType, int capacity,
@@ -63,6 +65,8 @@ public class Room {
         this.roomType = roomType;
         this.capacity = capacity;
         this.active = active;
+        this.numberOfRows = numberOfRows;
+        this.seatsPerRow = seatsPerRow;
     }
 
     // Getter for roomId

@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
+import com.cinema.dao.SeatDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,6 +20,9 @@ public class RoomServlet extends HttpServlet {
 
     // DAO layer used to interact with database
     private final RoomDAO roomDAO = new RoomDAO();
+
+    // DAO used for seat operations
+    private final SeatDAO seatDAO = new SeatDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -49,6 +53,10 @@ public class RoomServlet extends HttpServlet {
                     break;
 
                 case "edit":
+                    showEditForm(request, response);
+                    break;
+
+                case "update":
                     updateRoom(request, response);
                     break;
 
@@ -112,6 +120,12 @@ public class RoomServlet extends HttpServlet {
 
         String roomNumber = request.getParameter("roomNumber");
         String roomType = request.getParameter("roomType");
+        // Get seat layout information
+        int numberOfRows = Integer.parseInt(
+                request.getParameter("numberOfRows"));
+
+        int seatsPerRow = Integer.parseInt(
+                request.getParameter("seatsPerRow"));
 
         // Parse capacity from request
         int capacity = Integer.parseInt(
@@ -120,6 +134,19 @@ public class RoomServlet extends HttpServlet {
         String currentPage = request.getParameter("page");
         if (currentPage == null || currentPage.isEmpty()) {
             currentPage = "1";
+        }
+
+        /*
+        * Validate seat layout
+        * Total seats must match room capacity
+         */
+        if ((numberOfRows * seatsPerRow) != capacity) {
+
+            response.sendRedirect(
+                    "RoomServlet?error=invalid_layout&page="
+                    + currentPage);
+
+            return;
         }
 
         // Validate capacity
@@ -139,31 +166,19 @@ public class RoomServlet extends HttpServlet {
         room.setRoomNumber(roomNumber);
         room.setRoomType(roomType);
         room.setCapacity(capacity);
+        // Set seat layout information
+        room.setNumberOfRows(numberOfRows);
+        room.setSeatsPerRow(seatsPerRow);
 
-        roomDAO.addRoom(room);
-        // Insert room into database
-        roomDAO.addRoom(room);
+        // INSERT + GET ID NGAY LẬP TỨC
+        int roomId = roomDAO.addRoomAndGetId(room);
 
-        // Redirect to list page after success
-        response.sendRedirect("RoomServlet?page=" + currentPage);
-        /*
-        * Automatically generate seats
-        * after room creation
-         */
-        if (inserted) {
-
-            // Get newly created room ID
-            int roomId = roomDAO.getLatestRoomId();
-
-            // Generate seats
-            seatDAO.generateSeats(
-                    roomId,
-                    numberOfRows,
-                    seatsPerRow
-            );
+        // Generate seats if room created successfully
+        if (roomId > 0) {
+            seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
         }
 
-        response.sendRedirect("RoomServlet");
+        response.sendRedirect("RoomServlet?page=" + currentPage);
     }
 
     /**
@@ -195,6 +210,18 @@ public class RoomServlet extends HttpServlet {
             return;
         }
 
+        // Validate duplicate room number when updating room
+        if (roomDAO.isRoomNumberExists(roomNumber, roomId)) {
+
+            response.sendRedirect(
+                    "RoomServlet?action=edit&id="
+                    + roomId
+                    + "&error=room_number_exists&page="
+                    + currentPage);
+
+            return;
+        }
+
         // Check checkbox status for active field
         boolean active = request.getParameter("active") != null;
 
@@ -206,14 +233,14 @@ public class RoomServlet extends HttpServlet {
         room.setCapacity(capacity);
         room.setActive(active);
 
-        // Update database
+        // Get current seat layout from db
+        Room existingRoom = roomDAO.getRoomById(roomId);
+        if (existingRoom != null) {
+            room.setNumberOfRows(existingRoom.getNumberOfRows());
+            room.setSeatsPerRow(existingRoom.getSeatsPerRow());
+        }
+
         roomDAO.updateRoom(room);
-
-        response.sendRedirect("RoomServlet?page=" + currentPage);
-
-        response.sendRedirect("room");
-
-        response.sendRedirect("room");
         response.sendRedirect("RoomServlet?page=" + currentPage);
     }
 
