@@ -33,7 +33,18 @@
 
         <form action="RoomServlet?page=<%= origPage %>" method="post">
 
+<<<<<<< Updated upstream
             <input type="hidden" name="action" value="update">
+=======
+            <c:if test="${param.error eq 'room_number_exists'}">
+                <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
+            </c:if>
+
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
+                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+                    ROOM DETAILS
+                </div>
+>>>>>>> Stashed changes
 
             <input type="hidden"
                    name="roomId"
@@ -47,6 +58,7 @@
                        required>
             </div>
 
+<<<<<<< Updated upstream
             <br>
 
             <div>
@@ -107,3 +119,10 @@
 
     </body>
 </html>
+=======
+        </div>
+    </div>
+</div>
+</body>
+</html>
+>>>>>>> Stashed changes

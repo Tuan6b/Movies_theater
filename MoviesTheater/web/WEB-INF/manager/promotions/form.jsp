@@ -34,9 +34,43 @@
                     <div class="alert alert-danger">${errorMsg}</div>
                 </c:if>
 
+<<<<<<< Updated upstream
                 <div class="card">
                     <div class="card-head">
                         <h3>${pageTitle}</h3>
+=======
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
+                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+                    PROMOTION DETAILS
+                </div>
+
+                <form method="post" action="${pageContext.request.contextPath}/manager/promotions">
+                    <input type="hidden" name="action" value="${formAction}">
+                    <c:if test="${formAction eq 'update'}">
+                        <input type="hidden" name="promotionId" value="${promotionId}">
+                        <input type="hidden" name="usedCount"   value="${promotion.usedCount}">
+                    </c:if>
+
+                    <%-- Promotion Code --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Mã khuyến mãi</label>
+                        <c:choose>
+                            <c:when test="${formAction eq 'create'}">
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:13px;color:rgba(94,63,58,0.55);letter-spacing:1px;">
+                                    Tự động tạo khi lưu (VD: KM202606001)
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">
+                                    Mã được tạo tự động theo định dạng KM + tháng/năm + số thứ tự.
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px;">
+                                    ${promotion.promotionCode}
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Mã khuyến mãi không thể thay đổi sau khi tạo.</div>
+                            </c:otherwise>
+                        </c:choose>
+>>>>>>> Stashed changes
                     </div>
                     <div class="card-pad">
 
@@ -47,6 +81,23 @@
                                 <input type="hidden" name="promotionId" value="${promotionId}">
                                 <input type="hidden" name="usedCount" value="${promotion.usedCount}">
                             </c:if>
+<<<<<<< Updated upstream
+=======
+                            <c:if test="${formAction eq 'create'}">
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Phải là thời điểm trong tương lai.</div>
+                            </c:if>
+                        </div>
+                        <div class="cgv-field">
+                            <label class="cgv-label">
+                                Ngày kết thúc <span style="color:var(--cgv-red)">*</span>
+                            </label>
+                            <input class="cgv-input" type="datetime-local" name="endDate" value="${endDateStr}">
+                            <c:if test="${not empty errors['endDate']}">
+                                <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['endDate']}</div>
+                            </c:if>
+                        </div>
+                    </div>
+>>>>>>> Stashed changes
 
                             <div class="form-group">
                                 <label for="promotionCode">Mã khuyến mãi <span style="color:var(--danger)">*</span></label>
@@ -63,11 +114,25 @@
                                 </c:if>
                             </div>
 
+<<<<<<< Updated upstream
                             <div class="form-group">
                                 <label for="description">Mô tả</label>
                                 <textarea id="description" name="description" rows="2"
                                           placeholder="Mô tả ngắn về chương trình khuyến mãi...">${promotion.description}</textarea>
                             </div>
+=======
+                    <%-- Active toggle (edit only — new promotions are always upcoming) --%>
+                    <c:if test="${formAction eq 'update'}">
+                        <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
+                            <input type="checkbox" name="isActive" id="isActive"
+                                   ${promotion.active ? 'checked' : ''}
+                                   style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
+                            <label class="cgv-label" for="isActive" style="margin-bottom:0;cursor:pointer;">
+                                Kích hoạt
+                            </label>
+                        </div>
+                    </c:if>
+>>>>>>> Stashed changes
 
                             <div class="form-group">
                                 <label for="discountType">Loại giảm giá <span style="color:var(--danger)">*</span></label>

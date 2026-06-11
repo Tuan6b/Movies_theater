@@ -2,3 +2,10 @@
 /MoviesTheater/build/
 /MoviesTheater/dist/
 /MoviesTheater/.agents
+<<<<<<< Updated upstream
+=======
+/MoviesTheater/nbproject
+MoviesTheater/nbproject/build-impl.xml
+/MoviesTheater/out
+/MoviesTheater/out
+>>>>>>> Stashed changes
