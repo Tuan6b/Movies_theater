@@ -1,6 +1,6 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<% request.setAttribute("activeNav", "dashboard"); %>
+<% request.setAttribute("activeNav", "users"); %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,17 +29,9 @@
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
-                    <div class="cgv-avatar">
-                        <c:choose>
-                            <c:when test="${not empty sessionScope.LOGIN_USER}">MG</c:when>
-                            <c:otherwise>MG</c:otherwise>
-                        </c:choose>
-                    </div>
+                    <div class="cgv-avatar">MG</div>
                     <span class="cgv-user-name">
-                        <c:choose>
-                            <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
-                            <c:otherwise>Manager</c:otherwise>
-                        </c:choose>
+                        ${sessionScope.account.profile.fullName}
                     </span>
                 </div>
             </div>
@@ -52,9 +44,11 @@
 
             <c:if test="${not empty flashSuccess}">
                 <div class="cgv-alert cgv-alert-success">${flashSuccess}</div>
+                <% session.removeAttribute("flashSuccess"); %>
             </c:if>
             <c:if test="${not empty flashError}">
                 <div class="cgv-alert cgv-alert-danger">${flashError}</div>
+                <% session.removeAttribute("flashError"); %>
             </c:if>
 
             <div class="cgv-toolbar">
@@ -64,6 +58,7 @@
                     <a href="?role=manager" class="cgv-pill ${param.role eq 'manager' ? 'active' : ''}">Manager</a>
                     <a href="?role=staff"   class="cgv-pill ${param.role eq 'staff'   ? 'active' : ''}">Staff</a>
                 </div>
+                <c:if test="${isAdmin}">
                 <a href="?action=add" class="btn--cgv">
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none"
                          stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -71,6 +66,7 @@
                     </svg>
                     Add User
                 </a>
+                </c:if>
             </div>
 
             <div class="cgv-data-wrap">
@@ -108,31 +104,38 @@
                                 <c:forEach var="u" items="${userList}" varStatus="st">
                                     <tr>
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
-                                        <td style="font-weight:500;">${u.fullName}</td>
+                                        <td style="font-weight:500;">${u.profile.fullName}</td>
                                         <td style="color:rgba(94,63,58,0.7);">${u.email}</td>
                                         <td>
-                                            <span class="cgv-badge ${u.role eq 'ADMIN' ? 'danger' : u.role eq 'MANAGER' ? 'upcoming' : 'inactive'}">
-                                                ${u.role}
+                                            <span class="cgv-badge ${u.roleName eq 'Admin' ? 'danger' : u.roleName eq 'Manager' ? 'upcoming' : 'inactive'}">
+                                                ${u.roleName}
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="cgv-badge ${u.active ? 'active' : 'inactive'}">
-                                                ${u.active ? 'Active' : 'Inactive'}
+                                            <span class="cgv-badge ${not u.isBlocked ? 'active' : 'inactive'}">
+                                                ${not u.isBlocked ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td style="color:rgba(94,63,58,0.6);font-size:13px;">${u.createdAt}</td>
                                         <td>
-                                            <div style="display:flex;gap:8px;">
-                                                <a href="?action=edit&id=${u.userId}" class="btn--cgv-outline">Edit</a>
-                                                <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="${u.active ? 'deactivate' : 'activate'}">
-                                                    <input type="hidden" name="id" value="${u.userId}">
-                                                    <button type="submit" class="btn--cgv-outline"
-                                                            onclick="return confirm('${u.active ? 'Deactivate' : 'Activate'} this user?')">
-                                                        ${u.active ? 'Deactivate' : 'Activate'}
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            <c:choose>
+                                                <c:when test="${isAdmin}">
+                                                <div style="display:flex;gap:8px;">
+                                                    <a href="?action=edit&id=${u.accountId}" class="btn--cgv-outline">Edit</a>
+                                                    <form method="post" style="display:inline;">
+                                                        <input type="hidden" name="action" value="toggleBlock">
+                                                        <input type="hidden" name="id" value="${u.accountId}">
+                                                        <button type="submit" class="btn--cgv-outline"
+                                                                onclick="return confirm('${not u.isBlocked ? 'Block' : 'Unblock'} this user?')">
+                                                            ${not u.isBlocked ? 'Block' : 'Unblock'}
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                <span style="color:rgba(94,63,58,0.4);font-size:12px;">—</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -181,19 +184,15 @@
                         <c:when test="${not empty recentActivity}">
                             <c:forEach var="a" items="${recentActivity}">
                                 <div>
-                                    <div class="cgv-event-title">${a.title}</div>
-                                    <div class="cgv-event-desc">${a.description}</div>
+                                    <div class="cgv-event-title">${a.profile.fullName} (${a.roleName})</div>
+                                    <div class="cgv-event-desc">${a.email} — joined ${a.createdAt}</div>
                                 </div>
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
                             <div>
-                                <div class="cgv-event-title">New Registration</div>
-                                <div class="cgv-event-desc">user@email.com signed up</div>
-                            </div>
-                            <div>
-                                <div class="cgv-event-title">Role Updated</div>
-                                <div class="cgv-event-desc">Staff role assigned to Minh</div>
+                                <div class="cgv-event-title">No recent activity</div>
+                                <div class="cgv-event-desc">New user registrations will appear here.</div>
                             </div>
                         </c:otherwise>
                     </c:choose>

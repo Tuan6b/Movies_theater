@@ -37,7 +37,7 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.account}">
                     <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
-                        Xin chào, <strong>${sessionScope.account.fullName}</strong>
+                        Xin chào, <strong>${sessionScope.account.profile.fullName}</strong>
                     </span>
                     <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
                 </c:when>
