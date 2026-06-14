@@ -16,6 +16,10 @@
         .profile-links a { color: var(--cgv-accent); text-decoration: none; }
         .profile-links a:hover { text-decoration: underline; }
         .profile-links .sep { margin: 0 8px; color: var(--cgv-border); }
+        .avatar-wrap { text-align:center; margin-bottom:24px; }
+        .avatar-img { width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--cgv-border); background:#f0f0f0; }
+        .avatar-upload-form { display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:12px; }
+        .avatar-upload-form input[type=file] { font-size:13px; }
     </style>
 </head>
 <body>
@@ -65,6 +69,24 @@
                 <div class="auth-success">${success}</div>
             </c:if>
 
+            <div class="avatar-wrap">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.account.profile.avatarUrl}">
+                        <img class="avatar-img" src="${sessionScope.account.profile.avatarUrl}" alt="Avatar">
+                    </c:when>
+                    <c:otherwise>
+                        <div class="avatar-img" style="display:inline-flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:rgba(94,63,58,0.4);background:#f0f0f0;">
+                            ${sessionScope.account.profile.fullName.charAt(0)}
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+                <form class="avatar-upload-form" action="${pageContext.request.contextPath}/profile" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="avatar">
+                    <input type="file" name="avatar" accept="image/*" required>
+                    <button type="submit" class="btn btn-ghost" style="font-size:13px;">Upload ảnh đại diện</button>
+                </form>
+            </div>
+
             <table class="profile-table">
                 <tr><td class="pf-label">Họ tên</td><td class="pf-value">${sessionScope.account.profile.fullName}</td></tr>
                 <tr><td class="pf-label">Email</td><td class="pf-value">${sessionScope.account.email}</td></tr>
@@ -85,6 +107,8 @@
 
             <p class="profile-links">
                 <a href="${pageContext.request.contextPath}/change-password">Đổi mật khẩu</a>
+                <span class="sep">&middot;</span>
+                <a href="${pageContext.request.contextPath}/delete-request">Yêu cầu xóa tài khoản</a>
                 <span class="sep">&middot;</span>
                 <a href="${pageContext.request.contextPath}/">Quay lại trang chủ</a>
             </p>

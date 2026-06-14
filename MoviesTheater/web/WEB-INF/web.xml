@@ -148,6 +148,46 @@
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
 
+    <!-- Audit Log -->
+    <servlet>
+        <servlet-name>AuditLogServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AuditLogServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AuditLogServlet</servlet-name>
+        <url-pattern>/manager/audit-log</url-pattern>
+    </servlet-mapping>
+
+    <!-- Export Users CSV -->
+    <servlet>
+        <servlet-name>ExportUsersServlet</servlet-name>
+        <servlet-class>com.cinema.controller.ExportUsersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExportUsersServlet</servlet-name>
+        <url-pattern>/manager/users/export</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deletion Request (User) -->
+    <servlet>
+        <servlet-name>DeletionRequestController</servlet-name>
+        <servlet-class>com.cinema.controller.DeletionRequestController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestController</servlet-name>
+        <url-pattern>/delete-request</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deletion Request Admin -->
+    <servlet>
+        <servlet-name>DeletionRequestAdminController</servlet-name>
+        <servlet-class>com.cinema.controller.DeletionRequestAdminController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestAdminController</servlet-name>
+        <url-pattern>/manager/deletion-requests</url-pattern>
+    </servlet-mapping>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
