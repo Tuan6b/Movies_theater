@@ -22,15 +22,20 @@ public class MovieController extends HttpServlet {
 
         try {
             if ("add".equals(action)) {
+                // Đẩy list thể loại ra JSP để render Checkbox
+                request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
                 request.getRequestDispatcher("add_movie.jsp").forward(request, response);
-                
+
             } else if ("edit".equals(action)) {
-                // UC-15: Get ID from URL, get data from the database then forward to edit_movie.jsp
                 int movieId = Integer.parseInt(request.getParameter("id"));
                 clsMovie movie = movieDAO.getMovieById(movieId);
                 request.setAttribute("movie", movie);
+
+                // Đẩy list thể loại và các thể loại phim đang có sẵn ra JSP
+                request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
+                request.setAttribute("selectedGenres", movieDAO.getGenreIdsByMovie(movieId));
+
                 request.getRequestDispatcher("edit_movie.jsp").forward(request, response);
-                
             } else {
                 String filter = request.getParameter("filter");
                 if (filter == null || filter.isEmpty()) {
@@ -52,23 +57,23 @@ public class MovieController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
-        
+
         try {
             if ("toggleStatus".equals(action)) {
                 // UC-16: Toggle enable - disable movie
                 int movieId = Integer.parseInt(request.getParameter("movieId"));
                 boolean isSuccess = movieDAO.toggleMovieStatus(movieId);
-                
+
                 if (isSuccess) {
                     request.getSession().setAttribute("success", "Đã thay đổi trạng thái hiển thị của phim!");
                 } else {
                     request.getSession().setAttribute("error", "Lỗi: Không thể thay đổi trạng thái phim.");
                 }
                 response.sendRedirect(request.getContextPath() + "/MovieController");
-                
+
             } else if ("add".equals(action) || "edit".equals(action)) {
                 // use the same data for add and edit movie
                 String movieName = request.getParameter("movieName");
@@ -84,19 +89,30 @@ public class MovieController extends HttpServlet {
                 String trailer = request.getParameter("trailer");
                 String description = request.getParameter("description");
                 boolean isActive = request.getParameter("isActive") != null; // Có tick là true, không tick là false
+                String[] genreIds = request.getParameterValues("genreIds");
 
-                clsMovie movie = new clsMovie(0, movieName, description, duration, releaseDate, 
-                                              poster, trailer, language, subtitle, director, 
-                                              cast, country, ageRestriction, isActive);
+                clsMovie movie = new clsMovie(0, movieName, description, duration, releaseDate,
+                        poster, trailer, language, subtitle, director,
+                        cast, country, ageRestriction, isActive);
 
-                boolean isSuccess;
+                                boolean isSuccess;
                 if ("add".equals(action)) {
-                    isSuccess = movieDAO.insertMovie(movie);
-                    if (isSuccess) request.getSession().setAttribute("success", "Đã thêm phim mới thành công!");
+                    // Dùng hàm mới trả về ID
+                    int newId = movieDAO.insertMovieAndGetId(movie);
+                    if (newId > 0) {
+                        movieDAO.updateMovieGenres(newId, genreIds); // Lưu Thể loại
+                        isSuccess = true;
+                        request.getSession().setAttribute("success", "Đã thêm phim mới thành công!");
+                    } else {
+                        isSuccess = false;
+                    }
                 } else {
                     movie.setMovieId(Integer.parseInt(request.getParameter("movieId")));
                     isSuccess = movieDAO.updateMovie(movie);
-                    if (isSuccess) request.getSession().setAttribute("success", "Đã cập nhật thông tin phim thành công!");
+                    if (isSuccess) {
+                        movieDAO.updateMovieGenres(movie.getMovieId(), genreIds); // Cập nhật Thể loại
+                        request.getSession().setAttribute("success", "Đã cập nhật thông tin phim thành công!");
+                    }
                 }
 
                 if (isSuccess) {

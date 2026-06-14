@@ -10,6 +10,10 @@
         <servlet-name>MovieController</servlet-name>
         <servlet-class>com.cinema.controller.MovieController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>HomeController</servlet-name>
+        <servlet-class>com.cinema.controller.HomeController</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ManagerServlet</servlet-name>
         <url-pattern>/manager</url-pattern>
@@ -49,6 +53,10 @@
     <servlet-mapping>
         <servlet-name>MovieController</servlet-name>
         <url-pattern>/MovieController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HomeController</servlet-name>
+        <url-pattern>/HomeController</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>

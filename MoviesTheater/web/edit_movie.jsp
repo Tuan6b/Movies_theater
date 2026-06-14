@@ -111,6 +111,20 @@
                             </div>
 
                             <div class="cgv-field cgv-form-full">
+                                <label class="cgv-label">Thể loại phim (Có thể chọn nhiều)</label>
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px;">
+                                    <c:forEach items="${genreList}" var="g">
+                                        <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--cgv-dark);">
+                                            <input type="checkbox" name="genreIds" value="${g.genreID}" 
+                                                   ${selectedGenres != null && selectedGenres.contains(g.genreID) ? 'checked' : ''}
+                                                   style="width: 16px; height: 16px; accent-color: var(--cgv-red);">
+                                            ${g.genreName}
+                                        </label>
+                                    </c:forEach>
+                                </div>
+                            </div>
+
+                            <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Đạo diễn</label>
                                 <input type="text" name="director" class="cgv-input" value="${movie.director}">
                             </div>
