@@ -1,6 +1,6 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<% request.setAttribute("activeNav", "users"); %>
+<% request.setAttribute("activeNav", "dashboard"); %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,11 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>User &amp; Role Management — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-    <style>
-        .bulk-bar { display:none; background:#fff; border:1px solid var(--cgv-border); border-radius:8px; padding:12px 16px; margin-bottom:16px; align-items:center; gap:10px; flex-wrap:wrap; }
-        .bulk-bar.visible { display:flex; }
-        .bulk-bar .count { font-size:13px; font-weight:600; color:var(--cgv-text); margin-right:8px; }
-    </style>
 </head>
 <body class="cgv-body">
 
@@ -34,9 +29,17 @@
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
-                    <div class="cgv-avatar">MG</div>
+                    <div class="cgv-avatar">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.LOGIN_USER}">MG</c:when>
+                            <c:otherwise>MG</c:otherwise>
+                        </c:choose>
+                    </div>
                     <span class="cgv-user-name">
-                        ${sessionScope.account.profile.fullName}
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
+                            <c:otherwise>Manager</c:otherwise>
+                        </c:choose>
                     </span>
                 </div>
             </div>
@@ -44,15 +47,14 @@
     </header>
 
     <div class="cgv-page">
+
         <div class="cgv-table-wrap">
 
             <c:if test="${not empty flashSuccess}">
                 <div class="cgv-alert cgv-alert-success">${flashSuccess}</div>
-                <% session.removeAttribute("flashSuccess"); %>
             </c:if>
             <c:if test="${not empty flashError}">
                 <div class="cgv-alert cgv-alert-danger">${flashError}</div>
-                <% session.removeAttribute("flashError"); %>
             </c:if>
 
             <div class="cgv-toolbar">
@@ -62,7 +64,6 @@
                     <a href="?role=manager" class="cgv-pill ${param.role eq 'manager' ? 'active' : ''}">Manager</a>
                     <a href="?role=staff"   class="cgv-pill ${param.role eq 'staff'   ? 'active' : ''}">Staff</a>
                 </div>
-                <c:if test="${isAdmin}">
                 <a href="?action=add" class="btn--cgv">
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none"
                          stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -70,16 +71,6 @@
                     </svg>
                     Add User
                 </a>
-                <a href="${pageContext.request.contextPath}/manager/audit-log" class="btn--cgv-outline">
-                    Audit Log
-                </a>
-                <a href="${pageContext.request.contextPath}/manager/deletion-requests" class="btn--cgv-outline">
-                    Delete Requests
-                </a>
-                <a href="${pageContext.request.contextPath}/manager/users/export?q=${param.q}&role=${param.role}" class="btn--cgv-outline">
-                    Export CSV
-                </a>
-                </c:if>
             </div>
 
             <div class="cgv-data-wrap">
@@ -99,26 +90,9 @@
                     </form>
                 </div>
 
-                <c:if test="${isAdmin}">
-                <form id="bulkForm" method="post">
-                <div id="bulkBar" class="bulk-bar">
-                    <span class="count"><span id="selectedCount">0</span> user(s) selected</span>
-                    <button type="submit" name="action" value="bulkBlock" class="btn--cgv-outline" onclick="return confirm('Block selected users?')">Block</button>
-                    <button type="submit" name="action" value="bulkUnblock" class="btn--cgv-outline" onclick="return confirm('Unblock selected users?')">Unblock</button>
-                    <select name="bulkRole" class="cgv-select" style="height:32px;font-size:12px;max-width:140px;">
-                        <option value="">Change role to…</option>
-                        <option value="2">Customer</option>
-                        <option value="3">Employee</option>
-                        <option value="4">Manager</option>
-                    </select>
-                    <button type="submit" name="action" value="bulkRole" class="btn--cgv-outline" onclick="return confirm('Change role for selected users?')">Apply Role</button>
-                </div>
-                </c:if>
-
                 <table class="cgv-dt">
                     <thead>
                         <tr>
-                            <c:if test="${isAdmin}"><th style="width:36px;"><input type="checkbox" id="selectAll" onchange="toggleAll()"></th></c:if>
                             <th>#</th>
                             <th>Full Name</th>
                             <th>Email</th>
@@ -133,54 +107,42 @@
                             <c:when test="${not empty userList}">
                                 <c:forEach var="u" items="${userList}" varStatus="st">
                                     <tr>
-                                        <c:if test="${isAdmin}"><td><input type="checkbox" name="selectedIds" value="${u.accountId}" class="rowCheckbox" onchange="updateBulkBar()"></td></c:if>
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
-                                        <td style="font-weight:500;">${u.profile.fullName}</td>
+                                        <td style="font-weight:500;">${u.fullName}</td>
                                         <td style="color:rgba(94,63,58,0.7);">${u.email}</td>
                                         <td>
-                                            <span class="cgv-badge ${u.roleName eq 'Admin' ? 'danger' : u.roleName eq 'Manager' ? 'upcoming' : 'inactive'}">
-                                                ${u.roleName}
+                                            <span class="cgv-badge ${u.role eq 'ADMIN' ? 'danger' : u.role eq 'MANAGER' ? 'upcoming' : 'inactive'}">
+                                                ${u.role}
                                             </span>
                                         </td>
                                         <td>
-                                            <span class="cgv-badge ${not u.isBlocked ? 'active' : 'inactive'}">
-                                                ${not u.isBlocked ? 'Active' : 'Inactive'}
+                                            <span class="cgv-badge ${u.active ? 'active' : 'inactive'}">
+                                                ${u.active ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td style="color:rgba(94,63,58,0.6);font-size:13px;">${u.createdAt}</td>
                                         <td>
-                                            <c:choose>
-                                                <c:when test="${isAdmin}">
-                                                <div style="display:flex;gap:8px;">
-                                                    <a href="?action=edit&id=${u.accountId}" class="btn--cgv-outline">Edit</a>
-                                                    <form method="post" style="display:inline;">
-                                                        <input type="hidden" name="action" value="toggleBlock">
-                                                        <input type="hidden" name="id" value="${u.accountId}">
-                                                        <button type="submit" class="btn--cgv-outline"
-                                                                onclick="return confirm('${not u.isBlocked ? 'Block' : 'Unblock'} this user?')">
-                                                            ${not u.isBlocked ? 'Block' : 'Unblock'}
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                <span style="color:rgba(94,63,58,0.4);font-size:12px;">—</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <div style="display:flex;gap:8px;">
+                                                <a href="?action=edit&id=${u.userId}" class="btn--cgv-outline">Edit</a>
+                                                <form method="post" style="display:inline;">
+                                                    <input type="hidden" name="action" value="${u.active ? 'deactivate' : 'activate'}">
+                                                    <input type="hidden" name="id" value="${u.userId}">
+                                                    <button type="submit" class="btn--cgv-outline"
+                                                            onclick="return confirm('${u.active ? 'Deactivate' : 'Activate'} this user?')">
+                                                        ${u.active ? 'Deactivate' : 'Activate'}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <tr><td colspan="8" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No users found.</td></tr>
+                                <tr><td colspan="7" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No users found.</td></tr>
                             </c:otherwise>
                         </c:choose>
                     </tbody>
                 </table>
-
-                <c:if test="${isAdmin}">
-                </form>
-                </c:if>
 
                 <div class="cgv-pager">
                     <span>Showing ${not empty userList ? userList.size() : 0} of ${not empty totalUsers ? totalUsers : 0} users</span>
@@ -219,15 +181,19 @@
                         <c:when test="${not empty recentActivity}">
                             <c:forEach var="a" items="${recentActivity}">
                                 <div>
-                                    <div class="cgv-event-title">${a.profile.fullName} (${a.roleName})</div>
-                                    <div class="cgv-event-desc">${a.email} — joined ${a.createdAt}</div>
+                                    <div class="cgv-event-title">${a.title}</div>
+                                    <div class="cgv-event-desc">${a.description}</div>
                                 </div>
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
                             <div>
-                                <div class="cgv-event-title">No recent activity</div>
-                                <div class="cgv-event-desc">New user registrations will appear here.</div>
+                                <div class="cgv-event-title">New Registration</div>
+                                <div class="cgv-event-desc">user@email.com signed up</div>
+                            </div>
+                            <div>
+                                <div class="cgv-event-title">Role Updated</div>
+                                <div class="cgv-event-desc">Staff role assigned to Minh</div>
                             </div>
                         </c:otherwise>
                     </c:choose>
@@ -236,19 +202,5 @@
         </aside>
     </div>
 </div>
-
-<script>
-function toggleAll() {
-    var checked = document.getElementById('selectAll').checked;
-    document.querySelectorAll('.rowCheckbox').forEach(function(cb) { cb.checked = checked; });
-    updateBulkBar();
-}
-function updateBulkBar() {
-    var checked = document.querySelectorAll('.rowCheckbox:checked').length;
-    var bar = document.getElementById('bulkBar');
-    document.getElementById('selectedCount').textContent = checked;
-    if (checked > 0) { bar.classList.add('visible'); } else { bar.classList.remove('visible'); }
-}
-</script>
 </body>
 </html>

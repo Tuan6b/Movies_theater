@@ -6,7 +6,7 @@
         <title>Manage Movie Genre</title>
     </head>
     <body>
-        <h2>Genre Management</h2>
+        <<h2>Genre Management</h2>
 
         <%-- 
         - SYSTEM MESSAGES SECTION

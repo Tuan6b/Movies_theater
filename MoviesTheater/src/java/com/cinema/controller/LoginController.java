@@ -104,42 +104,42 @@ public class LoginController extends HttpServlet {
             session.setMaxInactiveInterval(7 * 24 * 60 * 60);
         }
 
-        // Redirect về URL trước khi login
-        String redirectAfterLogin =
-                (String) session.getAttribute("redirectAfterLogin");
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
 
-        if (redirectAfterLogin != null
-                && !redirectAfterLogin.trim().isEmpty()) {
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
 
-            session.removeAttribute("redirectAfterLogin");
-
-            response.sendRedirect(redirectAfterLogin);
-
-        } else {
-
-            // Redirect theo role
-            switch (account.getRoleId()) {
-
-                case 5: // Admin
-                    response.sendRedirect(
-                            request.getContextPath() + "/admin");
-                    break;
-
-                case 4: // Manager
-                    response.sendRedirect(
-                            request.getContextPath() + "/manager");
-                    break;
-
-                case 3: // Employee
-                    response.sendRedirect(
-                            request.getContextPath() + "/employee");
-                    break;
-
-                default: // Customer
-                    response.sendRedirect(
-                            request.getContextPath() + "/");
-                    break;
-            }
-        }
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Login Controller - Handles user authentication flow";
     }
 }

@@ -206,6 +206,9 @@
     <servlet-mapping>
         <servlet-name>NotificationServlet</servlet-name>
         <url-pattern>/notifications</url-pattern>
+    <servlet-mapping>
+        <servlet-name>SeatController</servlet-name>
+        <url-pattern>/SeatController</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

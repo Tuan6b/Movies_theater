@@ -69,9 +69,9 @@
         <div class="site-header-actions">
             <c:choose>
                 <c:when test="${not empty sessionScope.account}">
-                    <a href="${pageContext.request.contextPath}/profile" style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;text-decoration:none;">
-                        Xin chào, <strong>${sessionScope.account.profile.fullName}</strong>
-                    </a>
+                    <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
+                        Xin chào, <strong>${sessionScope.account.fullName}</strong>
+                    </span>
                     <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
                 </c:when>
                 <c:otherwise>
@@ -305,12 +305,7 @@
         </a>
         <p class="footer-copy">&copy; 2026 CGV Cinema. Hệ thống quản lý rạp chiếu phim.</p>
         <div class="footer-links">
-            <c:choose>
-                <c:when test="${sessionScope.account.roleId eq 5}"><a href="${pageContext.request.contextPath}/admin">Quản lý</a></c:when>
-                <c:when test="${sessionScope.account.roleId eq 4}"><a href="${pageContext.request.contextPath}/manager">Quản lý</a></c:when>
-                <c:when test="${sessionScope.account.roleId eq 3}"><a href="${pageContext.request.contextPath}/employee">Quản lý</a></c:when>
-                <c:otherwise><a href="${pageContext.request.contextPath}/manager">Quản lý</a></c:otherwise>
-            </c:choose>
+            <a href="${pageContext.request.contextPath}/manager">Quản lý</a>
             <a href="#">Điều khoản</a>
             <a href="#">Hỗ trợ</a>
         </div>

@@ -1,9 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
-import com.cinema.dao.NotificationDAO;
 import com.cinema.model.Account;
-import com.cinema.model.UserProfile;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +15,6 @@ import java.util.regex.Pattern;
 public class RegisterController extends HttpServlet {
 
     private final AccountDAO accountDAO = new AccountDAO();
-    private final NotificationDAO notificationDAO = new NotificationDAO();
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
@@ -58,36 +55,45 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        UserProfile profile = new UserProfile();
-        profile.setFullName(fullName.trim());
-        profile.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
+            Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword, phoneNumber);
+            if (!fieldErrors.isEmpty()) {
+                setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                return;
+            }
 
-        Account account = new Account();
-        account.setProfile(profile);
-        account.setEmail(email.trim());
-        account.setPassword(password);
-        account.setRoleId(2);
+            if (accountDAO.isEmailExist(email.trim())) {
+                Map<String, String> emailErr = new HashMap<>();
+                emailErr.put("email", "Email này đã được đăng ký.");
+                setFormAttributes(request, fullName, email, phoneNumber, emailErr, "Email này đã được đăng ký.");
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                return;
+            }
 
-        int accountId = accountDAO.register(account);
-        if (accountId > 0) {
-            account.setAccountId(accountId);
-            account.setPassword(null);
+            Account account = new Account();
+            account.setFullName(fullName.trim());
+            account.setEmail(email.trim());
+            account.setPassword(password);
+            account.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
+            account.setRoleId(2); // Customer Role
 
-            notificationDAO.createNotification("NEW_USER",
-                "New user registered: " + fullName.trim() + " (" + email.trim() + ")",
-                request.getContextPath() + "/manager/users");
+            int accountId = accountDAO.register(account);
+            if (accountId > 0) {
+                account.setAccountId(accountId);
+                account.setPassword(null);
 
-            HttpSession session = request.getSession();
-            session.setAttribute("account", account);
-            session.setMaxInactiveInterval(30 * 60);
+                HttpSession session = request.getSession();
+                session.setAttribute("account", account);
+                session.setMaxInactiveInterval(30 * 60);
 
-            response.sendRedirect(request.getContextPath() + "/");
-        } else {
-            Map<String, String> sysErr = new HashMap<>();
-            sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
-            setFormAttributes(request, fullName, email, phoneNumber,
-                    sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/register.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/");
+            } else {
+                Map<String, String> sysErr = new HashMap<>();
+                sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
+                setFormAttributes(request, fullName, email, phoneNumber,
+                        sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
+            }
         }
     }
 
