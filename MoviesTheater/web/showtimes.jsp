@@ -357,7 +357,7 @@
         
         // Redirect to booking seat mapping
         setTimeout(function() {
-            window.location.href = "${pageContext.request.contextPath}/booking?scheduleId=" + scheduleId;
+            window.location.href = "${pageContext.request.contextPath}/booking?action=seat&scheduleId=" + scheduleId;
         }, 1000);
     }
 </script>
