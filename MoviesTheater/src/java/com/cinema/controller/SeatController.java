@@ -19,7 +19,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SeatController handles seat management operations.
@@ -57,9 +60,8 @@ public class SeatController extends HttpServlet {
             // Route request to corresponding method
             switch (action) {
 
-                case "update":
-
-                    updateSeat(request, response);
+                case "updateRow":
+                    updateRow(request, response);
                     break;
 
                 default:
@@ -82,51 +84,28 @@ public class SeatController extends HttpServlet {
         List<Seat> seatList = seatDAO.getSeatsByRoom(roomId);
         Room room = roomDAO.getRoomById(roomId);
 
-        request.setAttribute("seatList", seatList);
+        Map<String, List<Seat>> seatsByRow = new LinkedHashMap<>();
+        for (Seat seat : seatList) {
+            seatsByRow.computeIfAbsent(seat.getRowChar(), k -> new ArrayList<>()).add(seat);
+        }
+
+        request.setAttribute("seatsByRow", seatsByRow);
         request.setAttribute("room", room);
 
         request.getRequestDispatcher("seat-layout.jsp").forward(request, response);
     }
 
-    /**
-     * Update seat type and status
-     */
-    private void updateSeat(HttpServletRequest request,
+    private void updateRow(HttpServletRequest request,
             HttpServletResponse response)
             throws IOException {
 
-        // Get seat ID
-        int seatId = Integer.parseInt(
-                request.getParameter("seatId"));
+        int roomId = Integer.parseInt(request.getParameter("roomId"));
+        String rowChar = request.getParameter("rowChar");
+        String seatType = request.getParameter("seatType");
 
-        // Get room ID
-        int roomId = Integer.parseInt(
-                request.getParameter("roomId"));
+        seatDAO.updateSeatsByRow(roomId, rowChar, seatType);
 
-        // Get selected seat type
-        String seatType
-                = request.getParameter("seatType");
-
-        /*
-     * Checkbox handling:
-     * checked -> active
-     * unchecked -> inactive
-         */
-        boolean active
-                = request.getParameter("active") != null;
-
-        // Update seat in database
-        seatDAO.updateSeat(
-                seatId,
-                seatType,
-                active
-        );
-
-        // Reload seat layout
-        response.sendRedirect(
-                "SeatController?roomId="
-                + roomId
-        );
+        response.sendRedirect("SeatController?roomId=" + roomId);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
