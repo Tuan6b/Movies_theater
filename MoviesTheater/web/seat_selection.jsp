@@ -1,26 +1,26 @@
-<%-- 
-    Document   : seat_selection
-    Created on : Jun 11, 2026, 3:00:35 PM
-    Author     : ADMIN
---%>
-
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ */
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
+<%@ page import="com.cinema.model.BookingScheduleView,com.cinema.model.SeatView" %>
+<%@ page import="java.util.List" %>
 <%
-    String scheduleId = request.getParameter("scheduleId");
+    BookingScheduleView schedule = (BookingScheduleView) request.getAttribute("schedule");
+    List<SeatView> seats = (List<SeatView>) request.getAttribute("seats");
 
-    if (scheduleId == null || scheduleId.trim().isEmpty()) {
-        scheduleId = "1";
+    // Prevent direct JSP access without controller attributes
+    if (schedule == null || seats == null) {
+        response.sendRedirect(request.getContextPath() + "/showtimes");
+        return;
     }
-
-    double ticketPrice = 90000;
 %>
-
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>CGV - Select Seat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CGV CINEMA - Chọn ghế</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/seat-selection.css">
 </head>
 
@@ -30,12 +30,11 @@
 
     <div class="top-dark">
         <div class="header-inner">
-            <div class="logo">CGV CINEMA</div>
+            <a href="<%= request.getContextPath() %>/" class="logo">CGV CINEMA</a>
 
             <div class="nav">
                 <a href="<%= request.getContextPath() %>/index.jsp">Trang chủ</a>
-                <a href="<%= request.getContextPath() %>/showtime.jsp">Lịch chiếu</a>
-                <a href="#">Vé của tôi</a>
+                <a href="#">Ưu đãi</a>
             </div>
         </div>
     </div>
@@ -78,92 +77,79 @@
         <section class="movie-info-card">
             <div>
                 <span>Phim</span>
-                <strong>CGV Movie Demo</strong>
+                <strong><%= schedule.getMovieName() %></strong>
             </div>
 
             <div>
                 <span>Suất chiếu</span>
-                <strong>09:00 - 01/07</strong>
+                <strong><%= schedule.getStartTime() %> - <%= schedule.getShowDate() %></strong>
             </div>
 
             <div>
                 <span>Phòng</span>
-                <strong>Phòng P01</strong>
+                <strong><%= schedule.getRoomNumber() %> (<%= schedule.getRoomType() %>)</strong>
             </div>
 
             <div>
                 <span>Giá vé</span>
-                <strong><%= String.format("%,.0f", ticketPrice) %> đ</strong>
+                <strong><%= String.format("%,.0f", schedule.getBaseTicketPrice()) %> đ</strong>
             </div>
         </section>
 
         <form action="<%= request.getContextPath() %>/booking" method="post" id="seatForm">
 
             <input type="hidden" name="action" value="selectSeat">
-            <input type="hidden" name="scheduleId" value="<%= scheduleId %>">
+            <input type="hidden" name="scheduleId" value="<%= schedule.getScheduleId() %>">
 
             <section class="seat-map-card">
 
                 <div class="screen-wrapper">
                     <div class="screen-light"></div>
                     <div class="screen">MÀN HÌNH</div>
+                    <div class="screen-text">SCREEN</div>
                 </div>
 
                 <div class="seat-map">
-
                     <%
-                        String[] rows = {"A", "B", "C", "D", "E", "F", "G", "H"};
-                        int seatId = 1;
+                        String currentRow = "";
+                        boolean firstRow = true;
+                        for (SeatView seat : seats) {
+                            String seatRow = seat.getRowChar();
+                            if (!seatRow.equals(currentRow)) {
+                                if (!firstRow) {
+                                    // Close previous row's seat list and row label container
+                                    out.println("</div></div>");
+                                }
+                                firstRow = false;
+                                currentRow = seatRow;
+                                // Start new row
+                                out.println("<div class='seat-row'>");
+                                out.println("<div class='row-label'>" + currentRow + "</div>");
+                                out.println("<div class='seat-list'>");
+                            }
 
-                        for (String row : rows) {
+                            String seatName = seat.getSeatName();
+                            String seatClass = seat.isBooked() ? "booked" : (seat.getSeatType().equalsIgnoreCase("VIP") ? "vip" : "normal");
                     %>
-
-                    <div class="seat-row">
-                        <div class="row-label"><%= row %></div>
-
-                        <div class="seat-list">
-                            <%
-                                for (int col = 1; col <= 10; col++) {
-                                    String seatName = row + col;
-
-                                    boolean isVip = row.equals("E") || row.equals("F") || row.equals("G") || row.equals("H");
-
-                                    boolean isBooked =
-                                            seatName.equals("A4") ||
-                                            seatName.equals("A5") ||
-                                            seatName.equals("C6") ||
-                                            seatName.equals("D7") ||
-                                            seatName.equals("F3") ||
-                                            seatName.equals("F4");
-
-                                    String seatClass = isBooked ? "booked" : (isVip ? "vip" : "normal");
-                            %>
-
                             <label class="seat <%= seatClass %>"
                                    data-seat-name="<%= seatName %>"
-                                   data-price="<%= ticketPrice %>">
+                                   data-price="<%= schedule.getBaseTicketPrice() %>">
 
                                 <input type="checkbox"
                                        name="seatIds"
-                                       value="<%= seatId %>"
+                                       value="<%= seat.getSeatId() %>"
                                        data-seat-name="<%= seatName %>"
-                                       data-price="<%= ticketPrice %>"
-                                       <%= isBooked ? "disabled" : "" %>>
+                                       data-price="<%= schedule.getBaseTicketPrice() %>"
+                                       <%= seat.isBooked() ? "disabled" : "" %>>
 
-                                <span><%= seatName %></span>
+                                <span><%= seat.getColNumber() %></span>
                             </label>
-
-                            <%
-                                    seatId++;
-                                }
-                            %>
-                        </div>
-                    </div>
-
                     <%
                         }
+                        if (!firstRow) {
+                            out.println("</div></div>");
+                        }
                     %>
-
                 </div>
 
                 <div class="seat-note">

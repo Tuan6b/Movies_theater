@@ -1,14 +1,8 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package com.cinema.controller;
-
-/**
- *
- * @author ADMIN
- */
-
 
 import com.cinema.dao.BookingScheduleDAO;
 import com.cinema.dao.BookingSeatDAO;
@@ -27,15 +21,31 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * BookingController handles movie booking steps (seat selection).
+ *
+ * @author tuan6b
+ */
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
 
-    private BookingSeatDAO seatDAO = new BookingSeatDAO();
-    private BookingScheduleDAO scheduleDAO = new BookingScheduleDAO();
+    private final BookingSeatDAO seatDAO = new BookingSeatDAO();
+    private final BookingScheduleDAO scheduleDAO = new BookingScheduleDAO();
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+
+        String method = request.getMethod();
         String action = request.getParameter("action");
 
         if (action == null || action.trim().isEmpty()) {
@@ -43,26 +53,24 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        switch (action) {
-            case "seat":
-                showSeatPage(request, response);
-                break;
-
-            default:
+        if ("GET".equalsIgnoreCase(method)) {
+            // GET Action routing
+            switch (action) {
+                case "seat":
+                    showSeatPage(request, response);
+                    break;
+                default:
+                    response.sendRedirect(request.getContextPath() + "/index.jsp");
+                    break;
+            }
+        } else if ("POST".equalsIgnoreCase(method)) {
+            request.setCharacterEncoding("UTF-8");
+            // POST Action routing
+            if ("selectSeat".equals(action)) {
+                selectSeat(request, response);
+            } else {
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
-                break;
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if ("selectSeat".equals(action)) {
-            selectSeat(request, response);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            }
         }
     }
 
@@ -71,13 +79,12 @@ public class BookingController extends HttpServlet {
         String scheduleIdRaw = request.getParameter("scheduleId");
 
         if (scheduleIdRaw == null || scheduleIdRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/showtime.jsp");
+            response.sendRedirect(request.getContextPath() + "/showtimes.jsp");
             return;
         }
 
         try {
             int scheduleId = Integer.parseInt(scheduleIdRaw);
-
             BookingScheduleView schedule = scheduleDAO.getScheduleById(scheduleId);
 
             if (schedule == null) {
@@ -94,7 +101,7 @@ public class BookingController extends HttpServlet {
             request.getRequestDispatcher("seat_selection.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/showtime.jsp");
+            response.sendRedirect(request.getContextPath() + "/showtimes.jsp");
         }
     }
 
@@ -111,7 +118,6 @@ public class BookingController extends HttpServlet {
 
         try {
             int scheduleId = Integer.parseInt(scheduleIdRaw);
-
             BookingScheduleView schedule = scheduleDAO.getScheduleById(scheduleId);
 
             if (schedule == null) {
@@ -151,7 +157,47 @@ public class BookingController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/food_selection.jsp");
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/showtime.jsp");
+            response.sendRedirect(request.getContextPath() + "/showtimes.jsp");
         }
     }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Booking Controller - Handles seat selection process";
+    }
+    // </editor-fold>
 }
