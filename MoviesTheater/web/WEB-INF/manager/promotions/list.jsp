@@ -18,6 +18,14 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">Promotions</h1>
         <div class="cgv-header-right">
+            <div class="cgv-search-wrap">
+                <svg class="cgv-search-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input class="cgv-search" type="text" placeholder="Search promotions..." value="${param.keyword}">
+            </div>
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
@@ -46,16 +54,10 @@
 
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
-                    <a href="${pageContext.request.contextPath}/manager/promotions"
-                       class="cgv-pill active">All</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=upcoming"
-                       class="cgv-pill">Upcoming</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=active"
-                       class="cgv-pill">Active</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=expired"
-                       class="cgv-pill">Expired</a>
-                    <a href="${pageContext.request.contextPath}/manager/promotions?view=inactive"
-                       class="cgv-pill">Inactive</a>
+                    <a href="?status=all"      class="cgv-pill ${empty param.status || param.status eq 'all'     ? 'active' : ''}">All</a>
+                    <a href="?status=active"   class="cgv-pill ${param.status eq 'active'   ? 'active' : ''}">Active</a>
+                    <a href="?status=upcoming" class="cgv-pill ${param.status eq 'upcoming' ? 'active' : ''}">Upcoming</a>
+                    <a href="?status=ended"    class="cgv-pill ${param.status eq 'ended'    ? 'active' : ''}">Ended</a>
                 </div>
                 <a href="${pageContext.request.contextPath}/manager/promotions?action=add" class="btn--cgv">
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none"
@@ -88,7 +90,6 @@
                             <th>Description</th>
                             <th>Type</th>
                             <th>Value</th>
-                            <th>Giá trị đơn tối thiểu (VND)</th>
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Uses / Limit</th>
@@ -108,30 +109,18 @@
                                             </code>
                                         </td>
                                         <td style="font-weight:500;">${p.description}</td>
-                                        <td style="color:rgba(94,63,58,0.7);">
-                                            <c:choose>
-                                                <c:when test="${p.discountType eq 'Percentage' or p.discountType eq 'PERCENT'}">Percentage</c:when>
-                                                <c:when test="${p.discountType eq 'FlatAmount' or p.discountType eq 'FIXED'}">Fixed Amount</c:when>
-                                                <c:otherwise>${p.discountType}</c:otherwise>
-                                            </c:choose>
-                                        </td>
+                                        <td style="color:rgba(94,63,58,0.7);">${p.discountType}</td>
                                         <td style="font-weight:600;">
                                             <c:choose>
-                                                <c:when test="${p.discountType eq 'Percentage' or p.discountType eq 'PERCENT'}">${p.discountValue}%</c:when>
+                                                <c:when test="${p.discountType eq 'PERCENT'}">${p.discountValue}%</c:when>
                                                 <c:otherwise>${p.discountValue} VND</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td style="font-size:13px;">
-                                            <c:choose>
-                                                <c:when test="${empty p.minOrderAmount or p.minOrderAmount == 0}">—</c:when>
-                                                <c:otherwise>${p.minOrderAmount} VND</c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td style="font-size:13px;">${p.startDateDisplay}</td>
                                         <td style="font-size:13px;">${p.endDateDisplay}</td>
                                         <td>${p.usedCount} / ${not empty p.usageLimit ? p.usageLimit : '∞'}</td>
                                         <td>
-                                            <span class="cgv-badge ${p.status eq 'active' ? 'active' : p.status eq 'upcoming' ? 'upcoming' : p.status eq 'expired' ? 'danger' : 'inactive'}">
+                                            <span class="cgv-badge ${p.status eq 'active' ? 'active' : p.status eq 'upcoming' ? 'upcoming' : 'inactive'}">
                                                 ${p.status}
                                             </span>
                                         </td>
@@ -144,7 +133,7 @@
                                                     <input type="hidden" name="promotionId" value="${p.promotionId}">
                                                     <button type="submit" class="btn--cgv-outline"
                                                             style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                            onclick="return confirm('Delete promotion ${p.promotionCode}?')">deactivate</button>
+                                                            onclick="return confirm('Delete promotion ${p.promotionCode}?')">Delete</button>
                                                 </form>
                                             </div>
                                         </td>
@@ -152,7 +141,7 @@
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <tr><td colspan="11" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No promotions found.</td></tr>
+                                <tr><td colspan="10" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">No promotions found.</td></tr>
                             </c:otherwise>
                         </c:choose>
                     </tbody>
@@ -166,7 +155,7 @@
                     <div class="cgv-pager-pages">
                         <c:forEach begin="1" end="${not empty totalPages ? totalPages : 1}" var="pg">
                             <button class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
-                                    onclick="location.href='?page=${pg}&keyword=${param.keyword}&type=${param.type}'">${pg}</button>
+                                    onclick="location.href='?page=${pg}&keyword=${param.keyword}&type=${param.type}&status=${param.status}'">${pg}</button>
                         </c:forEach>
                     </div>
                 </div>
