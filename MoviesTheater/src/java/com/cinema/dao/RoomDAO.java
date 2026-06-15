@@ -264,8 +264,6 @@ public class RoomDAO extends DBContext {
     }
 
     /**
-<<<<<<< Updated upstream
-=======
      * Check whether a room number already exists in the database
      *
      * @param roomNumber the room number to check
@@ -302,7 +300,6 @@ public class RoomDAO extends DBContext {
     }
 
     /**
->>>>>>> Stashed changes
      * Count the total number of room records in the database
      *
      * @return total row count of Room table

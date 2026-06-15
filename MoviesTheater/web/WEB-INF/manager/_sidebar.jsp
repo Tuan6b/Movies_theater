@@ -1,14 +1,5 @@
-<%-- Sidebar include. Set request attribute "activeNav" before including. --%>
+<%-- CGV Sidebar navigation. Set request attribute "activeNav" before including. --%>
 <%@ page pageEncoding="UTF-8" %>
-<<<<<<< Updated upstream
-<aside class="sidebar">
-
-    <div class="sidebar-brand">
-        <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV Cinema">
-        <div class="sidebar-brand-text">
-            <h1>Cinema Admin</h1>
-        </div>
-=======
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <aside class="cgv-sidebar">
 
@@ -18,27 +9,21 @@
         <img class="cgv-logo"
              src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
              alt="CGV Cinema">
->>>>>>> Stashed changes
     </div>
 
-    <div class="sidebar-role">Manager</div>
-
-    <nav class="sidebar-nav">
-
-        <div class="nav-section-label">Tổng quan</div>
+    <nav class="cgv-nav">
         <a href="${pageContext.request.contextPath}/manager"
-           class="nav-item ${activeNav eq 'dashboard' ? 'active' : ''}">
-            Tổng quan
+           class="cgv-nav-link ${activeNav eq 'dashboard' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Dashboard
         </a>
 
-<<<<<<< Updated upstream
-        <div class="nav-section-label">Nội dung</div>
-        <a href="#" class="nav-item ${activeNav eq 'movies' ? 'active' : ''}">
-            Phim &amp; Thể loại
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'ratings' ? 'active' : ''}">
-            Đánh giá phim
-=======
         <c:if test="${r ge 3}">
         <a href="${pageContext.request.contextPath}/manager/movies"
            class="cgv-nav-link ${activeNav eq 'movies' ? 'active' : ''}">
@@ -54,54 +39,32 @@
                 <line x1="2" y1="17" x2="7" y2="17"/>
             </svg>
             Movies
->>>>>>> Stashed changes
         </a>
 
-        <div class="nav-section-label">Vận Hành</div>
-        <a href="${pageContext.request.contextPath}/RoomServlet" class="nav-item ${activeNav eq 'rooms' ? 'active' : ''}">
-            phòng chiếu
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'schedules' ? 'active' : ''}">
-            Lịch chiếu
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'food' ? 'active' : ''}">
-            Đồ ăn &amp; Menu
+        <a href="${pageContext.request.contextPath}/manager/schedules"
+           class="cgv-nav-link ${activeNav eq 'schedules' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Schedules
         </a>
         </c:if>
 
-<<<<<<< Updated upstream
-        <div class="nav-section-label">Kinh doanh</div>
-        <a href="#" class="nav-item ${activeNav eq 'booking' ? 'active' : ''}">
-            Thanh toán
-        </a>
-=======
         <c:if test="${r ge 4}">
->>>>>>> Stashed changes
         <a href="${pageContext.request.contextPath}/manager/promotions"
-           class="nav-item done ${activeNav eq 'promotions' ? 'active' : ''}">
-            Khuyến mãi
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'stats' ? 'active' : ''}">
-            Thống kê
-        </a>
-
-<<<<<<< Updated upstream
-        <div class="nav-section-label">Hệ thống</div>
-        <a href="#" class="nav-item ${activeNav eq 'employees' ? 'active' : ''}">
-            Nhân viên
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'accounts' ? 'active' : ''}">
-            Tài khoản
-        </a>
-        <a href="#" class="nav-item ${activeNav eq 'config' ? 'active' : ''}">
-            Cấu hình hệ thống
+           class="cgv-nav-link ${activeNav eq 'promotions' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            Promotions
         </a>
 
-    </nav>
-
-    <div class="sidebar-footer">
-        Cinema Manager v1.0
-=======
         <a href="${pageContext.request.contextPath}/manager/employees"
            class="cgv-nav-link ${activeNav eq 'employees' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -167,7 +130,6 @@
             </svg>
             Logout
         </a>
->>>>>>> Stashed changes
     </div>
 
 </aside>

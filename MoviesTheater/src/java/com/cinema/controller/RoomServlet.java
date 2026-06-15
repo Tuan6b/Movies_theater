@@ -155,6 +155,12 @@ public class RoomServlet extends HttpServlet {
             return;
         }
 
+        // Validate room number uniqueness
+        if (roomDAO.isRoomNumberExists(roomNumber)) {
+            response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
+            return;
+        }
+
         // Create Room object and set values
         Room room = new Room();
         room.setRoomNumber(roomNumber);
