@@ -26,7 +26,6 @@ public class Promotion {
     private Integer usageLimit;
     private int usedCount;
     private boolean active;
-    private String status;
 
     public Promotion() {
     }
@@ -146,11 +145,10 @@ public class Promotion {
     }
 
     public String getStatus() {
-        return status != null ? status : "active";
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+        if (endDate != null && endDate.isBefore(java.time.LocalDateTime.now())) {
+            return "expired";
+        }
+        return active ? "active" : "inactive";
     }
 
     public String getStartDateDisplay() {
