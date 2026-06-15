@@ -30,9 +30,7 @@
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <a href="${pageContext.request.contextPath}/RoomServlet"
-                   class="btn--cgv-outline" style="margin-right:8px;">
-                    ← Back to Rooms
-                </a>
+                   class="btn--cgv-outline">← Back to Rooms</a>
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
                     <div class="cgv-avatar">MG</div>

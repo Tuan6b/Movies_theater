@@ -14,6 +14,11 @@ import com.cinema.dao.SeatDAO;
 import com.cinema.dao.RoomDAO;
 import com.cinema.model.Seat;
 import com.cinema.model.Room;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +65,7 @@ public class SeatController extends HttpServlet {
                     break;
 
                 default:
+
                     viewSeatLayout(request, response);
                     break;
             }

@@ -121,7 +121,7 @@ public class RoomServlet extends HttpServlet {
 
         String roomNumber = request.getParameter("roomNumber");
         String roomType = request.getParameter("roomType");
-        // Get seat layout information
+
         int numberOfRows = Integer.parseInt(
                 request.getParameter("numberOfRows"));
 
@@ -135,25 +135,20 @@ public class RoomServlet extends HttpServlet {
             currentPage = "1";
         }
 
-        // Validate room number uniqueness
         if (roomDAO.isRoomNumberExists(roomNumber)) {
             response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
             return;
         }
 
-        // Create Room object and set values
         Room room = new Room();
         room.setRoomNumber(roomNumber);
         room.setRoomType(roomType);
         room.setCapacity(capacity);
-        // Set seat layout information
         room.setNumberOfRows(numberOfRows);
         room.setSeatsPerRow(seatsPerRow);
 
-        // INSERT + GET ID NGAY LẬP TỨC
         int roomId = roomDAO.addRoomAndGetId(room);
 
-        // Generate seats if room created successfully
         if (roomId > 0) {
             seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
         }

@@ -40,12 +40,13 @@
     <div class="cgv-page">
         <div class="cgv-list-wrap" style="max-width:640px;">
 
-            <c:if test="${param.error eq 'capacity_invalid'}">
-                <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
-            </c:if>
             <c:if test="${param.error eq 'room_number_exists'}">
                 <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
             </c:if>
+            <c:if test="${param.error eq 'invalid_layout'}">
+                <div class="cgv-alert cgv-alert-danger">Rows × Seats per row must equal Capacity.</div>
+            </c:if>
+
             <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
                 <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
                     ROOM DETAILS
@@ -63,11 +64,11 @@
                     <div class="cgv-field">
                         <label class="cgv-label">Room Type</label>
                         <select class="cgv-select" name="roomType">
-                            <option value="2D">2D</option>
-                            <option value="3D">3D</option>
-                            <option value="IMAX">IMAX</option>
-                            <option value="4DX">4DX</option>
-                        </select>
+                                    <option value="2D">2D</option>
+                                    <option value="3D">3D</option>
+                                    <option value="IMAX">IMAX</option>
+                                    <option value="4DX">4DX</option>
+                                </select>
                     </div>
 
                     <div class="cgv-field">
@@ -81,22 +82,6 @@
                         <input class="cgv-input" type="number" name="seatsPerRow"
                                min="1" placeholder="e.g. 10" required>
                     </div>
-
-                    <div class="cgv-field">
-                        <label class="cgv-label">Capacity</label>
-                        <input class="cgv-input" type="number" id="capacity"
-                               value="0" disabled style="background:#f0f0f0;">
-                    </div>
-
-                    <script>
-                    document.querySelector('[name="numberOfRows"]').addEventListener('input', calcCap);
-                    document.querySelector('[name="seatsPerRow"]').addEventListener('input', calcCap);
-                    function calcCap() {
-                        var r = parseInt(document.querySelector('[name="numberOfRows"]').value) || 0;
-                        var c = parseInt(document.querySelector('[name="seatsPerRow"]').value) || 0;
-                        document.getElementById('capacity').value = r * c;
-                    }
-                    </script>
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
                         <button type="submit" class="btn--cgv">Add Room</button>

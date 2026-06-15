@@ -145,19 +145,17 @@ public class SeatDAO extends DBContext {
             boolean active) {
 
         String sql = """
-                  UPDATE Seat
-                  SET SeatType = ?,
-                      IsActive = ?
-                  WHERE SeatID = ?
-                  """;
+                 UPDATE Seat
+                 SET SeatType = ?,
+                     IsActive = ?
+                 WHERE SeatID = ?
+                 """;
 
         try (PreparedStatement stm
                 = connection.prepareStatement(sql)) {
 
             stm.setString(1, seatType);
-
             stm.setBoolean(2, active);
-
             stm.setInt(3, seatId);
 
             return stm.executeUpdate() > 0;
@@ -187,15 +185,20 @@ public class SeatDAO extends DBContext {
                      SET SeatType = ?
                      WHERE RoomID = ? AND RowChar = ?
                      """;
+
         try (PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, seatType);
             stm.setInt(2, roomId);
             stm.setString(3, rowChar);
+
             return stm.executeUpdate() > 0;
+
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+
         return false;
     }
 
 }
+
