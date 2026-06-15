@@ -77,8 +77,8 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        // Check blocked account
-        if (account.isIsBlocked()) {
+        // Check blocked account (SuperAdmin with roleId >= 6 is never blocked)
+        if (account.isIsBlocked() && account.getRoleId() < 6) {
 
             request.setAttribute("error",
                     "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
@@ -120,11 +120,8 @@ public class LoginController extends HttpServlet {
             // Redirect theo role
             switch (account.getRoleId()) {
 
-                case 5: // Admin
-                    response.sendRedirect(
-                            request.getContextPath() + "/");
-                    break;
-
+                case 6: // SuperAdmin
+                case 5: // SystemAdmin
                 case 4: // Manager
                 case 3: // Employee
                     response.sendRedirect(

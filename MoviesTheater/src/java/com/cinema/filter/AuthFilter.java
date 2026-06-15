@@ -27,8 +27,7 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/Login",
             "/Register",
             "/Error.jsp",
-            "/showtimes",
-            "/RoomServlet"
+            "/showtimes"
     );
 
     // Public resources
@@ -41,14 +40,17 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/new-password"
     );
 
-    // Manager-only functions
+    // Manager-only functions (roleId >= 4 required)
     private static final List<String> MANAGER_ONLY_PATHS = Arrays.asList(
             "/manager/promotions",
             "/manager/food",
             "/manager/analytics",
             "/manager/users",
             "/manager/settings",
-            "/manager/genre"
+            "/manager/genre",
+            "/manager/employees",
+            "/RoomServlet",
+            "/SeatController"
     );
 
     @Override
@@ -101,8 +103,15 @@ public class AuthFilter extends HttpFilter implements Filter {
          * 2 = Customer
          * 3 = Employee
          * 4 = Manager
-         * 5 = Admin
+         * 5 = SystemAdmin
+         * 6 = SuperAdmin (bypasses all restrictions)
          */
+
+        // ===== SUPER ADMIN BYPASS =====
+        if (roleId >= 6) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         // ===== ADMIN ONLY =====
         if (path.startsWith("/admin") && roleId < 5) {
