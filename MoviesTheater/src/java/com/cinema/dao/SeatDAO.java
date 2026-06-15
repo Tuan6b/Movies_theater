@@ -145,22 +145,19 @@ public class SeatDAO extends DBContext {
             boolean active) {
 
         String sql = """
-                 UPDATE Seat
-                 SET SeatType = ?,
-                     IsActive = ?
-                 WHERE SeatID = ?
-                 """;
+                  UPDATE Seat
+                  SET SeatType = ?,
+                      IsActive = ?
+                  WHERE SeatID = ?
+                  """;
 
         try (PreparedStatement stm
                 = connection.prepareStatement(sql)) {
 
-            // Set seat type
             stm.setString(1, seatType);
 
-            // Set seat status
             stm.setBoolean(2, active);
 
-            // Set seat ID
             stm.setInt(3, seatId);
 
             return stm.executeUpdate() > 0;
@@ -171,4 +168,34 @@ public class SeatDAO extends DBContext {
 
         return false;
     }
+
+    public boolean deleteSeatsByRoom(int roomId) {
+        String sql = "DELETE FROM Seat WHERE RoomID = ?";
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, roomId);
+            stm.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateSeatsByRow(int roomId, String rowChar, String seatType) {
+        String sql = """
+                     UPDATE Seat
+                     SET SeatType = ?
+                     WHERE RoomID = ? AND RowChar = ?
+                     """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, seatType);
+            stm.setInt(2, roomId);
+            stm.setString(3, rowChar);
+            return stm.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
 }

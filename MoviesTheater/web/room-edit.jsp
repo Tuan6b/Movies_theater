@@ -6,7 +6,10 @@
     String origPage = (String) request.getAttribute("currentPage");
     if (origPage == null) origPage = request.getParameter("page");
     if (origPage == null || origPage.isEmpty()) origPage = "1";
+    String origFilter = request.getParameter("filter");
+    if (origFilter == null || origFilter.isEmpty()) origFilter = "active";
     request.setAttribute("origPage", origPage);
+    request.setAttribute("origFilter", origFilter);
     request.setAttribute("activeNav", "rooms");
 %>
 <!DOCTYPE html>
@@ -48,12 +51,11 @@
     <div class="cgv-page">
         <div class="cgv-list-wrap" style="max-width:640px;">
 
-            <c:if test="${param.error eq 'capacity_invalid'}">
-                <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
-            </c:if>
-
             <c:if test="${param.error eq 'room_number_exists'}">
                 <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
+            </c:if>
+            <c:if test="${param.error eq 'cannot_change_layout'}">
+                <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing bookings.</div>
             </c:if>
 
             <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
@@ -61,7 +63,7 @@
                     ROOM DETAILS
                 </div>
 
-                <form action="${pageContext.request.contextPath}/RoomServlet?page=${origPage}" method="post">
+                <form action="${pageContext.request.contextPath}/RoomServlet?page=${origPage}&filter=${origFilter}" method="post">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="roomId" value="${room.roomId}">
 
@@ -78,15 +80,36 @@
                             <option value="3D"   ${room.roomType eq '3D'   ? 'selected' : ''}>3D</option>
                             <option value="IMAX" ${room.roomType eq 'IMAX' ? 'selected' : ''}>IMAX</option>
                             <option value="4DX"  ${room.roomType eq '4DX'  ? 'selected' : ''}>4DX</option>
-                            <option value="VIP"  ${room.roomType eq 'VIP'  ? 'selected' : ''}>VIP</option>
                         </select>
                     </div>
 
                     <div class="cgv-field">
-                        <label class="cgv-label">Capacity</label>
-                        <input class="cgv-input" type="number" name="capacity"
-                               value="${room.capacity}" min="1" required>
+                        <label class="cgv-label">Number of Rows</label>
+                        <input class="cgv-input" type="number" name="numberOfRows"
+                               value="${room.numberOfRows}" min="1" required>
                     </div>
+
+                    <div class="cgv-field">
+                        <label class="cgv-label">Seats per Row</label>
+                        <input class="cgv-input" type="number" name="seatsPerRow"
+                               value="${room.seatsPerRow}" min="1" required>
+                    </div>
+
+                    <div class="cgv-field">
+                        <label class="cgv-label">Capacity</label>
+                        <input class="cgv-input" type="number" id="editCapacity"
+                               value="${room.capacity}" disabled style="background:#f0f0f0;">
+                    </div>
+
+                    <script>
+                    document.querySelector('[name="numberOfRows"]').addEventListener('input', calcEditCap);
+                    document.querySelector('[name="seatsPerRow"]').addEventListener('input', calcEditCap);
+                    function calcEditCap() {
+                        var r = parseInt(document.querySelector('[name="numberOfRows"]').value) || 0;
+                        var c = parseInt(document.querySelector('[name="seatsPerRow"]').value) || 0;
+                        document.getElementById('editCapacity').value = r * c;
+                    }
+                    </script>
 
                     <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
                         <input type="checkbox" name="active" id="activeCheck"
@@ -99,7 +122,7 @@
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
                         <button type="submit" class="btn--cgv">Save Changes</button>
-                        <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}"
+                        <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}&filter=${origFilter}"
                            class="btn--cgv-outline">Cancel</a>
                     </div>
                 </form>
