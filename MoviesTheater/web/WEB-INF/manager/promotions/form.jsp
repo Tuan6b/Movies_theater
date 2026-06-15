@@ -58,20 +58,23 @@
 
                     <%-- Promotion Code --%>
                     <div class="cgv-field">
-                        <label class="cgv-label">
-                            Mã khuyến mãi <span style="color:var(--cgv-red)">*</span>
-                        </label>
-                        <input class="cgv-input" type="text" name="promotionCode"
-                               value="${promotion.promotionCode}"
-                               placeholder="VD: SUMMER2025"
-                               style="text-transform:uppercase;font-family:monospace;letter-spacing:1px;"
-                               ${formAction eq 'update' and promotion.usedCount > 0 ? 'readonly' : ''}>
-                        <c:if test="${not empty errors['promotionCode']}">
-                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['promotionCode']}</div>
-                        </c:if>
-                        <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">
-                            <div style="font-size:12px;color:rgba(94,63,58,0.55);margin-top:4px;">Mã đã được sử dụng, không thể thay đổi.</div>
-                        </c:if>
+                        <label class="cgv-label">Mã khuyến mãi</label>
+                        <c:choose>
+                            <c:when test="${formAction eq 'create'}">
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:13px;color:rgba(94,63,58,0.55);letter-spacing:1px;">
+                                    Tự động tạo khi lưu (VD: KM202606001)
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">
+                                    Mã được tạo tự động theo định dạng KM + tháng/năm + số thứ tự.
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px;">
+                                    ${promotion.promotionCode}
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Mã khuyến mãi không thể thay đổi sau khi tạo.</div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
 
                     <%-- Description --%>
@@ -150,6 +153,9 @@
                             <c:if test="${not empty errors['startDate']}">
                                 <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['startDate']}</div>
                             </c:if>
+                            <c:if test="${formAction eq 'create'}">
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Phải là thời điểm trong tương lai.</div>
+                            </c:if>
                         </div>
                         <div class="cgv-field">
                             <label class="cgv-label">
@@ -174,15 +180,17 @@
                         </c:if>
                     </div>
 
-                    <%-- Active toggle --%>
-                    <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
-                        <input type="checkbox" name="isActive" id="isActive"
-                               ${(promotion.active or empty promotion) ? 'checked' : ''}
-                               style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
-                        <label class="cgv-label" for="isActive" style="margin-bottom:0;cursor:pointer;">
-                            Kích hoạt ngay
-                        </label>
-                    </div>
+                    <%-- Active toggle (edit only — new promotions are always upcoming) --%>
+                    <c:if test="${formAction eq 'update'}">
+                        <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
+                            <input type="checkbox" name="isActive" id="isActive"
+                                   ${promotion.active ? 'checked' : ''}
+                                   style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
+                            <label class="cgv-label" for="isActive" style="margin-bottom:0;cursor:pointer;">
+                                Kích hoạt
+                            </label>
+                        </div>
+                    </c:if>
 
                     <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
                         <button type="submit" class="btn--cgv">Lưu khuyến mãi</button>

@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ */
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
@@ -12,48 +16,51 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * RegisterController handles the registration flow for new customers.
+ *
+ * @author tuan6b
+ */
 public class RegisterController extends HttpServlet {
 
     private final AccountDAO accountDAO = new AccountDAO();
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern PHONE_PATTERN =
+            Pattern.compile("^(0[35789])([0-9]{8})$"); // Matches Vietnamese mobile phone numbers (10 digits)
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("account") != null) {
-            response.sendRedirect(request.getContextPath() + "/");
-            return;
-        }
-        request.getRequestDispatcher("/register.jsp").forward(request, response);
-    }
+        response.setContentType("text/html;charset=UTF-8");
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
+        String method = request.getMethod();
 
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
-        String phoneNumber = request.getParameter("phoneNumber");
-
-        Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword);
-        if (!fieldErrors.isEmpty()) {
-            setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);
+        if ("GET".equalsIgnoreCase(method)) {
+            // GET: Show registration page or redirect if already authenticated
+            HttpSession session = request.getSession(false);
+            if (session != null && session.getAttribute("account") != null) {
+                response.sendRedirect(request.getContextPath() + "/");
+                return;
+            }
             request.getRequestDispatcher("/register.jsp").forward(request, response);
-            return;
-        }
 
-        if (accountDAO.isEmailExist(email.trim())) {
-            Map<String, String> emailErr = new HashMap<>();
-            emailErr.put("email", "Email này đã được đăng ký.");
-            setFormAttributes(request, fullName, email, phoneNumber, emailErr, "Email này đã được đăng ký.");
-            request.getRequestDispatcher("/register.jsp").forward(request, response);
-            return;
-        }
+        } else if ("POST".equalsIgnoreCase(method)) {
+            request.setCharacterEncoding("UTF-8");
+            // POST: Process registration form submission
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String phoneNumber = request.getParameter("phoneNumber");
 
             Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword, phoneNumber);
             if (!fieldErrors.isEmpty()) {
@@ -97,7 +104,7 @@ public class RegisterController extends HttpServlet {
         }
     }
 
-    private Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword) {
+    private Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
         Map<String, String> errors = new HashMap<>();
         if (fullName == null || fullName.trim().isEmpty()) {
             errors.put("fullName", "Vui lòng nhập họ tên.");
@@ -115,6 +122,11 @@ public class RegisterController extends HttpServlet {
         if (confirmPassword == null || !confirmPassword.equals(password)) {
             errors.put("confirmPassword", "Xác nhận mật khẩu không khớp.");
         }
+        if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+            if (!PHONE_PATTERN.matcher(phoneNumber.trim()).matches()) {
+                errors.put("phoneNumber", "Số điện thoại không hợp lệ (phải gồm 10 chữ số).");
+            }
+        }
         return errors;
     }
 
@@ -126,4 +138,44 @@ public class RegisterController extends HttpServlet {
         request.setAttribute("email", email);
         request.setAttribute("phoneNumber", phoneNumber);
     }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Register Controller - Handles customer registration flow";
+    }
+    // </editor-fold>
 }
