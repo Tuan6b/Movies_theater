@@ -5,8 +5,23 @@
 
     <div class="cgv-sidebar-top" style="border-bottom: 1px solid rgba(220, 38, 38, 0.2);">
         <img class="cgv-logo" src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV Cinema">
-        <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(220,80,80,0.7);margin-top:4px;">Admin Panel</div>
-    </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-right:4px;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(220,80,80,0.7);margin-top:4px;">Admin Panel</div>
+            <div class="notif-bell" onclick="toggleNotif(event)" style="position:relative;cursor:pointer;margin-top:4px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(220,80,80,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span id="notifBadge" class="notif-badge" style="display:none;position:absolute;top:-4px;right:-6px;background:#dc2626;color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;">0</span>
+                <div id="notifDropdown" class="notif-dropdown" style="display:none;position:absolute;left:0;top:28px;width:300px;max-height:380px;overflow-y:auto;background:#fff;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,0.3);z-index:1000;border:1px solid rgba(220,38,38,0.2);">
+                    <div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:12px;font-weight:700;color:var(--cgv-text);">Notifications</span>
+                        <a href="#" id="markAllReadBtn" style="font-size:10px;color:#dc2626;text-decoration:none;">Mark all read</a>
+                    </div>
+                    <div id="notifList" style="padding:0;">
+                        <div style="padding:24px;text-align:center;font-size:13px;color:rgba(94,63,58,0.4);">Loading...</div>
+                    </div>
+                </div>
+            </div>
 
     <nav class="cgv-nav">
         <a href="${pageContext.request.contextPath}/admin" class="cgv-nav-link ${activeNav eq 'dashboard' ? 'active' : ''}"
@@ -89,6 +104,20 @@
             Check-in
         </a>
 
+        <a href="${pageContext.request.contextPath}/manager/audit-log" class="cgv-nav-link ${activeNav eq 'audit' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Audit Log
+        </a>
+
+        <a href="${pageContext.request.contextPath}/manager/deletion-requests" class="cgv-nav-link ${activeNav eq 'deletions' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Delete Requests
+        </a>
+
         <a href="${pageContext.request.contextPath}/manager/settings" class="cgv-nav-link ${activeNav eq 'settings' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33..."/>
@@ -112,3 +141,104 @@
         </a>
     </div>
 </aside>
+
+<style>
+.notif-dropdown { font-family: var(--font-cgv-ui); }
+.notif-item { padding:12px 16px; border-bottom:1px solid #f0f0f0; cursor:pointer; transition:background 0.15s; }
+.notif-item:hover { background:#faf5f5; }
+.notif-item.unread { background:#fef2f2; border-left:3px solid #dc2626; }
+.notif-item .msg { font-size:13px; color:var(--cgv-text); line-height:1.4; }
+.notif-item .time { font-size:11px; color:rgba(94,63,58,0.4); margin-top:2px; }
+.notif-empty { padding:32px; text-align:center; font-size:13px; color:rgba(94,63,58,0.4); }
+.notif-loading { padding:24px; text-align:center; font-size:13px; color:rgba(94,63,58,0.4); }
+</style>
+
+<script>
+var ctxPath = '${pageContext.request.contextPath}';
+var notifVisible = false;
+
+function fetchNotifCount() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', ctxPath + '/notifications?action=count', true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var d = JSON.parse(xhr.responseText);
+            var badge = document.getElementById('notifBadge');
+            if (d.count > 0) {
+                badge.textContent = d.count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    };
+    xhr.send();
+}
+
+function fetchNotifList() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', ctxPath + '/notifications?action=list', true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var list = JSON.parse(xhr.responseText);
+            var container = document.getElementById('notifList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="notif-empty">No new notifications</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < list.length; i++) {
+                var n = list[i];
+                html += '<div class="notif-item unread" onclick="markRead(' + n.id + ', this, \'' + n.link + '\')">';
+                html += '  <div class="msg">' + escapeHtml(n.message) + '</div>';
+                html += '  <div class="time">' + escapeHtml(n.createdAt) + '</div>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+    };
+    xhr.send();
+}
+
+function markRead(id, el, link) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', ctxPath + '/notifications?action=markRead&id=' + id, true);
+    xhr.send();
+    el.classList.remove('unread');
+    if (link) { window.location.href = link; }
+}
+
+function toggleNotif(e) {
+    e.stopPropagation();
+    var dd = document.getElementById('notifDropdown');
+    notifVisible = !notifVisible;
+    dd.style.display = notifVisible ? 'block' : 'none';
+    if (notifVisible) {
+        fetchNotifList();
+        fetchNotifCount();
+    }
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.addEventListener('click', function() {
+    var dd = document.getElementById('notifDropdown');
+    if (dd) dd.style.display = 'none';
+    notifVisible = false;
+});
+
+document.getElementById('markAllReadBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', ctxPath + '/notifications?action=markAllRead', true);
+    xhr.onload = function() { fetchNotifCount(); fetchNotifList(); };
+    xhr.send();
+});
+
+// Poll every 15 seconds
+fetchNotifCount();
+setInterval(fetchNotifCount, 15000);
+</script>

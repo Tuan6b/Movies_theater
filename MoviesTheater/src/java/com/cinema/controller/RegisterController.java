@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
+import com.cinema.dao.NotificationDAO;
 import com.cinema.model.Account;
 import com.cinema.model.UserProfile;
 import jakarta.servlet.ServletException;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 public class RegisterController extends HttpServlet {
 
     private final AccountDAO accountDAO = new AccountDAO();
+    private final NotificationDAO notificationDAO = new NotificationDAO();
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
@@ -70,6 +72,10 @@ public class RegisterController extends HttpServlet {
         if (accountId > 0) {
             account.setAccountId(accountId);
             account.setPassword(null);
+
+            notificationDAO.createNotification("NEW_USER",
+                "New user registered: " + fullName.trim() + " (" + email.trim() + ")",
+                request.getContextPath() + "/manager/users");
 
             HttpSession session = request.getSession();
             session.setAttribute("account", account);

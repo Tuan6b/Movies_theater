@@ -165,7 +165,12 @@ function closeModal() { document.getElementById("editModal").style.display = "no
         </a>
         <p class="footer-copy">&copy; 2026 CGV Cinema. Hệ thống quản lý rạp chiếu phim.</p>
         <div class="footer-links">
-            <a href="${pageContext.request.contextPath}/manager">Quản lý</a>
+            <c:choose>
+                <c:when test="${sessionScope.account.roleId eq 5}"><a href="${pageContext.request.contextPath}/admin">Quản lý</a></c:when>
+                <c:when test="${sessionScope.account.roleId eq 4}"><a href="${pageContext.request.contextPath}/manager">Quản lý</a></c:when>
+                <c:when test="${sessionScope.account.roleId eq 3}"><a href="${pageContext.request.contextPath}/employee">Quản lý</a></c:when>
+                <c:otherwise><a href="${pageContext.request.contextPath}/manager">Quản lý</a></c:otherwise>
+            </c:choose>
             <a href="#">Điều khoản</a>
             <a href="#">Hỗ trợ</a>
         </div>

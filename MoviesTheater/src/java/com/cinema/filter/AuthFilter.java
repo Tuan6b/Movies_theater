@@ -50,7 +50,8 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/manager/settings",
             "/manager/genre",
             "/manager/audit-log",
-            "/manager/deletion-requests"
+            "/manager/deletion-requests",
+            "/notifications"
     );
 
     @Override
@@ -121,7 +122,7 @@ public class AuthFilter extends HttpFilter implements Filter {
         }
 
         // ===== EMPLOYEE AREA =====
-        if (path.startsWith("/manager") && roleId < 3) {
+        if ((path.startsWith("/manager") || path.startsWith("/employee")) && roleId < 3) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;

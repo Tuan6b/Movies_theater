@@ -126,9 +126,13 @@ public class LoginController extends HttpServlet {
                     break;
 
                 case 4: // Manager
-                case 3: // Employee
                     response.sendRedirect(
                             request.getContextPath() + "/manager");
+                    break;
+
+                case 3: // Employee
+                    response.sendRedirect(
+                            request.getContextPath() + "/employee");
                     break;
 
                 default: // Customer
