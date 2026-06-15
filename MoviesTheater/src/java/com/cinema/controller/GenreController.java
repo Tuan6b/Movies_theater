@@ -41,7 +41,7 @@ public class GenreController extends HttpServlet {
         request.setAttribute("genreList", list);
         
         // Forward the request to the JSP Page.
-        request.getRequestDispatcher("/views/admin/genre.jsp").forward(request, response);
+        request.getRequestDispatcher("/genre.jsp").forward(request, response);
     } 
 
     /** 
@@ -72,11 +72,11 @@ public class GenreController extends HttpServlet {
                 
                 // Make sure user input is not null or empty.
                 if (genreName == null || genreName.trim().isEmpty()) {
-                    request.setAttribute("error", "Genre name cannot be empty.");
+                    request.setAttribute("error", "Tên thể loại không được để trống!");
                 } else {
                     // Call DAO method to add new genre into the database.
                     dao.addGenre(genreName.trim());
-                    request.setAttribute("success", "Genre added successfully.");
+                    request.setAttribute("success", "Thể loại đã được thêm thành công!");
                 }
             
             // "edit" case.
@@ -98,7 +98,7 @@ public class GenreController extends HttpServlet {
             } else if ("delete".equals(action)) {
                 int genreID = Integer.parseInt(request.getParameter("genreID"));
                 dao.deleteGenre(genreID);
-                request.setAttribute("success", "Genre deleted successfully.");
+                request.setAttribute("success", "Thể loại đã được xoá thành công");
             }
         } catch (Exception e) {
             // Catch custom exceptions and display the message to the user.

@@ -24,7 +24,7 @@ public class GenreDAO extends DBContext {
      */
     public List<Genre> getAllGenres() {
         List<Genre> list = new ArrayList<>();
-        String sql = "SELECT * FROM Genre ORDER BY GenreID DESC";
+        String sql = "SELECT * FROM Genre ORDER BY GenreID ASC";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             ResultSet rs = st.executeQuery();
