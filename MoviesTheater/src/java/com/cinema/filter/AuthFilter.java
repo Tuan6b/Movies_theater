@@ -27,7 +27,8 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/Login",
             "/Register",
             "/Error.jsp",
-            "/showtimes"
+            "/showtimes",
+            "/RoomServlet"
     );
 
     // Public resources
@@ -40,17 +41,14 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/new-password"
     );
 
-    // Manager-only functions (roleId >= 4 required)
+    // Manager-only functions
     private static final List<String> MANAGER_ONLY_PATHS = Arrays.asList(
             "/manager/promotions",
             "/manager/food",
             "/manager/analytics",
             "/manager/users",
             "/manager/settings",
-            "/manager/genre",
-            "/manager/employees",
-            "/RoomServlet",
-            "/SeatController"
+            "/manager/genre"
     );
 
     @Override
@@ -103,15 +101,8 @@ public class AuthFilter extends HttpFilter implements Filter {
          * 2 = Customer
          * 3 = Employee
          * 4 = Manager
-         * 5 = SystemAdmin
-         * 6 = SuperAdmin (bypasses all restrictions)
+         * 5 = Admin
          */
-
-        // ===== SUPER ADMIN BYPASS =====
-        if (roleId >= 6) {
-            chain.doFilter(request, response);
-            return;
-        }
 
         // ===== ADMIN ONLY =====
         if (path.startsWith("/admin") && roleId < 5) {
@@ -129,6 +120,13 @@ public class AuthFilter extends HttpFilter implements Filter {
 
         // ===== EMPLOYEE AREA =====
         if (path.startsWith("/manager") && roleId < 3) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "Access Denied");
+            return;
+        }
+
+        // ===== EMPLOYEE DASHBOARD =====
+        if (path.startsWith("/employee") && roleId < 3) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;
