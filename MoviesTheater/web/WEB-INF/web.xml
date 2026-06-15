@@ -17,6 +17,26 @@
         <servlet-class>com.cinema.controller.ManagerServlet</servlet-class>
     </servlet>
 
+    <!-- Employee Dashboard Servlet -->
+    <servlet>
+        <servlet-name>EmployeeDashboardServlet</servlet-name>
+        <servlet-class>com.cinema.controller.EmployeeDashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EmployeeDashboardServlet</servlet-name>
+        <url-pattern>/employee/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- System Admin Dashboard Servlet -->
+    <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AdminServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/admin</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>SeatController</servlet-name>
         <servlet-class>com.cinema.controller.SeatController</servlet-class>
