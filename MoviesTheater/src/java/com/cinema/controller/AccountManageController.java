@@ -2,6 +2,7 @@ package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
 import com.cinema.dao.AuditLogDAO;
+import com.cinema.dao.NotificationDAO;
 import com.cinema.model.Account;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -15,6 +16,7 @@ public class AccountManageController extends HttpServlet {
     private static final int PAGE_SIZE = 10;
     private final AccountDAO accountDAO = new AccountDAO();
     private final AuditLogDAO auditLogDAO = new AuditLogDAO();
+    private final NotificationDAO notificationDAO = new NotificationDAO();
 
     private boolean isAdmin(HttpServletRequest request) {
         Account account = (Account) request.getSession().getAttribute("account");
@@ -152,6 +154,9 @@ public class AccountManageController extends HttpServlet {
                     auditLogDAO.log(adminId, "UPDATE_ROLE",
                         adminName + " changed role of " + (target != null ? target.getEmail() : "ID:" + id)
                         + " from " + oldRole + " to " + newRoleName, ip);
+                    notificationDAO.createNotification("ROLE_CHANGE",
+                        adminName + " changed " + (target != null ? target.getEmail() : "ID:" + id) + " role to " + newRoleName,
+                        request.getContextPath() + "/manager/users?action=edit&id=" + id);
                     request.getSession().setAttribute("flashSuccess", "Role updated successfully.");
                 }
             } catch (NumberFormatException e) {
@@ -174,6 +179,9 @@ public class AccountManageController extends HttpServlet {
                     String action = wasBlocked ? "unblocked" : "blocked";
                     auditLogDAO.log(adminId, wasBlocked ? "UNBLOCK_USER" : "BLOCK_USER",
                         adminName + " " + action + " " + (target != null ? target.getEmail() : "ID:" + id), ip);
+                    notificationDAO.createNotification(wasBlocked ? "UNBLOCK_USER" : "BLOCK_USER",
+                        adminName + " " + action + " " + (target != null ? target.getEmail() : "ID:" + id),
+                        request.getContextPath() + "/manager/users");
                     request.getSession().setAttribute("flashSuccess", "User " + action + " successfully.");
                 }
             } catch (NumberFormatException e) {
@@ -209,6 +217,9 @@ public class AccountManageController extends HttpServlet {
         String actionLabel = block ? "blocked" : "unblocked";
         auditLogDAO.log(adminId, "BULK_" + (block ? "BLOCK" : "UNBLOCK"),
             adminName + " " + actionLabel + " " + count + " user(s)", ip);
+        notificationDAO.createNotification("BULK_" + (block ? "BLOCK" : "UNBLOCK"),
+            adminName + " " + actionLabel + " " + count + " user(s)",
+            request.getContextPath() + "/manager/users");
         request.getSession().setAttribute("flashSuccess", count + " user(s) " + actionLabel + ".");
     }
 
@@ -243,6 +254,9 @@ public class AccountManageController extends HttpServlet {
             String newRoleName = newRole < roleNames.length ? roleNames[newRole] : "?";
             auditLogDAO.log(adminId, "BULK_ROLE",
                 adminName + " changed role of " + count + " user(s) to " + newRoleName, ip);
+            notificationDAO.createNotification("BULK_ROLE",
+                adminName + " changed role of " + count + " user(s) to " + newRoleName,
+                request.getContextPath() + "/manager/users");
             request.getSession().setAttribute("flashSuccess", count + " user(s) role changed to " + newRoleName + ".");
         } catch (NumberFormatException e) {
             request.getSession().setAttribute("flashError", "Invalid role.");

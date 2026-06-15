@@ -94,6 +94,18 @@
                     <a href="${pageContext.request.contextPath}/manager/settings" class="btn--cgv-outline">Settings</a>
                 </div>
 
+                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
+                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Audit Log</div>
+                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Lịch sử thao tác quản trị</div>
+                    <a href="${pageContext.request.contextPath}/manager/audit-log" class="btn--cgv-outline">Xem logs</a>
+                </div>
+
+                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
+                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Yêu cầu xóa tài khoản</div>
+                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Phê duyệt hoặc từ chối yêu cầu xóa</div>
+                    <a href="${pageContext.request.contextPath}/manager/deletion-requests" class="btn--cgv-outline">Xem yêu cầu</a>
+                </div>
+
             </div>
         </div>
     </div>
