@@ -5,9 +5,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
-import com.cinema.dao.NotificationDAO;
 import com.cinema.model.Account;
-import com.cinema.model.UserProfile;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +24,6 @@ import java.util.regex.Pattern;
 public class RegisterController extends HttpServlet {
 
     private final AccountDAO accountDAO = new AccountDAO();
-    private final NotificationDAO notificationDAO = new NotificationDAO();
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern PHONE_PATTERN =
@@ -65,36 +62,6 @@ public class RegisterController extends HttpServlet {
             String confirmPassword = request.getParameter("confirmPassword");
             String phoneNumber = request.getParameter("phoneNumber");
 
-        UserProfile profile = new UserProfile();
-        profile.setFullName(fullName.trim());
-        profile.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
-
-        Account account = new Account();
-        account.setProfile(profile);
-        account.setEmail(email.trim());
-        account.setPassword(password);
-        account.setRoleId(2);
-
-        int accountId = accountDAO.register(account);
-        if (accountId > 0) {
-            account.setAccountId(accountId);
-            account.setPassword(null);
-
-            notificationDAO.createNotification("NEW_USER",
-                "New user registered: " + fullName.trim() + " (" + email.trim() + ")",
-                request.getContextPath() + "/manager/users");
-
-            HttpSession session = request.getSession();
-            session.setAttribute("account", account);
-            session.setMaxInactiveInterval(30 * 60);
-
-            response.sendRedirect(request.getContextPath() + "/");
-        } else {
-            Map<String, String> sysErr = new HashMap<>();
-            sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
-            setFormAttributes(request, fullName, email, phoneNumber,
-                    sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
-            request.getRequestDispatcher("/register.jsp").forward(request, response);
             Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword, phoneNumber);
             if (!fieldErrors.isEmpty()) {
                 setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);

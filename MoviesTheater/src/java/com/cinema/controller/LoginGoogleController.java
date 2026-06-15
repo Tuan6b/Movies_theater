@@ -2,7 +2,6 @@ package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
 import com.cinema.model.Account;
-import com.cinema.model.UserProfile;
 import com.cinema.util.GoogleOAuthConfig;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -66,14 +65,11 @@ public class LoginGoogleController extends HttpServlet {
 
                 Account account = accountDAO.getAccountByEmail(email);
                 if (account == null) {
-                    UserProfile googleProfile = new UserProfile();
-                    googleProfile.setFullName(fullName);
-
                     account = new Account();
-                    account.setProfile(googleProfile);
                     account.setEmail(email);
                     account.setPassword("");
                     account.setRoleId(2);
+                    account.setFullName(fullName);
                     int id = accountDAO.register(account);
                     if (id > 0) {
                         account = accountDAO.getAccountById(id);
