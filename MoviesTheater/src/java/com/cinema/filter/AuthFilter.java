@@ -125,13 +125,6 @@ public class AuthFilter extends HttpFilter implements Filter {
             return;
         }
 
-        // ===== EMPLOYEE DASHBOARD =====
-        if (path.startsWith("/employee") && roleId < 3) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                    "Access Denied");
-            return;
-        }
-
         chain.doFilter(request, response);
     }
 

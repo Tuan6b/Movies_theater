@@ -1,14 +1,14 @@
 USE master;
 GO
 
-IF EXISTS (SELECT name FROM sys.databases WHERE name = N'CinemaBookingDB')
-    DROP DATABASE CinemaBookingDB;
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'CinemaBookingDB_Test')
+    DROP DATABASE CinemaBookingDB_Test;
 GO
 
-CREATE DATABASE CinemaBookingDB;
+CREATE DATABASE CinemaBookingDB_Test;
 GO
 
-USE CinemaBookingDB;
+USE CinemaBookingDB_Test;
 GO
 
 
@@ -123,11 +123,9 @@ CREATE TABLE Promotion (
     UsageLimit INT NULL,
     UsedCount INT NOT NULL DEFAULT 0,
     IsActive BIT NOT NULL DEFAULT 1,
-    Status NVARCHAR(20) NOT NULL DEFAULT 'active',
     CONSTRAINT CHK_Promotion_Type CHECK (DiscountType IN ('Percentage', 'FlatAmount')),
     CONSTRAINT CHK_Promotion_Value CHECK (DiscountValue > 0),
-    CONSTRAINT CHK_Promotion_Date CHECK (EndDate > StartDate),
-    CONSTRAINT CHK_Promotion_Status CHECK (Status IN ('upcoming', 'active', 'expired', 'inactive'))
+    CONSTRAINT CHK_Promotion_Date CHECK (EndDate > StartDate)
 );
 
 CREATE TABLE Invoice (
@@ -306,19 +304,6 @@ INSERT INTO Promotion (PromotionCode, Description, DiscountType, DiscountValue, 
     ('SUMMER25',  N'Giảm 25% mùa hè',       'Percentage', 25, 100000, 50000, '2025-06-01', '2025-08-31', 500),
     ('FLAT50K',   N'Giảm thẳng 50.000đ',    'FlatAmount', 50000, 150000, NULL, '2025-07-01', '2025-07-31', 200),
     ('NEWUSER',   N'Ưu đãi khách hàng mới', 'Percentage', 15, 0, 30000, '2025-01-01', '2025-12-31', 1000);
-
--- Backfill Status and IsActive based on actual dates
-UPDATE Promotion SET
-    Status = CASE
-        WHEN EndDate < GETDATE()                                               THEN 'expired'
-        WHEN IsActive = 0 AND StartDate <= GETDATE() AND EndDate >= GETDATE() THEN 'inactive'
-        WHEN StartDate > GETDATE()                                             THEN 'upcoming'
-        ELSE 'active'
-    END,
-    IsActive = CASE
-        WHEN StartDate <= GETDATE() AND EndDate >= GETDATE() THEN 1
-        ELSE 0
-    END;
 
 -- Sample Invoice + Ticket
 INSERT INTO Invoice (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount, PaymentMethod, PaymentStatus)
