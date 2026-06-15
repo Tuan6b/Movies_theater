@@ -164,6 +164,94 @@
         <url-pattern>/change-password</url-pattern>
     </servlet-mapping>
 
+    <!-- Profile -->
+    <servlet>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>com.cinema.controller.ProfileController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <!-- Account Management (Admin / Manager) -->
+    <servlet>
+        <servlet-name>AccountManageController</servlet-name>
+        <servlet-class>com.cinema.controller.AccountManageController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AccountManageController</servlet-name>
+        <url-pattern>/manager/users</url-pattern>
+    </servlet-mapping>
+
+    <!-- Admin Dashboard -->
+    <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AdminServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/admin</url-pattern>
+    </servlet-mapping>
+
+    <!-- Audit Log -->
+    <servlet>
+        <servlet-name>AuditLogServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AuditLogServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AuditLogServlet</servlet-name>
+        <url-pattern>/manager/audit-log</url-pattern>
+    </servlet-mapping>
+
+    <!-- Export Users CSV -->
+    <servlet>
+        <servlet-name>ExportUsersServlet</servlet-name>
+        <servlet-class>com.cinema.controller.ExportUsersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExportUsersServlet</servlet-name>
+        <url-pattern>/manager/users/export</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deletion Request (User) -->
+    <servlet>
+        <servlet-name>DeletionRequestController</servlet-name>
+        <servlet-class>com.cinema.controller.DeletionRequestController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestController</servlet-name>
+        <url-pattern>/delete-request</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deletion Request Admin -->
+    <servlet>
+        <servlet-name>DeletionRequestAdminController</servlet-name>
+        <servlet-class>com.cinema.controller.DeletionRequestAdminController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestAdminController</servlet-name>
+        <url-pattern>/manager/deletion-requests</url-pattern>
+    </servlet-mapping>
+
+    <!-- Employee Dashboard -->
+    <servlet>
+        <servlet-name>EmployeeServlet</servlet-name>
+        <servlet-class>com.cinema.controller.EmployeeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EmployeeServlet</servlet-name>
+        <url-pattern>/employee</url-pattern>
+    </servlet-mapping>
+
+    <!-- Notifications -->
+    <servlet>
+        <servlet-name>NotificationServlet</servlet-name>
+        <servlet-class>com.cinema.controller.NotificationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NotificationServlet</servlet-name>
+        <url-pattern>/notifications</url-pattern>
     <servlet-mapping>
         <servlet-name>SeatController</servlet-name>
         <url-pattern>/SeatController</url-pattern>

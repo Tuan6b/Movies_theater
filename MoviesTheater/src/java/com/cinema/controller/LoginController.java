@@ -111,6 +111,43 @@ public class LoginController extends HttpServlet {
         }
     }
 
+        // Redirect về URL trước khi login
+        String redirectAfterLogin =
+                (String) session.getAttribute("redirectAfterLogin");
+
+        if (redirectAfterLogin != null
+                && !redirectAfterLogin.trim().isEmpty()) {
+
+            session.removeAttribute("redirectAfterLogin");
+
+            response.sendRedirect(redirectAfterLogin);
+
+        } else {
+
+            // Redirect theo role
+            switch (account.getRoleId()) {
+
+                case 5: // Admin
+                    response.sendRedirect(
+                            request.getContextPath() + "/admin");
+                    break;
+
+                case 4: // Manager
+                    response.sendRedirect(
+                            request.getContextPath() + "/manager");
+                    break;
+
+                case 3: // Employee
+                    response.sendRedirect(
+                            request.getContextPath() + "/employee");
+                    break;
+
+                default: // Customer
+                    response.sendRedirect(
+                            request.getContextPath() + "/");
+                    break;
+            }
+        }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

@@ -1,9 +1,13 @@
 <%-- CGV Sidebar navigation. Set request attribute "activeNav" before including. --%>
 <%@ page pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:choose>
+    <c:when test="${sessionScope.account.roleId eq 5}">
+        <jsp:include page="/WEB-INF/admin/_sidebar.jsp" />
+    </c:when>
+    <c:otherwise>
+<c:set var="r" value="${sessionScope.account.roleId}" />
 <aside class="cgv-sidebar">
-
-    <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
         <img class="cgv-logo"
@@ -55,6 +59,18 @@
         </c:if>
 
         <c:if test="${r ge 4}">
+        <a href="${pageContext.request.contextPath}/manager/users"
+           class="cgv-nav-link ${activeNav eq 'users' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Users
+        </a>
+
         <a href="${pageContext.request.contextPath}/manager/promotions"
            class="cgv-nav-link ${activeNav eq 'promotions' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -133,3 +149,5 @@
     </div>
 
 </aside>
+    </c:otherwise>
+</c:choose>
