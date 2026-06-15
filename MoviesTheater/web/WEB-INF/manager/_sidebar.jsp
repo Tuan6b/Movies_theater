@@ -1,6 +1,9 @@
 <%-- CGV Sidebar navigation. Set request attribute "activeNav" before including. --%>
 <%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <aside class="cgv-sidebar">
+
+    <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
         <a href="${pageContext.request.contextPath}/">
@@ -23,6 +26,7 @@
             Dashboard
         </a>
 
+        <c:if test="${r ge 3}">
         <a href="${pageContext.request.contextPath}/manager/movies"
            class="cgv-nav-link ${activeNav eq 'movies' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -50,7 +54,9 @@
             </svg>
             Schedules
         </a>
+        </c:if>
 
+        <c:if test="${r ge 4}">
         <a href="${pageContext.request.contextPath}/manager/promotions"
            class="cgv-nav-link ${activeNav eq 'promotions' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -81,9 +87,11 @@
             </svg>
             Analytics
         </a>
+        </c:if>
     </nav>
 
     <div class="cgv-sidebar-bottom">
+        <c:if test="${r ge 4}">
         <a href="${pageContext.request.contextPath}/manager/settings"
            class="cgv-nav-link ${activeNav eq 'settings' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
@@ -101,6 +109,7 @@
             </svg>
             Settings
         </a>
+        </c:if>
 
         <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"

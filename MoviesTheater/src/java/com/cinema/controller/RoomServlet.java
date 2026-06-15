@@ -49,10 +49,6 @@ public class RoomServlet extends HttpServlet {
                     break;
 
                 case "edit":
-                    showEditForm(request, response);
-                    break;
-
-                case "update":
                     updateRoom(request, response);
                     break;
 
@@ -132,6 +128,12 @@ public class RoomServlet extends HttpServlet {
             return;
         }
 
+        // Validate room number uniqueness
+        if (roomDAO.isRoomNumberExists(roomNumber)) {
+            response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
+            return;
+        }
+
         // Create Room object and set values
         Room room = new Room();
         room.setRoomNumber(roomNumber);
@@ -188,8 +190,11 @@ public class RoomServlet extends HttpServlet {
         // Update database
         roomDAO.updateRoom(room);
 
-        // Redirect to list page
+
         response.sendRedirect("RoomServlet?page=" + currentPage);
+
+        response.sendRedirect("room");
+
     }
 
     /**
@@ -214,6 +219,7 @@ public class RoomServlet extends HttpServlet {
         // Redirect to list page
         response.sendRedirect("RoomServlet?page=" + currentPage);
     }
+
 
     /**
      * Show edit form for a specific room Loads room data and forwards it to
@@ -240,6 +246,7 @@ public class RoomServlet extends HttpServlet {
         request.getRequestDispatcher("room-edit.jsp")
                 .forward(request, response);
     }
+
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

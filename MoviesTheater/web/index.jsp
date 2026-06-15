@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="com.cinema.dao.tbMovie" %>
 <%@ page import="com.cinema.model.clsMovie" %>
 <%@ page import="java.util.List" %>
@@ -28,29 +29,38 @@
         <nav class="site-nav">
             <a href="${pageContext.request.contextPath}/" class="active">Trang chủ</a>
             <a href="#">Phim đang chiếu</a>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>">Lịch chiếu</a>
             <a href="#">Ưu đãi</a>
             <a href="#">Góc điện ảnh</a>
         </nav>
 
         <div class="site-header-actions">
-            <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
-            <a href="${pageContext.request.contextPath}/Register" class="btn btn-primary">Đăng ký</a>
+            <c:choose>
+                <c:when test="${not empty sessionScope.account}">
+                    <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
+                        Xin chào, <strong>${sessionScope.account.fullName}</strong>
+                    </span>
+                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
+                    <a href="${pageContext.request.contextPath}/Register" class="btn btn-primary">Đăng ký</a>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 </header>
 
 <!-- Hero -->
-<section class="hero fade-up">
-    <div class="hero-inner">
+<section class="hero fade-up" style="background-image: url('${pageContext.request.contextPath}/Image/Hero/cgv-trang-tien-plaza.png'); background-size: cover; background-position: center; position: relative;">
+    <div style="position:absolute;inset:0;background:linear-gradient(155deg,rgba(5,0,0,0.90) 0%,rgba(30,0,0,0.82) 45%,rgba(130,0,0,0.68) 100%);pointer-events:none;z-index:0;"></div>
+    <div class="hero-inner" style="position:relative;z-index:1;">
         <div class="hero-eyebrow">Hệ thống rạp chiếu phim hàng đầu Việt Nam</div>
         <h1 class="hero-title">Trải nghiệm<br>điện ảnh<br>đỉnh cao</h1>
         <p class="hero-sub">Đặt vé ngay hôm nay — chọn phim, chọn ghế, thanh toán trong 60 giây.</p>
         <div class="hero-actions">
             <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>"
                class="btn btn-primary btn-lg">Đặt vé ngay</a>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= firstMovieId %>"
-               class="btn btn-outline-light btn-lg">Lịch chiếu hôm nay</a>
+           
         </div>
 
         <div class="hero-stats">
