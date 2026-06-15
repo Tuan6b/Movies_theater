@@ -190,15 +190,15 @@
         </main>
 
         <script>
-            // Set min date for Release Date to tomorrow
+            // Set min date for Release Date to 14 days from today
             document.addEventListener("DOMContentLoaded", function() {
                 var today = new Date();
-                var tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
+                var minAllowDate = new Date(today);
+                minAllowDate.setDate(minAllowDate.getDate() + 14);
                 
-                var dd = String(tomorrow.getDate()).padStart(2, '0');
-                var mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-                var yyyy = tomorrow.getFullYear();
+                var dd = String(minAllowDate.getDate()).padStart(2, '0');
+                var mm = String(minAllowDate.getMonth() + 1).padStart(2, '0');
+                var yyyy = minAllowDate.getFullYear();
                 
                 var minDate = yyyy + '-' + mm + '-' + dd;
                 document.getElementById("releaseDate").setAttribute("min", minDate);

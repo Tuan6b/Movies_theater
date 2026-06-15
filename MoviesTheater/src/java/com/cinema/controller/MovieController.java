@@ -34,7 +34,7 @@ public class MovieController extends HttpServlet {
                 // Đẩy list thể loại và các thể loại phim đang có sẵn ra JSP
                 request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
                 request.setAttribute("selectedGenres", movieDAO.getGenreIdsByMovie(movieId));
-
+                
                 request.getRequestDispatcher("edit_movie.jsp").forward(request, response);
             } else {
                 String filter = request.getParameter("filter");
@@ -65,6 +65,16 @@ public class MovieController extends HttpServlet {
             if ("toggleStatus".equals(action)) {
                 // UC-16: Toggle enable - disable movie
                 int movieId = Integer.parseInt(request.getParameter("movieId"));
+                
+                clsMovie existingMovie = movieDAO.getMovieById(movieId);
+                if (existingMovie != null && existingMovie.isActive()) {
+                    if (movieDAO.hasSchedule(movieId)) {
+                        request.getSession().setAttribute("error", "Lỗi: Chỉ phim chưa lên lịch mới có thể bị ẩn!");
+                        response.sendRedirect(request.getContextPath() + "/MovieController");
+                        return;
+                    }
+                }
+                
                 boolean isSuccess = movieDAO.toggleMovieStatus(movieId);
 
                 if (isSuccess) {
@@ -107,7 +117,17 @@ public class MovieController extends HttpServlet {
                         isSuccess = false;
                     }
                 } else {
-                    movie.setMovieId(Integer.parseInt(request.getParameter("movieId")));
+                    int movieIdToUpdate = Integer.parseInt(request.getParameter("movieId"));
+                    movie.setMovieId(movieIdToUpdate);
+                    
+                    clsMovie existingMovie = movieDAO.getMovieById(movieIdToUpdate);
+                    if (existingMovie != null) {
+                        movie.setMovieName(existingMovie.getMovieName());
+                        movie.setDuration(existingMovie.getDuration());
+                        movie.setPoster(existingMovie.getPoster());
+                        movie.setReleaseDate(existingMovie.getReleaseDate());
+                    }
+                    
                     isSuccess = movieDAO.updateMovie(movie);
                     if (isSuccess) {
                         movieDAO.updateMovieGenres(movie.getMovieId(), genreIds); // Cập nhật Thể loại

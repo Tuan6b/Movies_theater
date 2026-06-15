@@ -77,17 +77,17 @@
                         <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
-                                <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" required>
+                                <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" readonly style="background-color: #f5f5f5;" required>
                             </div>
                             
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngày khởi chiếu *</label>
-                                <input type="date" name="releaseDate" class="cgv-input" value="${movie.releaseDate}" required>
+                                <input type="date" name="releaseDate" class="cgv-input" value="${movie.releaseDate}" readonly style="background-color: #f5f5f5;" required>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
-                                <input type="number" name="duration" class="cgv-input" min="40" max="300" value="${movie.duration}" required>
+                                <input type="number" name="duration" class="cgv-input" min="40" max="300" value="${movie.duration}" readonly style="background-color: #f5f5f5;" required>
                             </div>
 
                             <div class="cgv-field">
@@ -141,7 +141,7 @@
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Ảnh Poster</label>
-                                <input type="url" name="poster" class="cgv-input" value="${movie.poster}">
+                                <input type="url" name="poster" class="cgv-input" value="${movie.poster}" readonly style="background-color: #f5f5f5;">
                             </div>
                             
                             <div class="cgv-field cgv-form-full">

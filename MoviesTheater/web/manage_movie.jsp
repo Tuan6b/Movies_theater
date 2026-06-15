@@ -93,6 +93,7 @@
                         <a href="${pageContext.request.contextPath}/MovieController?filter=upcoming" class="cgv-pill ${currentFilter == 'upcoming' ? 'active' : ''}">Sắp chiếu</a>
                         <a href="${pageContext.request.contextPath}/MovieController?filter=showing" class="cgv-pill ${currentFilter == 'showing' ? 'active' : ''}">Đang chiếu</a>
                         <a href="${pageContext.request.contextPath}/MovieController?filter=ended" class="cgv-pill ${currentFilter == 'ended' ? 'active' : ''}">Đã chiếu</a>
+                        <a href="${pageContext.request.contextPath}/MovieController?filter=unscheduled" class="cgv-pill ${currentFilter == 'unscheduled' ? 'active' : ''}">Chưa lên lịch</a>
                         <a href="${pageContext.request.contextPath}/MovieController?filter=hidden" class="cgv-pill ${currentFilter == 'hidden' ? 'active' : ''}">Đã ẩn</a>
                     </div>
                 </div>
@@ -129,7 +130,7 @@
 
                                     <td>
                                         <div style="font-family: var(--font-cgv-ui); font-size: 15px; font-weight: 600; color: var(--cgv-dark); margin-bottom: 4px;">
-                                            ${m.movieName}
+                                            <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${m.movieId}" style="color: var(--cgv-dark); text-decoration: none;">${m.movieName}</a>
                                         </div>
                                         <div style="font-size: 12px; color: rgba(94,63,58,0.6);">
                                             <c:choose>
@@ -161,6 +162,9 @@
                                             </c:when>
                                             <c:when test="${currentFilter == 'upcoming'}">
                                                 <span class="cgv-badge" style="background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 100px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center;"><i class="fa-regular fa-calendar-plus" style="margin-right:4px;"></i> Sắp chiếu</span>
+                                            </c:when>
+                                            <c:when test="${currentFilter == 'unscheduled'}">
+                                                <span class="cgv-badge" style="background: #e2e3e5; color: #383d41; padding: 4px 12px; border-radius: 100px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center;"><i class="fa-regular fa-calendar-xmark" style="margin-right:4px;"></i> Chưa lên lịch</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="cgv-badge active"><i class="fa-solid fa-circle" style="font-size: 8px; margin-right: 6px;"></i> Đang chiếu</span>

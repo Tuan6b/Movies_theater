@@ -117,6 +117,9 @@ public class tbMovie {
                         + "AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
+            case "unscheduled":
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) ORDER BY m.MovieID DESC";
+                break;
             case "upcoming":
             default:
                 sql = "SELECT * FROM Movie WHERE IsActive = 1 AND ReleaseDate > CAST(GETDATE() AS DATE) ORDER BY MovieID DESC";
@@ -173,6 +176,19 @@ public class tbMovie {
             ex.printStackTrace();
             return false;
         }
+    }
+
+    public boolean hasSchedule(int movieId) {
+        String sql = "SELECT 1 FROM Schedule WHERE MovieID = ?";
+        try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, movieId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
     }
 
     public int getTotalPublicMovies(String status, String genreId) {
