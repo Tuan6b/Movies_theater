@@ -40,6 +40,9 @@
     <div class="cgv-page">
         <div class="cgv-list-wrap" style="max-width:640px;">
 
+            <c:if test="${param.error eq 'capacity_invalid'}">
+                <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
+            </c:if>
             <c:if test="${param.error eq 'room_number_exists'}">
                 <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
             </c:if>
@@ -64,11 +67,12 @@
                     <div class="cgv-field">
                         <label class="cgv-label">Room Type</label>
                         <select class="cgv-select" name="roomType">
-                                    <option value="2D">2D</option>
-                                    <option value="3D">3D</option>
-                                    <option value="IMAX">IMAX</option>
-                                    <option value="4DX">4DX</option>
-                                </select>
+                            <option value="2D">2D</option>
+                            <option value="3D">3D</option>
+                            <option value="IMAX">IMAX</option>
+                            <option value="4DX">4DX</option>
+                            <option value="VIP">VIP</option>
+                        </select>
                     </div>
 
                     <div class="cgv-field">
@@ -81,6 +85,12 @@
                         <label class="cgv-label">Seats per Row</label>
                         <input class="cgv-input" type="number" name="seatsPerRow"
                                min="1" placeholder="e.g. 10" required>
+                    </div>
+
+                    <div class="cgv-field">
+                        <label class="cgv-label">Capacity</label>
+                        <input class="cgv-input" type="number" name="capacity"
+                               min="1" placeholder="e.g. 80" required>
                     </div>
 
                     <div style="display:flex;gap:12px;margin-top:24px;">

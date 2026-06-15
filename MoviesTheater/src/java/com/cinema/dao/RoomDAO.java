@@ -3,9 +3,12 @@ package com.cinema.dao;
 import com.cinema.model.Room;
 import com.cinema.util.DBContext;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -222,12 +225,9 @@ public class RoomDAO extends DBContext {
      * @return list of Room objects for the current page
      */
     public List<Room> getRoomsByPage(int offset, int noOfRecords) {
-        return getRoomsByPage(offset, noOfRecords, null);
-    }
-
-    public List<Room> getRoomsByPage(int offset, int noOfRecords, Boolean isActive) {
         List<Room> list = new ArrayList<>();
 
+        // SQL Syntax for SQL Server (Requires ORDER BY to use OFFSET)
         String sql = """
         SELECT RoomID,
                 RoomNumber,
@@ -237,17 +237,12 @@ public class RoomDAO extends DBContext {
                 SeatsPerRow,
                 IsActive
         FROM Room
-        """ + (isActive != null ? "WHERE IsActive = ? " : "") + """
         ORDER BY RoomID OFFSET ? ROWS FETCH NEXT ? ROWS  ONLY
         """;
 
         try (PreparedStatement stm = connection.prepareStatement(sql)) {
-            int idx = 1;
-            if (isActive != null) {
-                stm.setBoolean(idx++, isActive);
-            }
-            stm.setInt(idx++, offset);
-            stm.setInt(idx, noOfRecords);
+            stm.setInt(1, offset);
+            stm.setInt(2, noOfRecords);
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
                     Room room = new Room(
@@ -310,19 +305,10 @@ public class RoomDAO extends DBContext {
      * @return total row count of Room table
      */
     public int getTotalRoomsCount() {
-        return getTotalRoomsCount(null);
-    }
-
-    public int getTotalRoomsCount(Boolean isActive) {
-        String sql = isActive != null ? "SELECT COUNT(*) FROM Room WHERE IsActive = ?" : "SELECT COUNT(*) FROM Room";
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
-            if (isActive != null) {
-                stm.setBoolean(1, isActive);
-            }
-            try (ResultSet rs = stm.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+        String sql = "SELECT COUNT(*) FROM Room";
+        try (PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
