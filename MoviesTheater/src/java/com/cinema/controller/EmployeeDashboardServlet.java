@@ -1,12 +1,14 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
+import com.cinema.dao.PromotionDAO;
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.SeatDAO;
 import com.cinema.dao.TicketDAO;
 import com.cinema.dao.tbMovie;
 import com.cinema.dao.tbSchedule;
 import com.cinema.model.Account;
+import com.cinema.model.Promotion;
 import com.cinema.model.Room;
 import com.cinema.model.Seat;
 import com.cinema.model.Ticket;
@@ -49,6 +51,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
         if (session != null) {
             transferFlash(session, request, "flashSuccess");
             transferFlash(session, request, "flashError");
+            transferFlash(session, request, "flashNewCodes");
         }
 
         String method = request.getMethod();
@@ -182,8 +185,14 @@ public class EmployeeDashboardServlet extends HttpServlet {
 
             List<Ticket> bookedTickets = ticketDAO.getBookedTicketsByScheduleId(scheduleId);
 
+            double totalRevenue = 0.0;
+            for (Ticket t : bookedTickets) {
+                totalRevenue += t.getPriceAtBooking();
+            }
+
             request.setAttribute("schedule", schedule);
             request.setAttribute("tickets", bookedTickets);
+            request.setAttribute("totalRevenue", totalRevenue);
             request.getRequestDispatcher(TICKETS_JSP).forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -226,16 +235,28 @@ public class EmployeeDashboardServlet extends HttpServlet {
 
     private void handleBook(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         tbSchedule scheduleDAO = new tbSchedule();
         SeatDAO seatDAO = new SeatDAO();
         TicketDAO ticketDAO = new TicketDAO();
         AccountDAO accountDAO = new AccountDAO();
+        PromotionDAO promotionDAO = new PromotionDAO();
 
         String scheduleIdStr = request.getParameter("scheduleId");
         String[] seatIdStrs = request.getParameterValues("seatIds");
         String customerEmail = request.getParameter("customerEmail");
         String customerName = request.getParameter("customerName");
         String customerPhone = request.getParameter("customerPhone");
+        String promoCode = request.getParameter("promoCode");
+
+        String paymentMethod = request.getParameter("paymentMethod");
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            paymentMethod = "Cash";
+        }
+        switch (paymentMethod) {
+            case "Cash": case "Card": case "VNPay": break;
+            default: paymentMethod = "Cash";
+        }
 
         if (scheduleIdStr == null) {
             response.sendRedirect(request.getContextPath() + "/employee/schedules");
@@ -243,7 +264,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
 
         if (seatIdStrs == null || seatIdStrs.length == 0) {
-            request.getSession().setAttribute("flashError", "Please select at least one seat.");
+            request.getSession().setAttribute("flashError", "Vui lòng chọn ít nhất một ghế.");
             response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleIdStr);
             return;
         }
@@ -256,40 +277,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 return;
             }
 
-            int customerId = -1;
-            if (customerEmail != null && !customerEmail.trim().isEmpty()) {
-                Account existing = accountDAO.getAccountByEmail(customerEmail.trim());
-                if (existing != null) {
-                    customerId = existing.getAccountId();
-                } else {
-                    Account newAcc = new Account();
-                    newAcc.setEmail(customerEmail.trim());
-                    newAcc.setFullName(customerName == null || customerName.trim().isEmpty() ? "Walk-in Customer" : customerName.trim());
-                    newAcc.setPhoneNumber(customerPhone == null || customerPhone.trim().isEmpty() ? null : customerPhone.trim());
-                    newAcc.setPassword("cgv12345");
-                    newAcc.setRoleId(2);
-                    customerId = accountDAO.register(newAcc);
-                }
-            } else {
-                Account defaultWalkin = accountDAO.getAccountByEmail("walkin@cinema.vn");
-                if (defaultWalkin != null) {
-                    customerId = defaultWalkin.getAccountId();
-                } else {
-                    Account newAcc = new Account();
-                    newAcc.setEmail("walkin@cinema.vn");
-                    newAcc.setFullName("Walk-in Customer");
-                    newAcc.setPhoneNumber(null);
-                    newAcc.setPassword("cgv12345");
-                    newAcc.setRoleId(2);
-                    customerId = accountDAO.register(newAcc);
-
-                    if (customerId <= 0) {
-                        HttpSession session = request.getSession(false);
-                        Account empAcc = (Account) session.getAttribute("account");
-                        customerId = empAcc.getAccountId();
-                    }
-                }
-            }
+            int customerId = resolveCustomerId(accountDAO, customerEmail, customerName, customerPhone, request);
 
             List<Seat> selectedSeats = new ArrayList<>();
             List<Seat> allSeats = seatDAO.getSeatsByRoom(schedule.getRoomId());
@@ -303,19 +291,113 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 }
             }
 
-            boolean success = ticketDAO.createManualBooking(scheduleId, selectedSeats, customerId, schedule.getBaseTicketPrice());
-            if (success) {
-                request.getSession().setAttribute("flashSuccess", "Ticket booked successfully!");
+            if (selectedSeats.isEmpty()) {
+                request.getSession().setAttribute("flashError", "Lựa chọn ghế không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
+                return;
+            }
+
+            double subtotal = computeSubtotal(selectedSeats, schedule.getBaseTicketPrice());
+
+            Integer promotionId = null;
+            double discountAmount = 0.0;
+            if (promoCode != null && !promoCode.trim().isEmpty()) {
+                Promotion promo = promotionDAO.findByActiveCode(promoCode.trim());
+                if (promo == null) {
+                    request.getSession().setAttribute("flashError",
+                            "Mã khuyến mãi \"" + promoCode.trim() + "\" không hợp lệ hoặc đã hết hạn.");
+                    response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
+                    return;
+                }
+                if (promo.getMinOrderAmount() != null
+                        && subtotal < promo.getMinOrderAmount().doubleValue()) {
+                    request.getSession().setAttribute("flashError",
+                            "Đơn tối thiểu " + String.format("%,.0f", promo.getMinOrderAmount().doubleValue())
+                            + " VND để áp dụng mã " + promoCode.trim() + ".");
+                    response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
+                    return;
+                }
+                if ("Percentage".equalsIgnoreCase(promo.getDiscountType())) {
+                    discountAmount = subtotal * promo.getDiscountValue().doubleValue() / 100.0;
+                    if (promo.getMaxDiscountAmount() != null) {
+                        discountAmount = Math.min(discountAmount, promo.getMaxDiscountAmount().doubleValue());
+                    }
+                } else {
+                    discountAmount = Math.min(promo.getDiscountValue().doubleValue(), subtotal);
+                }
+                promotionId = promo.getPromotionId();
+            }
+
+            List<String> newCodes = ticketDAO.createManualBooking(
+                    scheduleId, selectedSeats, customerId,
+                    schedule.getBaseTicketPrice(), paymentMethod, promotionId, discountAmount);
+
+            if (!newCodes.isEmpty()) {
+                request.getSession().setAttribute("flashSuccess", "Xuất vé thành công!");
+                request.getSession().setAttribute("flashNewCodes", newCodes);
                 response.sendRedirect(request.getContextPath() + "/employee/tickets?scheduleId=" + scheduleId);
             } else {
-                request.getSession().setAttribute("flashError", "Failed to book tickets. The seats might have been booked in the meantime.");
+                request.getSession().setAttribute("flashError",
+                        "Không thể xuất vé. Ghế có thể đã được đặt trước.");
                 response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("flashError", "An error occurred: " + e.getMessage());
+            request.getSession().setAttribute("flashError", "Đã có lỗi xảy ra: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleIdStr);
         }
+    }
+
+    private int resolveCustomerId(AccountDAO accountDAO, String customerEmail,
+            String customerName, String customerPhone, HttpServletRequest request) {
+        if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+            Account existing = accountDAO.getAccountByEmail(customerEmail.trim());
+            if (existing != null) {
+                return existing.getAccountId();
+            }
+            Account newAcc = new Account();
+            newAcc.setEmail(customerEmail.trim());
+            newAcc.setFullName(customerName == null || customerName.trim().isEmpty()
+                    ? "Walk-in Customer" : customerName.trim());
+            newAcc.setPhoneNumber(customerPhone == null || customerPhone.trim().isEmpty()
+                    ? null : customerPhone.trim());
+            newAcc.setPassword("cgv12345");
+            newAcc.setRoleId(2);
+            int id = accountDAO.register(newAcc);
+            if (id > 0) {
+                return id;
+            }
+        }
+        Account walkin = accountDAO.getAccountByEmail("walkin@cinema.vn");
+        if (walkin != null) {
+            return walkin.getAccountId();
+        }
+        Account newWalkin = new Account();
+        newWalkin.setEmail("walkin@cinema.vn");
+        newWalkin.setFullName("Walk-in Customer");
+        newWalkin.setPassword("cgv12345");
+        newWalkin.setRoleId(2);
+        int id = accountDAO.register(newWalkin);
+        if (id > 0) {
+            return id;
+        }
+        HttpSession session = request.getSession(false);
+        Account empAcc = (Account) session.getAttribute("account");
+        return empAcc.getAccountId();
+    }
+
+    private double computeSubtotal(List<Seat> seats, double basePrice) {
+        double total = 0.0;
+        for (Seat seat : seats) {
+            if ("VIP".equalsIgnoreCase(seat.getSeatType())) {
+                total += basePrice * 1.5;
+            } else if ("Couple".equalsIgnoreCase(seat.getSeatType())) {
+                total += basePrice * 2.0;
+            } else {
+                total += basePrice;
+            }
+        }
+        return total;
     }
 
     private void showCheckin(HttpServletRequest request, HttpServletResponse response)

@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -122,14 +123,18 @@ public class TicketDAO {
 
     /**
      * Performs a transaction to save a manual ticket booking:
-     * 1. Inserts an Invoice.
-     * 2. Inserts a Ticket for each seat booked.
+     * 1. Inserts an Invoice with discount and payment method.
+     * 2. Inserts a Ticket for each seat.
+     * 3. Increments promotion UsedCount if a promotion was applied.
+     * Returns the list of generated ticket codes, or an empty list on failure.
      * Used for UC48: Create Manual Ticket.
      */
-    public boolean createManualBooking(int scheduleId, List<Seat> selectedSeats, int customerAccountId, double basePrice) {
+    public List<String> createManualBooking(int scheduleId, List<Seat> selectedSeats,
+            int customerAccountId, double basePrice,
+            String paymentMethod, Integer promotionId, double discountAmount) {
         String sqlInvoice = """
                             INSERT INTO Invoice (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount, PaymentMethod, PaymentStatus, CreatedAt)
-                            VALUES (?, NULL, ?, 0, ?, 'Cash', 'Paid', GETDATE())
+                            VALUES (?, ?, ?, ?, ?, ?, 'Paid', GETDATE())
                             """;
         String sqlTicket = """
                            INSERT INTO Ticket (ScheduleID, SeatID, InvoiceID, PriceAtBooking, Code, IsCheckedIn, CheckedInAt)
@@ -141,21 +146,36 @@ public class TicketDAO {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Calculate subtotal and total
-            double totalAmount = 0.0;
+            // 1. Calculate seat prices and subtotal
+            double subtotal = 0.0;
             List<Double> seatPrices = new ArrayList<>();
             for (Seat seat : selectedSeats) {
-                double seatPrice = "VIP".equalsIgnoreCase(seat.getSeatType()) ? basePrice * 1.5 : basePrice;
+                double seatPrice;
+                if ("VIP".equalsIgnoreCase(seat.getSeatType())) {
+                    seatPrice = basePrice * 1.5;
+                } else if ("Couple".equalsIgnoreCase(seat.getSeatType())) {
+                    seatPrice = basePrice * 2.0;
+                } else {
+                    seatPrice = basePrice;
+                }
                 seatPrices.add(seatPrice);
-                totalAmount += seatPrice;
+                subtotal += seatPrice;
             }
+            double totalAmount = Math.max(0.0, subtotal - discountAmount);
 
             // 2. Insert Invoice
             int invoiceId = -1;
             try (PreparedStatement psInvoice = conn.prepareStatement(sqlInvoice, Statement.RETURN_GENERATED_KEYS)) {
                 psInvoice.setInt(1, customerAccountId);
-                psInvoice.setDouble(2, totalAmount);
-                psInvoice.setDouble(3, totalAmount);
+                if (promotionId != null) {
+                    psInvoice.setInt(2, promotionId);
+                } else {
+                    psInvoice.setNull(2, Types.INTEGER);
+                }
+                psInvoice.setDouble(3, subtotal);
+                psInvoice.setDouble(4, discountAmount);
+                psInvoice.setDouble(5, totalAmount);
+                psInvoice.setString(6, paymentMethod);
                 psInvoice.executeUpdate();
 
                 try (ResultSet keys = psInvoice.getGeneratedKeys()) {
@@ -169,12 +189,15 @@ public class TicketDAO {
                 throw new SQLException("Failed to retrieve generated Invoice ID");
             }
 
-            // 3. Insert Tickets
+            // 3. Insert Tickets and collect the generated codes
+            List<String> codes = new ArrayList<>();
             try (PreparedStatement psTicket = conn.prepareStatement(sqlTicket)) {
                 for (int i = 0; i < selectedSeats.size(); i++) {
                     Seat seat = selectedSeats.get(i);
                     double seatPrice = seatPrices.get(i);
-                    String ticketCode = "TK-" + scheduleId + "-" + seat.getSeatId() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                    String ticketCode = "TK-" + scheduleId + "-" + seat.getSeatId() + "-"
+                            + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                    codes.add(ticketCode);
 
                     psTicket.setInt(1, scheduleId);
                     psTicket.setInt(2, seat.getSeatId());
@@ -186,8 +209,17 @@ public class TicketDAO {
                 psTicket.executeBatch();
             }
 
+            // 4. Increment promotion usage counter
+            if (promotionId != null) {
+                try (PreparedStatement psPromo = conn.prepareStatement(
+                        "UPDATE Promotion SET UsedCount = UsedCount + 1 WHERE PromotionID = ?")) {
+                    psPromo.setInt(1, promotionId);
+                    psPromo.executeUpdate();
+                }
+            }
+
             conn.commit();
-            return true;
+            return codes;
         } catch (SQLException ex) {
             ex.printStackTrace();
             if (conn != null) {
@@ -197,7 +229,7 @@ public class TicketDAO {
                     rollbackEx.printStackTrace();
                 }
             }
-            return false;
+            return new ArrayList<>();
         } finally {
             if (conn != null) {
                 try {

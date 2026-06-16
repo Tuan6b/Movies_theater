@@ -252,10 +252,32 @@
                         Đơn giá cơ bản: <strong>${schedule.baseTicketPrice} VND</strong>
                     </div>
 
+                    <%-- Payment method --%>
+                    <div style="border-top: 1px solid var(--cgv-border); padding-top:16px; margin-bottom:16px;">
+                        <h4 style="font-size:12px; font-weight:700; margin:0 0 12px 0; color:rgba(94,63,58,0.5); text-transform:uppercase;">THANH TOÁN</h4>
+                        <div class="checkout-field">
+                            <label for="paymentMethod">Phương thức thanh toán</label>
+                            <select class="cgv-input" id="paymentMethod" name="paymentMethod">
+                                <option value="Cash">Tiền mặt</option>
+                                <option value="Card">Thẻ ngân hàng</option>
+                                <option value="VNPay">VNPay</option>
+                            </select>
+                        </div>
+                        <div class="checkout-field">
+                            <label for="promoCode">Mã khuyến mãi (tùy chọn)</label>
+                            <input class="cgv-input" type="text" id="promoCode" name="promoCode"
+                                   placeholder="VD: KM202506001" style="text-transform:uppercase;"
+                                   oninput="this.value = this.value.toUpperCase()">
+                            <div style="font-size:11px; color:rgba(94,63,58,0.45); margin-top:4px;">
+                                Giảm giá sẽ được tính khi xác nhận
+                            </div>
+                        </div>
+                    </div>
+
                     <%-- Customer details --%>
                     <div style="border-top: 1px solid var(--cgv-border); padding-top:16px; margin-bottom:16px;">
                         <h4 style="font-size:12px; font-weight:700; margin:0 0 12px 0; color:rgba(94,63,58,0.5); text-transform:uppercase;">KHÁCH HÀNG (TÙY CHỌN)</h4>
-                        
+
                         <div class="checkout-field">
                             <label for="customerEmail">Email</label>
                             <input class="cgv-input" type="email" id="customerEmail" name="customerEmail" placeholder="khachhang@gmail.com">

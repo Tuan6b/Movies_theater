@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <% request.setAttribute("activeNav", "schedules"); %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -55,7 +56,8 @@
 
     <header class="cgv-header">
         <h1 class="cgv-header-title">Danh sách Vé đã đặt (UC47)</h1>
-        <div class="cgv-header-right">
+        <div class="cgv-header-right" style="display:flex; gap:8px; align-items:center;">
+            <a href="${pageContext.request.contextPath}/employee/book?scheduleId=${schedule.scheduleId}" class="btn--cgv">+ Thêm vé</a>
             <a href="${pageContext.request.contextPath}/employee/schedules" class="btn--cgv-outline">← Quay lại Lịch chiếu</a>
         </div>
     </header>
@@ -92,6 +94,19 @@
                 <div class="cgv-alert cgv-alert-danger">${requestScope.flashError}</div>
             </c:if>
 
+            <c:if test="${not empty requestScope.flashNewCodes}">
+                <div class="cgv-alert cgv-alert-success" style="display:flex; flex-direction:column; gap:8px;">
+                    <strong>Mã vé vừa tạo — giao cho khách hàng:</strong>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                        <c:forEach var="code" items="${requestScope.flashNewCodes}">
+                            <code style="font-family:monospace; background:rgba(255,255,255,0.7); border:1px solid rgba(40,167,69,0.3); padding:6px 12px; border-radius:6px; font-size:13px; font-weight:700; letter-spacing:1px; color:#155724;">
+                                ${code}
+                            </code>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+
             <%-- Tickets table --%>
             <div class="cgv-data-wrap">
                 <table class="cgv-dt">
@@ -123,7 +138,7 @@
                                                 Hàng ${t.seat.rowChar} - Số ${t.seat.colNumber} (${t.seat.seatType})
                                             </span>
                                         </td>
-                                        <td style="font-weight:600; color:var(--cgv-dark);">${t.priceAtBooking} VND</td>
+                                        <td style="font-weight:600; color:var(--cgv-dark);"><fmt:formatNumber value="${t.priceAtBooking}" type="number" maxFractionDigits="0"/> VND</td>
                                         <td style="font-weight:700; color:var(--cgv-dark);">${t.invoice.account.fullName}</td>
                                         <td style="font-size:13px; color:rgba(94,63,58,0.7);">
                                             Email: ${t.invoice.account.email}<br>
@@ -134,10 +149,10 @@
                                                 ${t.invoice.paymentMethod}
                                             </span>
                                         </td>
-                                        <td style="font-size:13px; color:rgba(94,63,58,0.7);">${t.invoice.createdAt}</td>
+                                        <td style="font-size:13px; color:rgba(94,63,58,0.7);"><fmt:formatDate value="${t.invoice.createdAt}" pattern="dd/MM/yyyy HH:mm"/></td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${t.isCheckedIn}">
+                                                <c:when test="${t.checkedIn}">
                                                     <span class="cgv-badge active">Đã Check-in</span>
                                                     <div style="font-size:10px; color:rgba(94,63,58,0.5); margin-top:2px;">
                                                         Vào lúc: ${t.checkedInAt}
@@ -149,7 +164,7 @@
                                             </c:choose>
                                         </td>
                                         <td style="text-align:right;">
-                                            <c:if test="${not t.isCheckedIn}">
+                                            <c:if test="${not t.checkedIn}">
                                                 <form method="post" action="${pageContext.request.contextPath}/employee/checkin" style="display:inline;">
                                                     <input type="hidden" name="bookingId" value="${t.ticketId}">
                                                     <button type="submit" class="btn--cgv" style="font-size:11px; padding:6px 12px; background:#28a745;">
@@ -170,6 +185,18 @@
                             </c:otherwise>
                         </c:choose>
                     </tbody>
+                    <c:if test="${not empty tickets}">
+                        <tfoot>
+                            <tr style="background:#fef9f0; border-top:2px solid var(--cgv-border);">
+                                <td colspan="8" style="text-align:right; font-weight:700; padding:14px 16px; color:var(--cgv-dark); font-size:14px;">
+                                    Tổng doanh thu suất chiếu:
+                                </td>
+                                <td style="font-weight:700; color:var(--cgv-primary); font-size:16px; padding:14px 16px;">
+                                    <fmt:formatNumber value="${totalRevenue}" type="number" maxFractionDigits="0"/> VND
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </c:if>
                 </table>
             </div>
         </div>

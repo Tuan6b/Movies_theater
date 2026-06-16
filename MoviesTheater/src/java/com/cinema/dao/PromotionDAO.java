@@ -61,6 +61,29 @@ public class PromotionDAO {
     }
 
     /**
+     * Find a valid, active promotion by its code.
+     * Validates: IsActive=1, within date range, under usage limit.
+     */
+    public Promotion findByActiveCode(String code) {
+        String sql = "SELECT * FROM Promotion "
+                + "WHERE PromotionCode = ? AND IsActive = 1 "
+                + "AND StartDate <= GETDATE() AND EndDate >= GETDATE() "
+                + "AND (UsageLimit IS NULL OR UsedCount < UsageLimit)";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
      * Find a promotion by its ID.
      *
      * @param id the promotion ID
