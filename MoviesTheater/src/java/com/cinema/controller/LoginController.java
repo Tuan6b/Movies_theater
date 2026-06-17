@@ -5,6 +5,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
+import com.cinema.dao.WorkShiftDAO;
 import com.cinema.model.Account;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -76,6 +77,19 @@ public class LoginController extends HttpServlet {
                 return;
             }
 
+            // Employees can only log in during an active shift window
+            if (account.getRoleId() == 3) {
+                WorkShiftDAO shiftDAO = new WorkShiftDAO();
+                if (!shiftDAO.hasActiveShift(account.getAccountId())) {
+                    request.setAttribute("error", "Bạn không có ca làm việc vào lúc này. Vui lòng đăng nhập trong giờ làm việc của bạn.");
+                    request.setAttribute("email", email);
+                    request.getRequestDispatcher("/login.jsp").forward(request, response);
+                    return;
+                }
+                // Auto mark Scheduled → Completed (check-in on login)
+                shiftDAO.checkIn(account.getAccountId());
+            }
+
             HttpSession session = request.getSession(true);
             session.setAttribute("account", account);
 
@@ -101,7 +115,7 @@ public class LoginController extends HttpServlet {
                         break;
                     case 4: // Manager
                     case 3: // Employee
-                        response.sendRedirect(request.getContextPath() + "/manager");
+                        response.sendRedirect(request.getContextPath() + "/employee");
                         break;
                     default: // Customer
                         response.sendRedirect(request.getContextPath() + "/");

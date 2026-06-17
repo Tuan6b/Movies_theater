@@ -58,10 +58,21 @@
 
             <div class="cgv-data-wrap">
                 <div class="cgv-data-toolbar">
-                    <form method="get" style="display:flex;gap:10px;align-items:center;">
-                        <input class="cgv-input" style="max-width:280px;height:38px;"
+                    <form method="get" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <input class="cgv-input" style="max-width:240px;height:38px;"
                                type="text" name="keyword" placeholder="Search by name or email..."
                                value="${keyword}">
+                        <select class="cgv-select" style="height:38px;width:160px;" name="sort">
+                            <option value=""         ${empty sortField ? 'selected' : ''}>Sort: Default</option>
+                            <option value="name"     ${sortField eq 'name'    ? 'selected' : ''}>Sort: Name</option>
+                            <option value="email"    ${sortField eq 'email'   ? 'selected' : ''}>Sort: Email</option>
+                            <option value="status"   ${sortField eq 'status'  ? 'selected' : ''}>Sort: Status</option>
+                            <option value="created"  ${sortField eq 'created' ? 'selected' : ''}>Sort: Join Date</option>
+                        </select>
+                        <select class="cgv-select" style="height:38px;width:100px;" name="dir">
+                            <option value="ASC"  ${sortDir eq 'ASC'  ? 'selected' : ''}>ASC</option>
+                            <option value="DESC" ${sortDir eq 'DESC' ? 'selected' : ''}>DESC</option>
+                        </select>
                         <button type="submit" class="btn--cgv-outline">Search</button>
                         <c:if test="${not empty keyword}">
                             <a href="${pageContext.request.contextPath}/manager/employees"
@@ -77,8 +88,10 @@
                             <th>Full Name</th>
                             <th>Email</th>
                             <th>Phone</th>
+                            <th>Address</th>
+                            <th>Working Days</th>
                             <th>Status</th>
-                            <th>Created At</th>
+                            <th>Joined</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -101,6 +114,15 @@
                                                 <c:otherwise>—</c:otherwise>
                                             </c:choose>
                                         </td>
+                                        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                            <c:choose>
+                                                <c:when test="${not empty emp.address}">${emp.address}</c:when>
+                                                <c:otherwise>—</c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align:center;font-weight:600;">
+                                            <span style="color:var(--cgv-dark);">${emp.workingDays}</span>
+                                        </td>
                                         <td>
                                             <c:choose>
                                                 <c:when test="${emp.isBlocked}">
@@ -113,9 +135,11 @@
                                         </td>
                                         <td style="font-size:13px;">${emp.createdAt}</td>
                                         <td>
-                                            <div style="display:flex;gap:8px;">
+                                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                                 <a href="${pageContext.request.contextPath}/manager/employees?action=edit&id=${emp.accountId}"
                                                    class="btn--cgv-outline">Edit</a>
+                                                <a href="${pageContext.request.contextPath}/manager/shifts?empId=${emp.accountId}"
+                                                   class="btn--cgv-outline" style="color:var(--cgv-dark);">Shifts</a>
                                                 <c:choose>
                                                     <c:when test="${emp.isBlocked}">
                                                         <form method="post" style="display:inline;">
@@ -145,7 +169,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="7" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                    <td colspan="9" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
                                         No employees found.
                                     </td>
                                 </tr>
@@ -162,7 +186,7 @@
                     <div class="cgv-pager-pages">
                         <c:forEach begin="1" end="${not empty totalPages ? totalPages : 1}" var="pg">
                             <button class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
-                                    onclick="location.href='?page=${pg}&keyword=${keyword}'">${pg}</button>
+                                    onclick="location.href='?page=${pg}&keyword=${keyword}&sort=${sortField}&dir=${sortDir}'">${pg}</button>
                         </c:forEach>
                     </div>
                 </div>
@@ -181,6 +205,15 @@
                         <div class="cgv-stat-num">${not empty employees ? employees.size() : '0'}</div>
                         <div class="cgv-stat-key">SHOWING</div>
                     </div>
+                </div>
+            </div>
+            <div class="cgv-aside-divider">
+                <div class="cgv-aside-heading">QUICK ACTIONS</div>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                    <a href="${pageContext.request.contextPath}/manager/shifts"
+                       class="btn--cgv-outline" style="text-align:center;">View All Shifts</a>
+                    <a href="${pageContext.request.contextPath}/manager/shifts?action=add"
+                       class="btn--cgv" style="text-align:center;">+ New Shift</a>
                 </div>
             </div>
         </aside>

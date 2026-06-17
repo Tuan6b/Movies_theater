@@ -38,13 +38,20 @@
     </header>
 
     <div class="cgv-page">
-        <div class="cgv-list-wrap" style="max-width:600px;">
+        <div class="cgv-list-wrap" style="max-width:680px;">
 
+            <c:if test="${not empty flashSuccess}">
+                <div class="cgv-alert cgv-alert-success">${flashSuccess}</div>
+            </c:if>
+            <c:if test="${not empty flashError}">
+                <div class="cgv-alert cgv-alert-danger">${flashError}</div>
+            </c:if>
             <c:if test="${not empty errorMsg}">
                 <div class="cgv-alert cgv-alert-danger">${errorMsg}</div>
             </c:if>
 
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
+            <%-- Employee Info Form --%>
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;margin-bottom:24px;">
                 <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
                     EMPLOYEE DETAILS
                 </div>
@@ -55,56 +62,74 @@
                         <input type="hidden" name="accountId" value="${employee.accountId}">
                     </c:if>
 
-                    <%-- Full Name --%>
-                    <div class="cgv-field">
-                        <label class="cgv-label">
-                            Full Name <span style="color:var(--cgv-red)">*</span>
-                        </label>
-                        <input class="cgv-input" type="text" name="fullName"
-                               value="${employee.fullName}" placeholder="Enter full name">
-                        <c:if test="${not empty errors['fullName']}">
-                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['fullName']}</div>
-                        </c:if>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+                        <div class="cgv-field">
+                            <label class="cgv-label">Full Name <span style="color:var(--cgv-red)">*</span></label>
+                            <input class="cgv-input" type="text" name="fullName"
+                                   value="${employee.fullName}" placeholder="Enter full name">
+                            <c:if test="${not empty errors['fullName']}">
+                                <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['fullName']}</div>
+                            </c:if>
+                        </div>
+
+                        <div class="cgv-field">
+                            <label class="cgv-label">Email <span style="color:var(--cgv-red)">*</span></label>
+                            <input class="cgv-input" type="email" name="email"
+                                   value="${employee.email}" placeholder="Enter email address">
+                            <c:if test="${not empty errors['email']}">
+                                <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['email']}</div>
+                            </c:if>
+                        </div>
+
+                        <div class="cgv-field">
+                            <label class="cgv-label">Phone Number</label>
+                            <input class="cgv-input" type="text" name="phoneNumber"
+                                   value="${employee.phoneNumber}" placeholder="Enter phone number">
+                        </div>
+
+                        <div class="cgv-field">
+                            <label class="cgv-label">Date of Birth</label>
+                            <input class="cgv-input" type="date" name="dateOfBirth"
+                                   value="${employee.dateOfBirth}">
+                        </div>
+
                     </div>
 
-                    <%-- Email --%>
                     <div class="cgv-field">
-                        <label class="cgv-label">
-                            Email <span style="color:var(--cgv-red)">*</span>
-                        </label>
-                        <input class="cgv-input" type="email" name="email"
-                               value="${employee.email}" placeholder="Enter email address">
-                        <c:if test="${not empty errors['email']}">
-                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['email']}</div>
-                        </c:if>
+                        <label class="cgv-label">Address</label>
+                        <input class="cgv-input" type="text" name="address"
+                               value="${employee.address}" placeholder="Enter home address">
                     </div>
 
-                    <%-- Phone Number --%>
-                    <div class="cgv-field">
-                        <label class="cgv-label">Phone Number</label>
-                        <input class="cgv-input" type="text" name="phoneNumber"
-                               value="${employee.phoneNumber}" placeholder="Enter phone number">
-                    </div>
-
-                    <%-- Password --%>
-                    <div class="cgv-field">
-                        <label class="cgv-label">
-                            Password
-                            <c:choose>
-                                <c:when test="${formAction eq 'create'}">
-                                    <span style="color:var(--cgv-red)">*</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span style="color:rgba(94,63,58,0.5);font-weight:400;font-size:12px;">(leave blank to keep current)</span>
-                                </c:otherwise>
-                            </c:choose>
-                        </label>
-                        <input class="cgv-input" type="password" name="password"
-                               placeholder="${formAction eq 'create' ? 'Set initial password' : 'New password (optional)'}">
-                        <c:if test="${not empty errors['password']}">
-                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['password']}</div>
-                        </c:if>
-                    </div>
+                    <c:choose>
+                        <c:when test="${formAction eq 'create'}">
+                            <div class="cgv-field">
+                                <label class="cgv-label">Password <span style="color:var(--cgv-red)">*</span></label>
+                                <input class="cgv-input" type="password" name="password"
+                                       placeholder="Set initial password (min 6 chars)">
+                                <c:if test="${not empty errors['password']}">
+                                    <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['password']}</div>
+                                </c:if>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <%-- Collapsible password change on edit --%>
+                            <div class="cgv-field" style="margin-top:8px;">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-cgv-ui);font-size:12px;font-weight:600;color:rgba(94,63,58,0.7);">
+                                    <input type="checkbox" id="changePwdToggle"
+                                           onchange="document.getElementById('pwdSection').style.display=this.checked?'block':'none'"
+                                           style="width:14px;height:14px;">
+                                    Change password
+                                </label>
+                                <div id="pwdSection" style="display:none;margin-top:12px;padding:16px;background:#fafafb;border:1px solid var(--cgv-border);border-radius:8px;">
+                                    <input class="cgv-input" type="password" name="password"
+                                           placeholder="New password (min 6 chars)" style="margin-bottom:0;">
+                                    <div style="font-size:11px;color:rgba(94,63,58,0.5);margin-top:6px;">Leave blank to keep current password unchanged.</div>
+                                </div>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
                     <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
                         <button type="submit" class="btn--cgv">Save Employee</button>
@@ -114,7 +139,36 @@
 
                 </form>
             </div>
+
         </div>
+
+        <%-- Aside: shift info for existing employee --%>
+        <c:if test="${formAction eq 'update'}">
+            <aside class="cgv-aside">
+                <div class="cgv-stats-section">
+                    <div class="cgv-aside-heading">OVERVIEW</div>
+                    <div class="cgv-stats-group">
+                        <div>
+                            <div class="cgv-stat-num">${employee.workingDays}</div>
+                            <div class="cgv-stat-key">WORKING DAYS</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cgv-aside-divider">
+                    <a href="${pageContext.request.contextPath}/manager/shifts?empId=${employee.accountId}"
+                       class="btn--cgv" style="width:100%;text-align:center;display:block;">
+                        View Shifts
+                    </a>
+                    <div style="margin-top:8px;">
+                        <a href="${pageContext.request.contextPath}/manager/shifts?empId=${employee.accountId}"
+                           class="btn--cgv-outline" style="width:100%;text-align:center;display:block;">
+                            + Schedule Shift
+                        </a>
+                    </div>
+                </div>
+            </aside>
+        </c:if>
+
     </div>
 </div>
 </body>

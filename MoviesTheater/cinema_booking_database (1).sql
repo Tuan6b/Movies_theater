@@ -186,6 +186,22 @@ CREATE TABLE MovieReview (
     CONSTRAINT CHK_Review_Rating CHECK (RatingValue BETWEEN 1 AND 5)
 );
 
+CREATE TABLE WorkShift (
+    ShiftID   INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeID INT NOT NULL,
+    ShiftDate  DATE NOT NULL,
+    StartTime  TIME NOT NULL,
+    EndTime    TIME NOT NULL,
+    Status     VARCHAR(20) NOT NULL DEFAULT 'Scheduled',
+    Notes      NVARCHAR(500) NULL,
+    CreatedAt  DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_WorkShift_Employee FOREIGN KEY (EmployeeID) REFERENCES Account(AccountID),
+    CONSTRAINT CHK_WorkShift_Status CHECK (Status IN ('Scheduled', 'Completed', 'Absent'))
+);
+
+CREATE INDEX IDX_WorkShift_EmployeeID ON WorkShift(EmployeeID);
+CREATE INDEX IDX_WorkShift_ShiftDate  ON WorkShift(ShiftDate);
+
 CREATE TABLE SystemLog (
     LogID INT IDENTITY(1,1) PRIMARY KEY,
     AccountID INT NULL,

@@ -14,6 +14,9 @@ public class Account {
 
     private String fullName;
     private String phoneNumber;
+    private String address;
+    private String dateOfBirth;
+    private int workingDays;
     private String resetToken;
     private LocalDateTime resetTokenExpiry;
 
@@ -109,5 +112,29 @@ public class Account {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(String dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public int getWorkingDays() {
+        return workingDays;
+    }
+
+    public void setWorkingDays(int workingDays) {
+        this.workingDays = workingDays;
     }
 }
