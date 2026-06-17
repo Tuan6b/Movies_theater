@@ -48,7 +48,9 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/manager/analytics",
             "/manager/users",
             "/manager/settings",
-            "/manager/genre"
+            "/manager/genre",
+            "/manager/shifts",
+            "/manager/employees"
     );
 
     @Override

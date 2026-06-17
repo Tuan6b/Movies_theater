@@ -54,6 +54,10 @@
         <servlet-name>ManagerServlet</servlet-name>
         <url-pattern>/manager</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManagerServlet</servlet-name>
+        <url-pattern>/manager/*</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <servlet-name>PromotionServlet</servlet-name>
@@ -87,6 +91,14 @@
     <servlet-mapping>
         <servlet-name>EmployeeServlet</servlet-name>
         <url-pattern>/manager/employees</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <servlet-class>com.cinema.controller.WorkShiftServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <url-pattern>/manager/shifts</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>GenreController</servlet-name>
