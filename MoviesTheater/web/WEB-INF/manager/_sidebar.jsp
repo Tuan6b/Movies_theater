@@ -89,6 +89,16 @@
             Rooms
         </a>
 
+        <a href="${pageContext.request.contextPath}/manager/shifts"
+           class="cgv-nav-link ${activeNav eq 'shifts' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Shifts
+        </a>
+
         <a href="${pageContext.request.contextPath}/manager/analytics"
            class="cgv-nav-link ${activeNav eq 'analytics' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"

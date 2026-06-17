@@ -8,6 +8,7 @@ import com.cinema.model.Account;
 import com.cinema.util.DBUtils;
 import com.cinema.util.PasswordHash;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,20 +25,34 @@ public class EmployeeDAO {
 
     private static final int ROLE_EMPLOYEE = 3;
 
-    public List<Account> getAll(String keyword, int page, int pageSize) {
+    private static final String BASE_SELECT =
+            "SELECT a.AccountID, a.Email, a.RoleID, a.IsBlocked, a.CreatedAt, "
+            + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, "
+            + "COALESCE((SELECT COUNT(*) FROM WorkShift ws WHERE ws.EmployeeID = a.AccountID AND ws.Status = 'Completed'), 0) AS WorkingDays "
+            + "FROM Account a "
+            + "JOIN Role r ON a.RoleID = r.RoleID "
+            + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
+            + "WHERE a.RoleID = " + ROLE_EMPLOYEE;
+
+    private String safeOrderBy(String sortField, String sortDir) {
+        String dir = "DESC".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
+        switch (sortField != null ? sortField : "") {
+            case "name":    return "u.FullName " + dir;
+            case "email":   return "a.Email " + dir;
+            case "status":  return "a.IsBlocked " + dir;
+            case "created": return "a.CreatedAt " + dir;
+            default:        return "a.AccountID DESC";
+        }
+    }
+
+    public List<Account> getAll(String keyword, int page, int pageSize, String sortField, String sortDir) {
         List<Account> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder(
-                "SELECT a.AccountID, a.Email, a.RoleID, a.IsBlocked, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
-                + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
-                + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
-                + "WHERE a.RoleID = " + ROLE_EMPLOYEE);
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (a.Email LIKE ? OR u.FullName LIKE ?)");
         }
-        sql.append(" ORDER BY a.AccountID DESC");
+        sql.append(" ORDER BY ").append(safeOrderBy(sortField, sortDir));
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
         try (Connection conn = DBUtils.getConnection();
@@ -79,9 +94,7 @@ public class EmployeeDAO {
                 ps.setNString(2, like);
             }
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+                if (rs.next()) return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -90,20 +103,13 @@ public class EmployeeDAO {
     }
 
     public Account getById(int accountId) {
-        String sql = "SELECT a.AccountID, a.Email, a.RoleID, a.IsBlocked, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
-                + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
-                + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
-                + "WHERE a.AccountID = ? AND a.RoleID = " + ROLE_EMPLOYEE;
+        String sql = BASE_SELECT + " AND a.AccountID = ?";
 
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapAccount(rs);
-                }
+                if (rs.next()) return mapAccount(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -118,9 +124,7 @@ public class EmployeeDAO {
             ps.setString(1, email);
             ps.setInt(2, excludeAccountId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                if (rs.next()) return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -130,7 +134,7 @@ public class EmployeeDAO {
 
     public int add(Account account) {
         String sqlAccount = "INSERT INTO Account (Email, Password, RoleID, IsBlocked) VALUES (?, ?, ?, 0)";
-        String sqlProfile = "INSERT INTO UserProfile (AccountID, FullName, PhoneNumber) VALUES (?, ?, ?)";
+        String sqlProfile  = "INSERT INTO UserProfile (AccountID, FullName, PhoneNumber, Address, DoB) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false);
@@ -143,11 +147,17 @@ public class EmployeeDAO {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
                         int newId = keys.getInt(1);
-                        try (PreparedStatement psProfile = conn.prepareStatement(sqlProfile)) {
-                            psProfile.setInt(1, newId);
-                            psProfile.setNString(2, account.getFullName());
-                            psProfile.setString(3, account.getPhoneNumber());
-                            psProfile.executeUpdate();
+                        try (PreparedStatement psP = conn.prepareStatement(sqlProfile)) {
+                            psP.setInt(1, newId);
+                            psP.setNString(2, account.getFullName());
+                            psP.setString(3, account.getPhoneNumber());
+                            psP.setNString(4, account.getAddress());
+                            if (account.getDateOfBirth() != null && !account.getDateOfBirth().isEmpty()) {
+                                psP.setDate(5, Date.valueOf(account.getDateOfBirth()));
+                            } else {
+                                psP.setNull(5, java.sql.Types.DATE);
+                            }
+                            psP.executeUpdate();
                         }
                         conn.commit();
                         return newId;
@@ -165,11 +175,11 @@ public class EmployeeDAO {
         try (Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false);
 
-            if (account.getPassword() != null && !account.getPassword().isEmpty()) {
+            if (account.getPassword() != null && !account.getPassword().trim().isEmpty()) {
                 String sqlAccount = "UPDATE Account SET Email = ?, Password = ? WHERE AccountID = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sqlAccount)) {
                     ps.setString(1, account.getEmail());
-                    ps.setString(2, PasswordHash.hash(account.getPassword()));
+                    ps.setString(2, PasswordHash.hash(account.getPassword().trim()));
                     ps.setInt(3, account.getAccountId());
                     ps.executeUpdate();
                 }
@@ -192,25 +202,50 @@ public class EmployeeDAO {
             }
 
             if (profileExists) {
-                String sqlProfile = "UPDATE UserProfile SET FullName = ?, PhoneNumber = ? WHERE AccountID = ?";
+                String sqlProfile = "UPDATE UserProfile SET FullName = ?, PhoneNumber = ?, Address = ?, DoB = ? WHERE AccountID = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sqlProfile)) {
                     ps.setNString(1, account.getFullName());
                     ps.setString(2, account.getPhoneNumber());
-                    ps.setInt(3, account.getAccountId());
+                    ps.setNString(3, account.getAddress());
+                    if (account.getDateOfBirth() != null && !account.getDateOfBirth().isEmpty()) {
+                        ps.setDate(4, Date.valueOf(account.getDateOfBirth()));
+                    } else {
+                        ps.setNull(4, java.sql.Types.DATE);
+                    }
+                    ps.setInt(5, account.getAccountId());
                     ps.executeUpdate();
                 }
             } else {
-                String sqlProfile = "INSERT INTO UserProfile (AccountID, FullName, PhoneNumber) VALUES (?, ?, ?)";
+                String sqlProfile = "INSERT INTO UserProfile (AccountID, FullName, PhoneNumber, Address, DoB) VALUES (?, ?, ?, ?, ?)";
                 try (PreparedStatement ps = conn.prepareStatement(sqlProfile)) {
                     ps.setInt(1, account.getAccountId());
                     ps.setNString(2, account.getFullName());
                     ps.setString(3, account.getPhoneNumber());
+                    ps.setNString(4, account.getAddress());
+                    if (account.getDateOfBirth() != null && !account.getDateOfBirth().isEmpty()) {
+                        ps.setDate(5, Date.valueOf(account.getDateOfBirth()));
+                    } else {
+                        ps.setNull(5, java.sql.Types.DATE);
+                    }
                     ps.executeUpdate();
                 }
             }
 
             conn.commit();
             return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean resetPassword(int accountId, String newPassword) {
+        String sql = "UPDATE Account SET Password = ? WHERE AccountID = ? AND RoleID = " + ROLE_EMPLOYEE;
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, PasswordHash.hash(newPassword));
+            ps.setInt(2, accountId);
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -239,12 +274,16 @@ public class EmployeeDAO {
         account.setIsBlocked(rs.getBoolean("IsBlocked"));
 
         Timestamp ts = rs.getTimestamp("CreatedAt");
-        if (ts != null) {
-            account.setCreatedAt(ts.toLocalDateTime());
-        }
+        if (ts != null) account.setCreatedAt(ts.toLocalDateTime());
 
         account.setFullName(rs.getNString("FullName"));
         account.setPhoneNumber(rs.getString("PhoneNumber"));
+        account.setAddress(rs.getNString("Address"));
+
+        Date dob = rs.getDate("DoB");
+        if (dob != null) account.setDateOfBirth(dob.toString());
+
+        account.setWorkingDays(rs.getInt("WorkingDays"));
         return account;
     }
 }

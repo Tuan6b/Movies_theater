@@ -266,6 +266,8 @@ public class PromotionServlet extends HttpServlet {
         String keyword = request.getParameter("keyword");
         String type    = request.getParameter("type");
         String status  = request.getParameter("status");
+        String sortBy  = request.getParameter("sort");
+        String sortDir = request.getParameter("dir");
         int page = parseIntParam(request.getParameter("page"), 1);
         if (page < 1) {
             page = 1;
@@ -278,17 +280,19 @@ public class PromotionServlet extends HttpServlet {
         }
 
         try {
-            List<Promotion> promotions = findPromotions(keyword, type, status, page, PAGE_SIZE);
+            List<Promotion> promotions = findPromotions(keyword, type, status, page, PAGE_SIZE, sortBy, sortDir);
             int totalItems = countPromotions(keyword, type, status);
             int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
 
-            request.setAttribute("promotions", promotions);
-            request.setAttribute("totalItems", totalItems);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("currentPage", page);
-            request.setAttribute("keyword", keyword != null ? keyword : "");
-            request.setAttribute("filterType", type != null ? type : "");
-            request.setAttribute("filterStatus", status != null ? status : "");
+            request.setAttribute("promotions",    promotions);
+            request.setAttribute("totalItems",    totalItems);
+            request.setAttribute("totalPages",    totalPages);
+            request.setAttribute("currentPage",   page);
+            request.setAttribute("keyword",       keyword != null ? keyword : "");
+            request.setAttribute("filterType",    type    != null ? type    : "");
+            request.setAttribute("filterStatus",  status  != null ? status  : "");
+            request.setAttribute("sortBy",        sortBy  != null ? sortBy  : "");
+            request.setAttribute("sortDir",       sortDir != null ? sortDir : "DESC");
             request.getRequestDispatcher(LIST_JSP).forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -531,6 +535,8 @@ public class PromotionServlet extends HttpServlet {
             String status, String jspPath) throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
         String type    = request.getParameter("type");
+        String sortBy  = request.getParameter("sort");
+        String sortDir = request.getParameter("dir");
         int page = parseIntParam(request.getParameter("page"), 1);
         if (page < 1) {
             page = 1;
@@ -543,7 +549,7 @@ public class PromotionServlet extends HttpServlet {
         }
 
         try {
-            List<Promotion> promotions = findPromotions(keyword, type, status, page, PAGE_SIZE);
+            List<Promotion> promotions = findPromotions(keyword, type, status, page, PAGE_SIZE, sortBy, sortDir);
             int totalItems = countPromotions(keyword, type, status);
             int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
 
@@ -552,8 +558,10 @@ public class PromotionServlet extends HttpServlet {
             request.setAttribute("totalPages",  totalPages);
             request.setAttribute("currentPage", page);
             request.setAttribute("keyword",     keyword != null ? keyword : "");
-            request.setAttribute("filterType",  type != null ? type : "");
+            request.setAttribute("filterType",  type    != null ? type    : "");
             request.setAttribute("activeView",  status);
+            request.setAttribute("sortBy",      sortBy  != null ? sortBy  : "");
+            request.setAttribute("sortDir",     sortDir != null ? sortDir : "DESC");
             request.getRequestDispatcher(jspPath).forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -565,8 +573,8 @@ public class PromotionServlet extends HttpServlet {
     // ========== BUSINESS LOGIC (merged from PromotionService) ==========
 
     private List<Promotion> findPromotions(String keyword, String type, String status,
-            int page, int pageSize) throws SQLException {
-        return promotionDAO.search(keyword, normalizeType(type), status, page, pageSize);
+            int page, int pageSize, String sortBy, String sortDir) throws SQLException {
+        return promotionDAO.search(keyword, normalizeType(type), status, page, pageSize, sortBy, sortDir);
     }
 
     private int countPromotions(String keyword, String type, String status) throws SQLException {

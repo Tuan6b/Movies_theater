@@ -294,15 +294,32 @@ public class PromotionDAO {
      * @return list of matching promotions
      * @throws SQLException on database error
      */
+    private static final java.util.Map<String, String> SORT_COL_MAP;
+    static {
+        SORT_COL_MAP = new java.util.LinkedHashMap<>();
+        SORT_COL_MAP.put("code",      "PromotionCode");
+        SORT_COL_MAP.put("type",      "DiscountType");
+        SORT_COL_MAP.put("value",     "DiscountValue");
+        SORT_COL_MAP.put("startDate", "StartDate");
+        SORT_COL_MAP.put("endDate",   "EndDate");
+        SORT_COL_MAP.put("uses",      "UsedCount");
+    }
+
+    private String resolveOrderCol(String sortBy) {
+        if (sortBy == null) return "PromotionID";
+        String col = SORT_COL_MAP.get(sortBy);
+        return col != null ? col : "PromotionID";
+    }
+
     public List<Promotion> search(String keyword, String type, String status,
-            int page, int pageSize) throws SQLException {
+            int page, int pageSize, String sortBy, String sortDir) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT * FROM Promotion WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         appendFilters(sql, params, keyword, type, status);
 
-        // Sort descending by ID to show newest first
-        sql.append(" ORDER BY PromotionID DESC");
+        String dir = "DESC".equalsIgnoreCase(sortDir) ? "DESC" : "ASC";
+        sql.append(" ORDER BY ").append(resolveOrderCol(sortBy)).append(" ").append(dir);
 
         // Pagination with offset and limit
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
