@@ -1,0 +1,7 @@
+# NetBeans build output
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

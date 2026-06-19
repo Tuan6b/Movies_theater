@@ -1,204 +1,214 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<% request.setAttribute("activeNav", "promotions"); %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${pageTitle}</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <title>${pageTitle} — CGV Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
-<body class="bg-light">
+<body class="cgv-body">
 
-<div class="container py-4" style="max-width: 760px;">
+<%@ include file="../_sidebar.jsp" %>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">${pageTitle}</h2>
-        <a href="${pageContext.request.contextPath}/manager/promotions"
-           class="btn btn-outline-secondary">&#8592; Quay lại danh sách</a>
-    </div>
+<div class="cgv-main">
 
-    <c:if test="${not empty errorMsg}">
-        <div class="alert alert-danger">${errorMsg}</div>
-    </c:if>
+    <header class="cgv-header">
+        <h1 class="cgv-header-title">${pageTitle}</h1>
+        <div class="cgv-header-right">
+            <div class="cgv-header-actions">
+                <a href="${pageContext.request.contextPath}/manager/promotions"
+                   class="btn--cgv-outline" style="margin-right:8px;">
+                    ← Back to Promotions
+                </a>
+                <div class="cgv-header-divider"></div>
+                <div class="cgv-user-wrap">
+                    <div class="cgv-avatar">MG</div>
+                    <span class="cgv-user-name">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
+                            <c:otherwise>Manager</c:otherwise>
+                        </c:choose>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="post"
-                  action="${pageContext.request.contextPath}/manager/promotions"
-                  novalidate>
+    <div class="cgv-page">
+        <div class="cgv-list-wrap" style="max-width:680px;">
 
-                <input type="hidden" name="action" value="${formAction}">
-                <c:if test="${formAction eq 'update'}">
-                    <input type="hidden" name="promotionId" value="${promotionId}">
-                </c:if>
+            <c:if test="${not empty errorMsg}">
+                <div class="cgv-alert cgv-alert-danger">${errorMsg}</div>
+            </c:if>
 
-                <!-- Promotion Code -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Mã khuyến mãi <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" name="promotionCode"
-                           value="${promotion.promotionCode}"
-                           class="form-control <c:if test="${not empty errors['promotionCode']}">is-invalid</c:if>"
-                           placeholder="VD: SUMMER2025"
-                           style="text-transform: uppercase;"
-                           <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">readonly</c:if>>
-                    <c:if test="${not empty errors['promotionCode']}">
-                        <div class="invalid-feedback">${errors['promotionCode']}</div>
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
+                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+                    PROMOTION DETAILS
+                </div>
+
+                <form method="post" action="${pageContext.request.contextPath}/manager/promotions">
+                    <input type="hidden" name="action" value="${formAction}">
+                    <c:if test="${formAction eq 'update'}">
+                        <input type="hidden" name="promotionId" value="${promotionId}">
+                        <input type="hidden" name="usedCount"   value="${promotion.usedCount}">
                     </c:if>
-                    <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">
-                        <div class="form-text text-warning">
-                            Mã đã được sử dụng, không thể thay đổi.
+
+                    <%-- Promotion Code --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Mã khuyến mãi</label>
+                        <c:choose>
+                            <c:when test="${formAction eq 'create'}">
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:13px;color:rgba(94,63,58,0.55);letter-spacing:1px;">
+                                    Tự động tạo khi lưu (VD: KM202606001)
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">
+                                    Mã được tạo tự động theo định dạng KM + tháng/năm + số thứ tự.
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px;">
+                                    ${promotion.promotionCode}
+                                </div>
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Mã khuyến mãi không thể thay đổi sau khi tạo.</div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <%-- Description --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Mô tả</label>
+                        <textarea class="cgv-input" name="description" rows="2"
+                                  placeholder="Mô tả ngắn về chương trình khuyến mãi..."
+                                  style="height:auto;resize:vertical;">${promotion.description}</textarea>
+                    </div>
+
+                    <%-- Discount Type --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">
+                            Loại giảm giá <span style="color:var(--cgv-red)">*</span>
+                        </label>
+                        <select class="cgv-select" name="discountType"
+                                onchange="toggleMaxDiscount(this.value)"
+                                ${formAction eq 'update' and promotion.usedCount > 0 ? 'disabled' : ''}>
+                            <option value="">-- Chọn loại --</option>
+                            <option value="Percentage" ${promotion.discountType eq 'Percentage' ? 'selected' : ''}>Phần trăm (%)</option>
+                            <option value="FlatAmount"  ${promotion.discountType eq 'FlatAmount'  ? 'selected' : ''}>Số tiền cố định (VND)</option>
+                        </select>
+                        <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">
+                            <input type="hidden" name="discountType" value="${promotion.discountType}">
+                        </c:if>
+                        <c:if test="${not empty errors['discountType']}">
+                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['discountType']}</div>
+                        </c:if>
+                    </div>
+
+                    <%-- Discount Value --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">
+                            Giá trị giảm <span style="color:var(--cgv-red)">*</span>
+                        </label>
+                        <input class="cgv-input" type="number" name="discountValue"
+                               step="0.01" min="0.01"
+                               value="${promotion.discountValue}"
+                               placeholder="Nhập giá trị..."
+                               ${formAction eq 'update' and promotion.usedCount > 0 ? 'readonly' : ''}>
+                        <c:if test="${not empty errors['discountValue']}">
+                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['discountValue']}</div>
+                        </c:if>
+                    </div>
+
+                    <%-- Max Discount (Percentage only) --%>
+                    <div class="cgv-field" id="maxDiscountRow"
+                         style="${promotion.discountType ne 'Percentage' ? 'display:none' : ''}">
+                        <label class="cgv-label">Giảm tối đa (VND)</label>
+                        <input class="cgv-input" type="number" name="maxDiscountAmount"
+                               step="0.01" min="0"
+                               value="${promotion.maxDiscountAmount}"
+                               placeholder="Để trống nếu không giới hạn">
+                        <div style="font-size:12px;color:rgba(94,63,58,0.55);margin-top:4px;">Chỉ áp dụng cho giảm giá theo phần trăm.</div>
+                    </div>
+
+                    <%-- Min Order Amount --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Giá trị đơn hàng tối thiểu (VND)</label>
+                        <input class="cgv-input" type="number" name="minOrderAmount"
+                               step="0.01" min="0"
+                               value="${promotion.minOrderAmount}"
+                               placeholder="0">
+                        <c:if test="${not empty errors['minOrderAmount']}">
+                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['minOrderAmount']}</div>
+                        </c:if>
+                    </div>
+
+                    <%-- Start / End Date row --%>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="cgv-field">
+                            <label class="cgv-label">
+                                Ngày bắt đầu <span style="color:var(--cgv-red)">*</span>
+                            </label>
+                            <input class="cgv-input" type="datetime-local" name="startDate" value="${startDateStr}">
+                            <c:if test="${not empty errors['startDate']}">
+                                <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['startDate']}</div>
+                            </c:if>
+                            <c:if test="${formAction eq 'create'}">
+                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Phải là thời điểm trong tương lai.</div>
+                            </c:if>
+                        </div>
+                        <div class="cgv-field">
+                            <label class="cgv-label">
+                                Ngày kết thúc <span style="color:var(--cgv-red)">*</span>
+                            </label>
+                            <input class="cgv-input" type="datetime-local" name="endDate" value="${endDateStr}">
+                            <c:if test="${not empty errors['endDate']}">
+                                <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['endDate']}</div>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <%-- Usage Limit --%>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Giới hạn sử dụng</label>
+                        <input class="cgv-input" type="number" name="usageLimit"
+                               min="1"
+                               value="${promotion.usageLimit}"
+                               placeholder="Để trống = không giới hạn">
+                        <c:if test="${not empty errors['usageLimit']}">
+                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['usageLimit']}</div>
+                        </c:if>
+                    </div>
+
+                    <%-- Active toggle (edit only — new promotions are always upcoming) --%>
+                    <c:if test="${formAction eq 'update'}">
+                        <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
+                            <input type="checkbox" name="isActive" id="isActive"
+                                   ${promotion.active ? 'checked' : ''}
+                                   style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
+                            <label class="cgv-label" for="isActive" style="margin-bottom:0;cursor:pointer;">
+                                Kích hoạt
+                            </label>
                         </div>
                     </c:if>
-                </div>
 
-                <!-- Description -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Mô tả</label>
-                    <textarea name="description" rows="2"
-                              class="form-control"
-                              placeholder="Mô tả ngắn về chương trình khuyến mãi...">${promotion.description}</textarea>
-                </div>
-
-                <!-- Discount Type -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Loại giảm giá <span class="text-danger">*</span>
-                    </label>
-                    <select name="discountType" id="discountType"
-                            class="form-select <c:if test="${not empty errors['discountType']}">is-invalid</c:if>"
-                            <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">disabled</c:if>
-                            onchange="toggleMaxDiscount(this.value)">
-                        <option value="">-- Chọn loại --</option>
-                        <option value="Percentage"
-                            <c:if test="${promotion.discountType eq 'Percentage'}">selected</c:if>>
-                            Phần trăm (%)
-                        </option>
-                        <option value="FlatAmount"
-                            <c:if test="${promotion.discountType eq 'FlatAmount'}">selected</c:if>>
-                            Số tiền cố định (VND)
-                        </option>
-                    </select>
-                    <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">
-                        <input type="hidden" name="discountType"
-                               value="${promotion.discountType}">
-                    </c:if>
-                    <c:if test="${not empty errors['discountType']}">
-                        <div class="invalid-feedback">${errors['discountType']}</div>
-                    </c:if>
-                </div>
-
-                <!-- Discount Value -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">
-                        Giá trị giảm <span class="text-danger">*</span>
-                    </label>
-                    <input type="number" name="discountValue" step="0.01" min="0.01"
-                           value="${promotion.discountValue}"
-                           class="form-control <c:if test="${not empty errors['discountValue']}">is-invalid</c:if>"
-                           placeholder="Nhập giá trị..."
-                           <c:if test="${formAction eq 'update' and promotion.usedCount > 0}">readonly</c:if>>
-                    <c:if test="${not empty errors['discountValue']}">
-                        <div class="invalid-feedback">${errors['discountValue']}</div>
-                    </c:if>
-                </div>
-
-                <!-- Max Discount Amount (Percentage only) -->
-                <div class="mb-3" id="maxDiscountRow"
-                     style="${promotion.discountType ne 'Percentage' ? 'display:none' : ''}">
-                    <label class="form-label fw-semibold">Giảm tối đa (VND)</label>
-                    <input type="number" name="maxDiscountAmount" step="0.01" min="0"
-                           value="${promotion.maxDiscountAmount}"
-                           class="form-control"
-                           placeholder="Để trống nếu không giới hạn">
-                    <div class="form-text">Áp dụng cho giảm giá theo phần trăm.</div>
-                </div>
-
-                <!-- Min Order Amount -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Giá trị đơn hàng tối thiểu (VND)</label>
-                    <input type="number" name="minOrderAmount" step="0.01" min="0"
-                           value="${promotion.minOrderAmount}"
-                           class="form-control <c:if test="${not empty errors['minOrderAmount']}">is-invalid</c:if>"
-                           placeholder="0">
-                    <c:if test="${not empty errors['minOrderAmount']}">
-                        <div class="invalid-feedback">${errors['minOrderAmount']}</div>
-                    </c:if>
-                </div>
-
-                <!-- Start Date / End Date -->
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">
-                            Ngày bắt đầu <span class="text-danger">*</span>
-                        </label>
-                        <input type="datetime-local" name="startDate"
-                               value="${startDateStr}"
-                               class="form-control <c:if test="${not empty errors['startDate']}">is-invalid</c:if>">
-                        <c:if test="${not empty errors['startDate']}">
-                            <div class="invalid-feedback">${errors['startDate']}</div>
-                        </c:if>
+                    <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
+                        <button type="submit" class="btn--cgv">Lưu khuyến mãi</button>
+                        <a href="${pageContext.request.contextPath}/manager/promotions"
+                           class="btn--cgv-outline">Hủy</a>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">
-                            Ngày kết thúc <span class="text-danger">*</span>
-                        </label>
-                        <input type="datetime-local" name="endDate"
-                               value="${endDateStr}"
-                               class="form-control <c:if test="${not empty errors['endDate']}">is-invalid</c:if>">
-                        <c:if test="${not empty errors['endDate']}">
-                            <div class="invalid-feedback">${errors['endDate']}</div>
-                        </c:if>
-                    </div>
-                </div>
 
-                <!-- Usage Limit -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Giới hạn sử dụng</label>
-                    <input type="number" name="usageLimit" min="1"
-                           value="${promotion.usageLimit}"
-                           class="form-control <c:if test="${not empty errors['usageLimit']}">is-invalid</c:if>"
-                           placeholder="Để trống = không giới hạn">
-                    <c:if test="${not empty errors['usageLimit']}">
-                        <div class="invalid-feedback">${errors['usageLimit']}</div>
-                    </c:if>
-                </div>
+                </form>
+            </div>
 
-                <!-- Is Active -->
-                <div class="mb-4">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox"
-                               name="isActive" id="isActive" role="switch"
-                               <c:if test="${promotion.isActive or empty promotion}">checked</c:if>>
-                        <label class="form-check-label" for="isActive">
-                            Kích hoạt ngay
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Buttons -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4">Lưu</button>
-                    <a href="${pageContext.request.contextPath}/manager/promotions"
-                       class="btn btn-outline-secondary px-4">Hủy</a>
-                </div>
-
-            </form>
         </div>
     </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function toggleMaxDiscount(type) {
         var row = document.getElementById('maxDiscountRow');
-        if (row) {
-            row.style.display = (type === 'Percentage') ? '' : 'none';
-        }
+        if (row) row.style.display = (type === 'Percentage') ? '' : 'none';
     }
 </script>
 </body>

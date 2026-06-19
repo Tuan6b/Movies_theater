@@ -1,10 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
+import com.cinema.dao.SeatDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,12 +12,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
- *
- * @author Tuan Phong Nguyen
+ * RoomServlet is the Controller in MVC architecture. It handles all HTTP
+ * requests related to Room management: list, add, update, delete, and edit
+ * operations.
  */
 public class RoomServlet extends HttpServlet {
 
+    // DAO layer used to interact with database
     private final RoomDAO roomDAO = new RoomDAO();
+
+    // DAO used for seat operations
+    private final SeatDAO seatDAO = new SeatDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -38,10 +40,12 @@ public class RoomServlet extends HttpServlet {
 
             String action = request.getParameter("action");
 
+            // Default action is list if no action provided
             if (action == null) {
                 action = "list";
             }
 
+            // Route request to appropriate handler method
             switch (action) {
 
                 case "add":
@@ -49,6 +53,10 @@ public class RoomServlet extends HttpServlet {
                     break;
 
                 case "edit":
+                    showEditForm(request, response);
+                    break;
+
+                case "update":
                     updateRoom(request, response);
                     break;
 
@@ -63,42 +71,97 @@ public class RoomServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Display list of all rooms Data is retrieved from DAO and forwarded to JSP
+     * view Display paginated list of rooms
+     */
     private void listRooms(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        List<Room> roomList = roomDAO.getAllRooms();
+        int page = 1;
+        int recordsPerPage = 5;
+
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+
+        String filter = request.getParameter("filter");
+        if (filter == null) filter = "active";
+
+        Boolean isActive = null;
+        if ("active".equals(filter)) isActive = true;
+        else if ("inactive".equals(filter)) isActive = false;
+
+        int offset = (page - 1) * recordsPerPage;
+
+        List<Room> roomList = roomDAO.getRoomsByPage(offset, recordsPerPage, isActive);
+        int totalRecords = roomDAO.getTotalRoomsCount(isActive);
+        int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
 
         request.setAttribute("roomList", roomList);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentFilter", filter);
 
-        request.getRequestDispatcher("room-list.jsp")
-                .forward(request, response);
+        request.getRequestDispatcher("room-list.jsp").forward(request, response);
     }
 
+    /**
+     * Handle adding a new room Includes basic validation for capacity (> 0)
+     */
     private void addRoom(HttpServletRequest request,
             HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
 
         String roomNumber = request.getParameter("roomNumber");
         String roomType = request.getParameter("roomType");
 
-        int capacity = Integer.parseInt(
-                request.getParameter("capacity"));
+        int numberOfRows = Integer.parseInt(
+                request.getParameter("numberOfRows"));
+
+        int seatsPerRow = Integer.parseInt(
+                request.getParameter("seatsPerRow"));
+
+        int capacity = numberOfRows * seatsPerRow;
+
+        String currentPage = request.getParameter("page");
+        if (currentPage == null || currentPage.isEmpty()) {
+            currentPage = "1";
+        }
+
+        if (roomDAO.isRoomNumberExists(roomNumber)) {
+            response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
+            return;
+        }
 
         Room room = new Room();
-
         room.setRoomNumber(roomNumber);
         room.setRoomType(roomType);
         room.setCapacity(capacity);
+        room.setNumberOfRows(numberOfRows);
+        room.setSeatsPerRow(seatsPerRow);
 
-        roomDAO.addRoom(room);
+        int roomId = roomDAO.addRoomAndGetId(room);
 
-        response.sendRedirect("RoomServlet");
+        if (roomId > 0) {
+            seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
+        }
+
+        response.sendRedirect("RoomServlet?page=" + currentPage);
     }
 
+    /**
+     * Handle updating existing room information
+     */
     private void updateRoom(HttpServletRequest request,
             HttpServletResponse response)
-            throws IOException {
+            throws ServletException, IOException {
 
         int roomId = Integer.parseInt(
                 request.getParameter("roomId"));
@@ -106,35 +169,114 @@ public class RoomServlet extends HttpServlet {
         String roomNumber = request.getParameter("roomNumber");
         String roomType = request.getParameter("roomType");
 
-        int capacity = Integer.parseInt(
-                request.getParameter("capacity"));
+        int numberOfRows = Integer.parseInt(
+                request.getParameter("numberOfRows"));
+        int seatsPerRow = Integer.parseInt(
+                request.getParameter("seatsPerRow"));
 
-        boolean active = request.getParameter("active")
-                != null;
+        int capacity = numberOfRows * seatsPerRow;
+
+        String currentPage = request.getParameter("page");
+        if (currentPage == null || currentPage.isEmpty()) {
+            currentPage = "1";
+        }
+        String currentFilter = request.getParameter("filter");
+        if (currentFilter == null || currentFilter.isEmpty()) {
+            currentFilter = "active";
+        }
+
+        if (roomDAO.isRoomNumberExists(roomNumber, roomId)) {
+            response.sendRedirect(
+                    "RoomServlet?action=edit&id="
+                    + roomId
+                    + "&error=room_number_exists&page="
+                    + currentPage + "&filter=" + currentFilter);
+            return;
+        }
+
+        Room oldRoom = roomDAO.getRoomById(roomId);
+
+        boolean active = request.getParameter("active") != null;
 
         Room room = new Room();
-
         room.setRoomId(roomId);
         room.setRoomNumber(roomNumber);
         room.setRoomType(roomType);
         room.setCapacity(capacity);
+        room.setNumberOfRows(numberOfRows);
+        room.setSeatsPerRow(seatsPerRow);
         room.setActive(active);
 
         roomDAO.updateRoom(room);
 
-        response.sendRedirect("room");
+        if (oldRoom != null
+                && (oldRoom.getNumberOfRows() != numberOfRows
+                    || oldRoom.getSeatsPerRow() != seatsPerRow)) {
+            if (seatDAO.deleteSeatsByRoom(roomId)) {
+                seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
+            } else {
+                response.sendRedirect("RoomServlet?action=edit&id="
+                        + roomId + "&error=cannot_change_layout&page="
+                        + currentPage + "&filter=" + currentFilter);
+                return;
+            }
+        }
+
+        response.sendRedirect("RoomServlet?page=" + currentPage
+                + "&filter=" + currentFilter);
     }
 
+    /**
+     * Soft delete room (set IsActive = 0 instead of deleting record)
+     */
     private void deleteRoom(HttpServletRequest request,
             HttpServletResponse response)
             throws IOException {
 
+        // Get room ID from request
         int roomId = Integer.parseInt(
                 request.getParameter("id"));
 
+        // Deactivate room in database
         roomDAO.deleteRoom(roomId);
 
-        response.sendRedirect("RoomServlet");
+        String currentPage = request.getParameter("page");
+        if (currentPage == null || currentPage.isEmpty()) {
+            currentPage = "1";
+        }
+        String currentFilter = request.getParameter("filter");
+        if (currentFilter == null || currentFilter.isEmpty()) {
+            currentFilter = "active";
+        }
+
+        response.sendRedirect("RoomServlet?page=" + currentPage
+                + "&filter=" + currentFilter);
+    }
+
+    /**
+     * Show edit form for a specific room Loads room data and forwards it to
+     * edit JSP
+     */
+    private void showEditForm(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Get room ID from request
+        int roomId = Integer.parseInt(
+                request.getParameter("id"));
+
+        // Retrieve room from database
+        Room room = roomDAO.getRoomById(roomId);
+
+        String currentPage = request.getParameter("page");
+        request.setAttribute("currentPage", currentPage);
+
+        // Send room data to JSP
+        request.setAttribute("room", room);
+
+        // Forward to edit page
+        request.getRequestDispatcher("room-edit.jsp")
+                .forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
