@@ -136,6 +136,81 @@
             </div>
         </div>
 
+            <!-- ================= RATING & REVIEW SECTION ================= -->
+    <div class="site-inner" style="margin-top: 40px; border-top: 1px solid #333; padding-top: 30px;">
+        <h2 style="color: var(--cgv-red); font-size: 24px; margin-bottom: 20px;">Đánh Giá Từ Khách Hàng</h2>
+        
+        <c:if test="${totalReviews > 0}">
+            <!-- UC21: Thống Kê Rating -->
+            <div style="display: flex; gap: 40px; margin-bottom: 40px; background: #111; padding: 20px; border-radius: 8px;">
+                <div style="text-align: center; min-width: 150px;">
+                    <div style="font-size: 48px; font-weight: bold; color: #ffb400;">${avgRating}</div>
+                    <div style="color: #ffb400; font-size: 20px; letter-spacing: 2px;">
+                        <c:forEach begin="1" end="5" var="i">
+                            <c:choose>
+                                <c:when test="${i <= avgRating}"><i class="fa-solid fa-star"></i></c:when>
+                                <c:when test="${i - 0.5 <= avgRating}"><i class="fa-solid fa-star-half-stroke"></i></c:when>
+                                <c:otherwise><i class="fa-regular fa-star"></i></c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+                    </div>
+                    <div style="color: #888; font-size: 14px; margin-top: 5px;">${totalReviews} đánh giá</div>
+                </div>
+                
+                <div style="flex-grow: 1; display: flex; flex-direction: column-reverse; justify-content: center; gap: 8px;">
+                    <c:forEach begin="1" end="5" var="i">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc;">
+                            <span>${i} <i class="fa-solid fa-star" style="color: #ffb400; font-size: 10px;"></i></span>
+                            <div style="flex-grow: 1; background: #333; height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: #ffb400; height: 100%; width: ${(starCounts[i] / totalReviews) * 100}%;"></div>
+                            </div>
+                            <span style="min-width: 30px; text-align: right;">${starCounts[i]}</span>
+                        </div>
+                    </c:forEach>
+                </div>
+            </div>
+
+            <!-- UC18: Danh Sách Review -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <c:forEach var="r" items="${reviews}">
+                    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; display: flex; gap: 15px;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #333; overflow: hidden; flex-shrink: 0;">
+                            <c:if test="${not empty r.avatarUrl}">
+                                <img src="${r.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </c:if>
+                            <c:if test="${empty r.avatarUrl}">
+                                <i class="fa-solid fa-user" style="color: #666; font-size: 24px; margin: 13px;"></i>
+                            </c:if>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <strong style="color: #fff; font-size: 16px;">${not empty r.reviewerName ? r.reviewerName : 'Khách Hàng'}</strong>
+                                <div style="color: #ffb400; font-size: 12px;">
+                                    <c:forEach begin="1" end="5" var="i">
+                                        <i class="fa-${i <= r.ratingValue ? 'solid' : 'regular'} fa-star"></i>
+                                    </c:forEach>
+                                </div>
+                            </div>
+                            <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
+                                <fmt:formatDate value="${r.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                            </div>
+                            <div style="color: #ccc; line-height: 1.5; font-size: 15px;">
+                                ${r.comment}
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </c:if>
+
+        <c:if test="${totalReviews == 0}">
+            <div style="text-align: center; padding: 40px; background: #111; border-radius: 8px; color: #888;">
+                <i class="fa-regular fa-comment-dots" style="font-size: 40px; margin-bottom: 15px;"></i>
+                <p>Chưa có đánh giá nào cho phim này.</p>
+            </div>
+        </c:if>
+    </div>
+    <!-- ================= END RATING & REVIEW ================= -->
     </div>
 </body>
 </html>
