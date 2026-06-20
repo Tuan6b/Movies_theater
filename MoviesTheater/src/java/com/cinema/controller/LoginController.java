@@ -97,8 +97,6 @@ public class LoginController extends HttpServlet {
             } else {
                 switch (account.getRoleId()) {
                     case 5: // Admin
-                        response.sendRedirect(request.getContextPath() + "/");
-                        break;
                     case 4: // Manager
                     case 3: // Employee
                         response.sendRedirect(request.getContextPath() + "/manager");

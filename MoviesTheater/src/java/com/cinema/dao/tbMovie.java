@@ -106,14 +106,16 @@ public class tbMovie {
                 sql = "SELECT * FROM Movie WHERE IsActive = 0 ORDER BY MovieID DESC";
                 break;
             case "showing":
-                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
-                        + "AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
-                        + "OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())) "
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
+                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
+                        + "AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
+                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
             case "ended":
-                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
                         + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
+                        + "AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
                         + "AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
@@ -122,7 +124,10 @@ public class tbMovie {
                 break;
             case "upcoming":
             default:
-                sql = "SELECT * FROM Movie WHERE IsActive = 1 AND ReleaseDate > CAST(GETDATE() AS DATE) ORDER BY MovieID DESC";
+                sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
+                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
+                        + "AND m.ReleaseDate > CAST(GETDATE() AS DATE) "
+                        + "ORDER BY m.MovieID DESC";
                 break;
         }
 
@@ -191,7 +196,7 @@ public class tbMovie {
         return false;
     }
 
-    public int getTotalPublicMovies(String status, String genreId) {
+    public int getTotalPublicMovies(String status, String genreId, String searchKeyword) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Movie m ");
 
         if (genreId != null && !genreId.trim().isEmpty()) {
@@ -210,6 +215,10 @@ public class tbMovie {
             // end update code
         }
 
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND m.MovieName LIKE ? ");
+        }
+
         if (genreId != null && !genreId.trim().isEmpty()) {
             sql.append(" AND mg.GenreID = ?");
         }
@@ -217,7 +226,13 @@ public class tbMovie {
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             if (genreId != null && !genreId.trim().isEmpty()) {
-                ps.setInt(1, Integer.parseInt(genreId));
+                int paramIndex = 1;
+                if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+                    ps.setString(paramIndex++, "%" + searchKeyword.trim() + "%");
+                }
+                if (genreId != null && !genreId.trim().isEmpty()) {
+                    ps.setInt(paramIndex, Integer.parseInt(genreId));
+                }
             }
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -231,7 +246,7 @@ public class tbMovie {
         return 0;
     }
 
-    public List<clsMovie> getPublicMoviesByPage(String status, int offset, int limit, String genreId) {
+    public List<clsMovie> getPublicMoviesByPage(String status, int offset, int limit, String genreId, String searchKeyword) {
         List<clsMovie> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT m.* FROM Movie m ");
 
@@ -251,6 +266,10 @@ public class tbMovie {
             // end update code
         }
 
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND m.MovieName LIKE ? ");
+        }
+
         if (genreId != null && !genreId.trim().isEmpty()) {
             sql.append(" AND mg.GenreID = ? ");
         }
@@ -266,13 +285,12 @@ public class tbMovie {
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int paramIndex = 1;
-
-            // Tham số 1: GenreID (nếu có)
+            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+                ps.setString(paramIndex++, "%" + searchKeyword.trim() + "%");
+            }
             if (genreId != null && !genreId.trim().isEmpty()) {
                 ps.setInt(paramIndex++, Integer.parseInt(genreId));
             }
-
-            // Tham số 2 & 3: Phân trang
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex, limit);
 
