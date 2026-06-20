@@ -6,11 +6,9 @@
     <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
-        <a href="${pageContext.request.contextPath}/">
-            <img class="cgv-logo"
-                 src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
-                 alt="CGV Cinema">
-        </a>
+        <img class="cgv-logo"
+             src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
+             alt="CGV Cinema">
     </div>
 
     <nav class="cgv-nav">
@@ -53,6 +51,7 @@
         </a>
 
         <a href="${pageContext.request.contextPath}/manager/schedules"
+        <a href="${pageContext.request.contextPath}/ScheduleController"
            class="cgv-nav-link ${activeNav eq 'schedules' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

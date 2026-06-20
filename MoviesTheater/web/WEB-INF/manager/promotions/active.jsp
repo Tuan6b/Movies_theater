@@ -67,18 +67,22 @@
                     </form>
                 </div>
 
+                <c:set var="vw"  value="active"/>
+                <c:set var="kw"  value="${keyword}"/>
+                <c:set var="ft"  value="${filterType}"/>
+                <c:set var="sd"  value="${sortDir}"/>
                 <table class="cgv-dt">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Code</th>
+                            <th><a class="sort-link ${sortBy eq 'code' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=code&dir=${sortBy eq 'code' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">Code <c:if test="${sortBy eq 'code'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
                             <th>Description</th>
-                            <th>Type</th>
-                            <th>Value</th>
-                            <th>Giá trị đơn tối thiểu (VND)</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Uses / Limit</th>
+                            <th><a class="sort-link ${sortBy eq 'type' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=type&dir=${sortBy eq 'type' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">Type <c:if test="${sortBy eq 'type'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
+                            <th><a class="sort-link ${sortBy eq 'value' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=value&dir=${sortBy eq 'value' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">Value <c:if test="${sortBy eq 'value'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
+                            <th>Min Order</th>
+                            <th><a class="sort-link ${sortBy eq 'startDate' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=startDate&dir=${sortBy eq 'startDate' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">Start Date <c:if test="${sortBy eq 'startDate'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
+                            <th><a class="sort-link ${sortBy eq 'endDate' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=endDate&dir=${sortBy eq 'endDate' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">End Date <c:if test="${sortBy eq 'endDate'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
+                            <th><a class="sort-link ${sortBy eq 'uses' ? 'sort-active' : ''}" href="?view=${vw}&keyword=${kw}&type=${ft}&sort=uses&dir=${sortBy eq 'uses' ? (sd eq 'ASC' ? 'DESC' : 'ASC') : 'ASC'}">Uses / Limit <c:if test="${sortBy eq 'uses'}">${sd eq 'ASC' ? '↑' : '↓'}</c:if></a></th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -147,7 +151,7 @@
                     <div class="cgv-pager-pages">
                         <c:forEach begin="1" end="${not empty totalPages ? totalPages : 1}" var="pg">
                             <button class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
-                                    onclick="location.href='?view=active&page=${pg}&keyword=${keyword}&type=${filterType}'">${pg}</button>
+                                    onclick="location.href='?view=active&page=${pg}&keyword=${keyword}&type=${filterType}&sort=${sortBy}&dir=${sortDir}'">${pg}</button>
                         </c:forEach>
                     </div>
                 </div>

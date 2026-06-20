@@ -44,9 +44,7 @@ public class EmployeeServlet extends HttpServlet {
 
         String method = request.getMethod();
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
+        if (action == null) action = "";
 
         if ("GET".equalsIgnoreCase(method)) {
             switch (action) {
@@ -81,11 +79,11 @@ public class EmployeeServlet extends HttpServlet {
 
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String keyword = request.getParameter("keyword");
+        String keyword  = request.getParameter("keyword");
+        String sortField = request.getParameter("sort");
+        String sortDir   = request.getParameter("dir");
         int page = parseIntParam(request.getParameter("page"), 1);
-        if (page < 1) {
-            page = 1;
-        }
+        if (page < 1) page = 1;
 
         HttpSession session = request.getSession(false);
         if (session != null) {
@@ -93,15 +91,17 @@ public class EmployeeServlet extends HttpServlet {
             transferFlash(session, request, "flashError");
         }
 
-        List<Account> employees = employeeDAO.getAll(keyword, page, PAGE_SIZE);
-        int totalItems = employeeDAO.countAll(keyword);
-        int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
+        List<Account> employees = employeeDAO.getAll(keyword, page, PAGE_SIZE, sortField, sortDir);
+        int totalItems  = employeeDAO.countAll(keyword);
+        int totalPages  = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
 
         request.setAttribute("employees", employees);
         request.setAttribute("totalItems", totalItems);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentPage", page);
-        request.setAttribute("keyword", keyword != null ? keyword : "");
+        request.setAttribute("keyword",   keyword   != null ? keyword   : "");
+        request.setAttribute("sortField", sortField != null ? sortField : "");
+        request.setAttribute("sortDir",   sortDir   != null ? sortDir   : "");
         request.getRequestDispatcher(LIST_JSP).forward(request, response);
     }
 
@@ -216,10 +216,6 @@ public class EmployeeServlet extends HttpServlet {
         Map<String, String> errors = new LinkedHashMap<>();
         validateEmail(account.getEmail(), id, errors);
         validateFullName(account.getFullName(), errors);
-        if (account.getPassword() != null && !account.getPassword().trim().isEmpty()
-                && account.getPassword().trim().length() < 6) {
-            errors.put("password", "Password must be at least 6 characters");
-        }
         return errors;
     }
 
@@ -248,6 +244,8 @@ public class EmployeeServlet extends HttpServlet {
         account.setEmail(request.getParameter("email"));
         account.setFullName(request.getParameter("fullName"));
         account.setPhoneNumber(request.getParameter("phoneNumber"));
+        account.setAddress(request.getParameter("address"));
+        account.setDateOfBirth(request.getParameter("dateOfBirth"));
         String pwd = request.getParameter("password");
         account.setPassword(pwd != null ? pwd.trim() : null);
         return account;
@@ -262,9 +260,7 @@ public class EmployeeServlet extends HttpServlet {
     }
 
     private int parseIntParam(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
+        if (value == null || value.trim().isEmpty()) return defaultValue;
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {

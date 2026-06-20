@@ -165,4 +165,53 @@ public class tbSchedule {
         }
         return null;
     }
+
+    /**
+     * Retrieve all schedules filtered by date, movie and room.
+     */
+    public List<clsSchedule> getSchedules(String date, Integer movieId, Integer roomId) {
+        List<clsSchedule> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                     SELECT s.*, 
+                            r.RoomNumber, r.RoomType, r.Capacity, r.IsActive AS RoomActive,
+                            m.MovieName, m.Duration, m.Poster
+                     FROM Schedule s
+                     INNER JOIN Room r ON s.RoomID = r.RoomID
+                     INNER JOIN Movie m ON s.MovieID = m.MovieID
+                     WHERE 1=1
+                     """);
+        List<Object> params = new ArrayList<>();
+
+        if (date != null && !date.trim().isEmpty()) {
+            sql.append(" AND CAST(s.StartTime AS DATE) = ?");
+            params.add(date);
+        }
+        if (movieId != null && movieId > 0) {
+            sql.append(" AND s.MovieID = ?");
+            params.add(movieId);
+        }
+        if (roomId != null && roomId > 0) {
+            sql.append(" AND s.RoomID = ?");
+            params.add(roomId);
+        }
+
+        sql.append(" ORDER BY s.StartTime ASC");
+
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
 }

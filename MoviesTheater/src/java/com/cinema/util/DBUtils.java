@@ -22,7 +22,7 @@ public class DBUtils {
     static final String PORT = "1433";
     private static final String DATABASE = "CinemaBookingDB";
     static final String USER = "sa";
-    static final String PASSWORD = "123456";
+    static final String PASSWORD = "123";
 
     private static final String CONNECTION_URL = "jdbc:sqlserver://"
             + SERVER + ":" + PORT
