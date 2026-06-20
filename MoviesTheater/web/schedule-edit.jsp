@@ -76,6 +76,12 @@
                     </div>
 
                     <div class="cgv-field">
+                        <label class="cgv-label">Base Ticket Price</label>
+                        <input class="cgv-input" type="number" name="baseTicketPrice"
+                               step="0.01" min="0" value="${schedule.baseTicketPrice}" required>
+                    </div>
+
+                    <div class="cgv-field">
                         <label class="cgv-label">Show Date</label>
                         <input class="cgv-input" type="date" name="showDate"
                                value="${schedule.showDate}" required>

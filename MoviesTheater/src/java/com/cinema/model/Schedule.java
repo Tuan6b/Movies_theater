@@ -13,6 +13,7 @@ public class Schedule {
     private int scheduleID;
     private int movieID;
     private int roomID;
+    private double baseTicketPrice;
     private String showDate;
     private String startTime;
     private String endTime;
@@ -28,6 +29,20 @@ public class Schedule {
         this.scheduleID = scheduleID;
         this.movieID = movieID;
         this.roomID = roomID;
+        this.showDate = showDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+    }
+
+    public Schedule(int scheduleID, int movieID, int roomID,
+            double baseTicketPrice, String showDate, String startTime,
+            String endTime, String status) {
+
+        this.scheduleID = scheduleID;
+        this.movieID = movieID;
+        this.roomID = roomID;
+        this.baseTicketPrice = baseTicketPrice;
         this.showDate = showDate;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -56,6 +71,14 @@ public class Schedule {
 
     public void setRoomID(int roomID) {
         this.roomID = roomID;
+    }
+
+    public double getBaseTicketPrice() {
+        return baseTicketPrice;
+    }
+
+    public void setBaseTicketPrice(double baseTicketPrice) {
+        this.baseTicketPrice = baseTicketPrice;
     }
 
     public String getShowDate() {

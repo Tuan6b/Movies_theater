@@ -93,7 +93,8 @@ public class ScheduleController extends HttpServlet {
             String endTime = request.getParameter("endTime");
             String status = request.getParameter("status");
 
-            Schedule s = new Schedule(0, movieId, roomId, showDate, startTime, endTime, status);
+            double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
+            Schedule s = new Schedule(0, movieId, roomId, baseTicketPrice, showDate, startTime, endTime, status);
             boolean ok = scheduleDAO.addSchedule(s);
 
             if (ok) {
@@ -137,7 +138,8 @@ public class ScheduleController extends HttpServlet {
             String endTime = request.getParameter("endTime");
             String status = request.getParameter("status");
 
-            Schedule s = new Schedule(id, movieId, roomId, showDate, startTime, endTime, status);
+            double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
+            Schedule s = new Schedule(id, movieId, roomId, baseTicketPrice, showDate, startTime, endTime, status);
             boolean ok = scheduleDAO.updateSchedule(s);
 
             if (ok) {

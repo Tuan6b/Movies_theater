@@ -66,6 +66,7 @@
                             <th>#</th>
                             <th>Movie ID</th>
                             <th>Room ID</th>
+                            <th>Price</th>
                             <th>Date</th>
                             <th>Start</th>
                             <th>End</th>
@@ -81,6 +82,7 @@
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
                                         <td style="font-weight:600;">${s.movieID}</td>
                                         <td>${s.roomID}</td>
+                                        <td>${s.baseTicketPrice}</td>
                                         <td>${s.showDate}</td>
                                         <td>${s.startTime}</td>
                                         <td>${s.endTime}</td>
@@ -106,7 +108,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="8" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                    <td colspan="9" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
                                         No schedules found.
                                     </td>
                                 </tr>
