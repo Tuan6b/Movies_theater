@@ -1,85 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee                              https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
     <display-name>MoviesTheater</display-name>
-
-
-
-
     <!-- Promotion Manager Servlet - UC43/UC44 -->
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
     <listener>
         <listener-class>com.cinema.listener.PromotionStatusScheduler</listener-class>
     </listener>
-=======
-
-    <listener>
-        <listener-class>com.cinema.listener.PromotionStatusScheduler</listener-class>
-    </listener>
-
->>>>>>> main
     <!-- Manager Dashboard Servlet -->
     <servlet>
         <servlet-name>ManagerServlet</servlet-name>
         <servlet-class>com.cinema.controller.ManagerServlet</servlet-class>
     </servlet>
-<<<<<<< HEAD
-=======
-
-    <!-- Employee Dashboard Servlet -->
-    <servlet>
-        <servlet-name>EmployeeDashboardServlet</servlet-name>
-        <servlet-class>com.cinema.controller.EmployeeDashboardServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>EmployeeDashboardServlet</servlet-name>
-        <url-pattern>/employee/*</url-pattern>
-    </servlet-mapping>
-
-    <!-- System Admin Dashboard Servlet -->
-    <servlet>
-        <servlet-name>AdminServlet</servlet-name>
-        <servlet-class>com.cinema.controller.AdminServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AdminServlet</servlet-name>
-        <url-pattern>/admin</url-pattern>
-    </servlet-mapping>
-
->>>>>>> main
     <servlet>
         <servlet-name>SeatController</servlet-name>
         <servlet-class>com.cinema.controller.SeatController</servlet-class>
     </servlet>
-<<<<<<< HEAD
     <servlet>
         <servlet-name>ScheduleController</servlet-name>
         <servlet-class>com.cinema.controller.ScheduleController</servlet-class>
-=======
-
-    <servlet>
-        <servlet-name>MovieController</servlet-name>
-        <servlet-class>com.cinema.controller.MovieController</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>HomeController</servlet-name>
-        <servlet-class>com.cinema.controller.HomeController</servlet-class>
->>>>>>> main
     </servlet>
     <servlet-mapping>
         <servlet-name>ManagerServlet</servlet-name>
         <url-pattern>/manager</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
-    <servlet-mapping>
-        <servlet-name>ManagerServlet</servlet-name>
-        <url-pattern>/manager/*</url-pattern>
-    </servlet-mapping>
-
->>>>>>> main
     <servlet>
         <servlet-name>PromotionServlet</servlet-name>
         <servlet-class>com.cinema.controller.PromotionServlet</servlet-class>
@@ -87,10 +29,6 @@
     <servlet>
         <servlet-name>RoomServlet</servlet-name>
         <servlet-class>com.cinema.controller.RoomServlet</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>ShowtimeServlet</servlet-name>
-        <servlet-class>com.cinema.controller.ShowtimeServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>PromotionServlet</servlet-name>
@@ -100,12 +38,10 @@
         <servlet-name>RoomServlet</servlet-name>
         <url-pattern>/RoomServlet</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
-
->>>>>>> main
+    <servlet>
+        <servlet-name>ShowtimeServlet</servlet-name>
+        <servlet-class>com.cinema.controller.ShowtimeServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ShowtimeServlet</servlet-name>
         <url-pattern>/showtimes</url-pattern>
@@ -119,35 +55,12 @@
         <url-pattern>/manager/employees</url-pattern>
     </servlet-mapping>
     <servlet>
-<<<<<<< HEAD
-=======
-        <servlet-name>WorkShiftServlet</servlet-name>
-        <servlet-class>com.cinema.controller.WorkShiftServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>WorkShiftServlet</servlet-name>
-        <url-pattern>/manager/shifts</url-pattern>
-    </servlet-mapping>
-    <servlet>
->>>>>>> main
         <servlet-name>GenreController</servlet-name>
         <servlet-class>com.cinema.controller.GenreController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>GenreController</servlet-name>
-<<<<<<< HEAD
         <url-pattern>/admin/genre</url-pattern>
-=======
-        <url-pattern>/GenreController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>MovieController</servlet-name>
-        <url-pattern>/MovieController</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>HomeController</servlet-name>
-        <url-pattern>/HomeController</url-pattern>
->>>>>>> main
     </servlet-mapping>
     <!-- Auth Servlet -->
     <servlet>
@@ -158,10 +71,6 @@
         <servlet-name>LoginController</servlet-name>
         <url-pattern>/Login</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <servlet>
         <servlet-name>RegisterController</servlet-name>
         <servlet-class>com.cinema.controller.RegisterController</servlet-class>
@@ -170,10 +79,6 @@
         <servlet-name>RegisterController</servlet-name>
         <url-pattern>/Register</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <servlet>
         <servlet-name>LogoutController</servlet-name>
         <servlet-class>com.cinema.controller.LogoutController</servlet-class>
@@ -182,10 +87,6 @@
         <servlet-name>LogoutController</servlet-name>
         <url-pattern>/Logout</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <!-- Google OAuth -->
     <servlet>
         <servlet-name>LoginGoogleController</servlet-name>
@@ -195,10 +96,6 @@
         <servlet-name>LoginGoogleController</servlet-name>
         <url-pattern>/LoginGoogle/*</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <!-- Auth Filter -->
     <filter>
         <filter-name>AuthFilter</filter-name>
@@ -208,10 +105,6 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <!-- Forgot / Reset / Change Password -->
     <servlet>
         <servlet-name>ForgotPasswordController</servlet-name>
@@ -221,10 +114,6 @@
         <servlet-name>ForgotPasswordController</servlet-name>
         <url-pattern>/forgot-password</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <servlet>
         <servlet-name>ResetPasswordController</servlet-name>
         <servlet-class>com.cinema.controller.ResetPasswordController</servlet-class>
@@ -233,10 +122,6 @@
         <servlet-name>ResetPasswordController</servlet-name>
         <url-pattern>/new-password</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <servlet>
         <servlet-name>ChangePasswordController</servlet-name>
         <servlet-class>com.cinema.controller.ChangePasswordController</servlet-class>
@@ -245,15 +130,10 @@
         <servlet-name>ChangePasswordController</servlet-name>
         <url-pattern>/change-password</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
-=======
-
->>>>>>> main
     <servlet-mapping>
         <servlet-name>SeatController</servlet-name>
         <url-pattern>/SeatController</url-pattern>
     </servlet-mapping>
-<<<<<<< HEAD
     <servlet-mapping>
         <servlet-name>ScheduleController</servlet-name>
         <url-pattern>/ScheduleController</url-pattern>
@@ -262,10 +142,6 @@
         <servlet-name>ScheduleController</servlet-name>
         <url-pattern>/manager/schedules</url-pattern>
     </servlet-mapping>
->>>>>>> Stashed changes
-=======
-
->>>>>>> main
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

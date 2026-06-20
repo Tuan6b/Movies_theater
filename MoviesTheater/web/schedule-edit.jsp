@@ -56,15 +56,23 @@
                     <input type="hidden" name="scheduleId" value="${schedule.scheduleID}">
 
                     <div class="cgv-field">
-                        <label class="cgv-label">Movie ID</label>
-                        <input class="cgv-input" type="number" name="movieId"
-                               value="${schedule.movieID}" min="1" required>
+                        <label class="cgv-label">Movie</label>
+                        <select class="cgv-select" name="movieId" required>
+                            <option value="">-- Select Movie --</option>
+                            <c:forEach var="m" items="${movies}">
+                                <option value="${m.movieId}" ${m.movieId eq schedule.movieID ? 'selected' : ''}>${m.movieName}</option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <div class="cgv-field">
-                        <label class="cgv-label">Room ID</label>
-                        <input class="cgv-input" type="number" name="roomId"
-                               value="${schedule.roomID}" min="1" required>
+                        <label class="cgv-label">Room</label>
+                        <select class="cgv-select" name="roomId" required>
+                            <option value="">-- Select Room --</option>
+                            <c:forEach var="r" items="${rooms}">
+                                <option value="${r.roomId}" ${r.roomId eq schedule.roomID ? 'selected' : ''}>${r.roomNumber}</option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <div class="cgv-field">

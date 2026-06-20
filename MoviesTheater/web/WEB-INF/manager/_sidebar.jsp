@@ -6,17 +6,9 @@
     <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
-<<<<<<< HEAD
         <img class="cgv-logo"
              src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
              alt="CGV Cinema">
-=======
-        <a href="${pageContext.request.contextPath}/">
-            <img class="cgv-logo"
-                 src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
-                 alt="CGV Cinema">
-        </a>
->>>>>>> main
     </div>
 
     <nav class="cgv-nav">
@@ -49,11 +41,7 @@
             Movies
         </a>
 
-<<<<<<< HEAD
         <a href="${pageContext.request.contextPath}/ScheduleController"
-=======
-        <a href="${pageContext.request.contextPath}/manager/schedules"
->>>>>>> main
            class="cgv-nav-link ${activeNav eq 'schedules' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -99,19 +87,6 @@
             Rooms
         </a>
 
-<<<<<<< HEAD
-=======
-        <a href="${pageContext.request.contextPath}/manager/shifts"
-           class="cgv-nav-link ${activeNav eq 'shifts' ? 'active' : ''}">
-            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Shifts
-        </a>
-
->>>>>>> main
         <a href="${pageContext.request.contextPath}/manager/analytics"
            class="cgv-nav-link ${activeNav eq 'analytics' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"

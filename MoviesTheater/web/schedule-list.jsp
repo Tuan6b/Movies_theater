@@ -54,7 +54,7 @@
                 <div class="cgv-pills">
                     <span class="cgv-pill active">All Schedules</span>
                 </div>
-                <a href="schedule-add.jsp" class="btn--cgv" style="margin-left:auto;">
+                <a href="ScheduleController?action=showAddForm" class="btn--cgv" style="margin-left:auto;">
                     + Add Schedule
                 </a>
             </div>

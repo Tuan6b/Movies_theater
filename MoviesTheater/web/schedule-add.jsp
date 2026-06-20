@@ -48,14 +48,30 @@
                 <form action="ScheduleController" method="post">
                     <input type="hidden" name="action" value="add">
 
+                    <c:if test="${empty movies or empty rooms}">
+                        <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                            Please access this form from the Schedule list page.
+                        </div>
+                    </c:if>
+
                     <div class="cgv-field">
-                        <label class="cgv-label">Movie ID</label>
-                        <input class="cgv-input" type="number" name="movieId" min="1" required>
+                        <label class="cgv-label">Movie</label>
+                        <select class="cgv-select" name="movieId" required>
+                            <option value="">-- Select Movie --</option>
+                            <c:forEach var="m" items="${movies}">
+                                <option value="${m.movieId}">${m.movieName}</option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <div class="cgv-field">
-                        <label class="cgv-label">Room ID</label>
-                        <input class="cgv-input" type="number" name="roomId" min="1" required>
+                        <label class="cgv-label">Room</label>
+                        <select class="cgv-select" name="roomId" required>
+                            <option value="">-- Select Room --</option>
+                            <c:forEach var="r" items="${rooms}">
+                                <option value="${r.roomId}">${r.roomNumber}</option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <div class="cgv-field">

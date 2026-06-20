@@ -1,7 +1,11 @@
 package com.cinema.controller;
 
+import com.cinema.dao.RoomDAO;
 import com.cinema.dao.ScheduleDAO;
+import com.cinema.dao.tbMovie;
 import com.cinema.model.Schedule;
+import com.cinema.model.clsMovie;
+import com.cinema.model.Room;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -12,6 +16,8 @@ import java.util.List;
 public class ScheduleController extends HttpServlet {
 
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
+    private final RoomDAO roomDAO = new RoomDAO();
+    private final tbMovie movieDAO = new tbMovie();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -23,6 +29,9 @@ public class ScheduleController extends HttpServlet {
         switch (action) {
             case "add":
                 addSchedule(request, response);
+                break;
+            case "showAddForm":
+                showAddForm(request, response);
                 break;
             case "edit":
                 showEditForm(request, response);
@@ -65,6 +74,15 @@ public class ScheduleController extends HttpServlet {
         request.getRequestDispatcher("schedule-list.jsp").forward(request, response);
     }
 
+    private void showAddForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        List<clsMovie> movies = movieDAO.getAllActiveMovies();
+        List<Room> rooms = roomDAO.getAllRooms();
+        request.setAttribute("movies", movies);
+        request.setAttribute("rooms", rooms);
+        request.getRequestDispatcher("schedule-add.jsp").forward(request, response);
+    }
+
     private void addSchedule(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         try {
@@ -81,7 +99,7 @@ public class ScheduleController extends HttpServlet {
             if (ok) {
                 request.getSession().setAttribute("flashSuccess", "Schedule added successfully.");
             } else {
-                request.getSession().setAttribute("flashError", "Failed to add schedule. Check that Movie ID and Room ID exist.");
+                request.getSession().setAttribute("flashError", "Failed to add schedule.");
             }
         } catch (NumberFormatException e) {
             request.getSession().setAttribute("flashError", "Invalid number format for Movie ID or Room ID.");
@@ -96,10 +114,14 @@ public class ScheduleController extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         Schedule schedule = scheduleDAO.getScheduleById(id);
+        List<clsMovie> movies = movieDAO.getAllActiveMovies();
+        List<Room> rooms = roomDAO.getAllRooms();
 
         String currentPage = request.getParameter("page");
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("schedule", schedule);
+        request.setAttribute("movies", movies);
+        request.setAttribute("rooms", rooms);
 
         request.getRequestDispatcher("schedule-edit.jsp").forward(request, response);
     }
