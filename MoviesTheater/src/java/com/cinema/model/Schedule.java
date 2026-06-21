@@ -17,6 +17,7 @@ public class Schedule {
     private String showDate;
     private String startTime;
     private String endTime;
+    private String endDate;
     private String status;
 
     public Schedule() {
@@ -32,6 +33,7 @@ public class Schedule {
         this.showDate = showDate;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.endDate = showDate;
         this.status = status;
     }
 
@@ -46,6 +48,22 @@ public class Schedule {
         this.showDate = showDate;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.endDate = showDate;
+        this.status = status;
+    }
+
+    public Schedule(int scheduleID, int movieID, int roomID,
+            double baseTicketPrice, String showDate, String startTime,
+            String endTime, String endDate, String status) {
+
+        this.scheduleID = scheduleID;
+        this.movieID = movieID;
+        this.roomID = roomID;
+        this.baseTicketPrice = baseTicketPrice;
+        this.showDate = showDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.endDate = endDate;
         this.status = status;
     }
 
@@ -103,6 +121,14 @@ public class Schedule {
 
     public void setEndTime(String endTime) {
         this.endTime = endTime;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 
     public String getStatus() {
