@@ -25,6 +25,8 @@
     <servlet>
         <servlet-name>HomeController</servlet-name>
         <servlet-class>com.cinema.controller.HomeController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ScheduleController</servlet-name>
         <servlet-class>com.cinema.controller.ScheduleController</servlet-class>
     </servlet>

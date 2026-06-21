@@ -64,8 +64,8 @@
                     <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Phim &amp; Thể loại</div>
                     <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Thêm, sửa, ẩn phim và quản lý thể loại</div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/manager/movies" class="btn--cgv-outline">Danh sách phim</a>
-                        <c:if test="${r ge 4}"><a href="${pageContext.request.contextPath}/manager/genre" class="btn--cgv-outline">Thể loại</a></c:if>
+                        <a href="${pageContext.request.contextPath}/MovieController" class="btn--cgv-outline">Danh sách phim</a>
+                        <c:if test="${r ge 4}"><a href="${pageContext.request.contextPath}/GenreController" class="btn--cgv-outline">Thể loại</a></c:if>
                     </div>
                 </div>
 

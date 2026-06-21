@@ -40,11 +40,44 @@ public class ScheduleDAO extends DBContext {
         return list;
     }
 
+    public List<Schedule> getSchedulesByMovieIdAndPage(int movieId, int offset, int noOfRecords) {
+        List<Schedule> list = new ArrayList<>();
+        String sql = "SELECT ScheduleID, MovieID, RoomID, BaseTicketPrice, StartTime, EndTime, Status FROM Schedule WHERE MovieID = ? ORDER BY StartTime OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, movieId);
+            stm.setInt(2, offset);
+            stm.setInt(3, noOfRecords);
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapSchedule(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
     public int getTotalSchedulesCount() {
         String sql = "SELECT COUNT(*) FROM Schedule";
         try (PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
             if (rs.next()) {
                 return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getTotalSchedulesCountByMovieId(int movieId) {
+        String sql = "SELECT COUNT(*) FROM Schedule WHERE MovieID = ?";
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, movieId);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();

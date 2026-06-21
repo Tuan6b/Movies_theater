@@ -59,7 +59,7 @@
                         <select class="cgv-select" name="movieId" required>
                             <option value="">-- Select Movie --</option>
                             <c:forEach var="m" items="${movies}">
-                                <option value="${m.movieId}">${m.movieName}</option>
+                                <option value="${m.movieId}" ${param.movieId eq m.movieId ? 'selected' : ''}>${m.movieName}</option>
                             </c:forEach>
                         </select>
                     </div>
