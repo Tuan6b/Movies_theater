@@ -36,6 +36,10 @@
         <servlet-name>AdminServlet</servlet-name>
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/admin/*</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <servlet-name>SeatController</servlet-name>

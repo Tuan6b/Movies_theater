@@ -46,29 +46,6 @@
                     <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Tổng nhân viên</div>
                     <div class="cgv-stat-num amber" style="font-size:28px;">${not empty adminTotalStaff ? adminTotalStaff : '—'}</div>
                 </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Tổng phim</div>
-                    <div class="cgv-stat-num" style="font-size:28px;">${not empty adminTotalMovies ? adminTotalMovies : '—'}</div>
-                </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Thể loại phim</div>
-                    <div class="cgv-stat-num red" style="font-size:28px;">${not empty adminTotalGenres ? adminTotalGenres : '—'}</div>
-                </div>
-            </div>
-
-            <%-- Content management --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">NỘI DUNG</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Thể loại phim</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Thêm, sửa và xoá các thể loại phim trong hệ thống</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/admin/genre" class="btn--cgv-outline">Danh sách</a>
-                        <a href="${pageContext.request.contextPath}/admin/genre?action=add" class="btn--cgv">+ Thêm mới</a>
-                    </div>
-                </div>
-
             </div>
 
             <%-- Account management --%>

@@ -86,6 +86,9 @@ public class WorkShiftServlet extends HttpServlet {
                 case "delete":
                     handleDelete(request, response);
                     break;
+                case "bulk_create":
+                    handleBulkCreate(request, response);
+                    break;
                 default:
                     response.sendRedirect(request.getContextPath() + LIST_URL);
                     break;
@@ -166,6 +169,11 @@ public class WorkShiftServlet extends HttpServlet {
 
         try {
             LocalDate date  = LocalDate.parse(dateStr);
+            if (date.isBefore(LocalDate.now())) {
+                request.getSession().setAttribute("flashError", "Không thể lên lịch ca làm việc cho những ngày trong quá khứ.");
+                response.sendRedirect(backUrl);
+                return;
+            }
             LocalTime start = LocalTime.parse(times[0]);
 
             if (shiftDAO.existsShift(empId, date, start)) {
@@ -215,8 +223,59 @@ public class WorkShiftServlet extends HttpServlet {
         String monthStr = request.getParameter("month");
         int empId = parseIntParam(empIdStr, 0);
 
-        if (id > 0) shiftDAO.delete(id);
+        if (id > 0) {
+            try {
+                WorkShift shift = shiftDAO.getById(id);
+                if (shift != null) {
+                    if (shift.getShiftDate().isBefore(LocalDate.now())) {
+                        request.getSession().setAttribute("flashError", "Không thể xóa ca làm việc trong quá khứ.");
+                    } else {
+                        shiftDAO.delete(id);
+                        request.getSession().setAttribute("flashSuccess", "Đã xóa ca làm việc.");
+                    }
+                }
+            } catch (Exception e) {
+                request.getSession().setAttribute("flashError", "Lỗi khi xóa ca làm việc.");
+            }
+        }
         response.sendRedirect(buildCalendarUrl(request.getContextPath(), empId, yearStr, monthStr));
+    }
+
+    private void handleBulkCreate(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int    empId     = parseIntParam(request.getParameter("employeeId"), 0);
+        String shiftType = request.getParameter("shiftType");
+        String yearStr   = request.getParameter("year");
+        String monthStr  = request.getParameter("month");
+
+        String backUrl = buildCalendarUrl(request.getContextPath(), empId, yearStr, monthStr);
+        String[] times = (shiftType != null) ? SHIFT_TIMES.get(shiftType) : null;
+
+        if (empId <= 0 || times == null) {
+            request.getSession().setAttribute("flashError", "Thiếu thông tin phân ca.");
+            response.sendRedirect(backUrl);
+            return;
+        }
+
+        int year  = parseIntParam(yearStr,  LocalDate.now().getYear());
+        int month = parseIntParam(monthStr, LocalDate.now().getMonthValue());
+        if (month < 1) month = 1;
+        if (month > 12) month = 12;
+
+        LocalTime start = LocalTime.parse(times[0]);
+        LocalTime end   = LocalTime.parse(times[1]);
+
+        int created = shiftDAO.bulkCreate(empId, year, month, start, end);
+        if (created > 0) {
+            request.getSession().setAttribute("flashSuccess",
+                    "Đã tạo " + created + " ca " + shiftType.replace("_", " ") + " cho " + MONTH_VI[month] + " " + year + ".");
+        } else if (created == 0) {
+            request.getSession().setAttribute("flashError",
+                    "Tất cả ngày trong " + MONTH_VI[month] + " đã có ca này hoặc đã qua.");
+        } else {
+            request.getSession().setAttribute("flashError", "Lỗi hệ thống. Vui lòng thử lại.");
+        }
+        response.sendRedirect(backUrl);
     }
 
     private String buildCalendarUrl(String contextPath, int empId, String year, String month) {

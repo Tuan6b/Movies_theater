@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
+import com.cinema.dao.EmployeeDAO;
 import com.cinema.dao.PromotionDAO;
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.SeatDAO;
@@ -38,6 +39,10 @@ public class EmployeeDashboardServlet extends HttpServlet {
     private static final String BOOK_JSP = "/WEB-INF/employee/book.jsp";
     private static final String CHECKIN_JSP = "/WEB-INF/employee/checkin.jsp";
     private static final String PROFILE_JSP = "/WEB-INF/employee/profile.jsp";
+    private static final String SETUP_JSP = "/WEB-INF/employee/setup.jsp";
+
+    private final AccountDAO accountDAO = new AccountDAO();
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -54,12 +59,28 @@ public class EmployeeDashboardServlet extends HttpServlet {
             transferFlash(session, request, "flashNewCodes");
         }
 
+        Account sessionAcc = (session != null) ? (Account) session.getAttribute("account") : null;
+
+        // First-login guard: redirect to setup until profile is completed
+        if (sessionAcc != null && sessionAcc.isNeedsSetup() && !"/setup".equals(path)) {
+            response.sendRedirect(request.getContextPath() + "/employee/setup");
+            return;
+        }
+
+        // Off-shift guard: block operational paths if employee has no active shift
+        boolean noShift = (session != null && Boolean.TRUE.equals(session.getAttribute("noShift")));
+        if (noShift && ("/book".equals(path) || "/checkin".equals(path))) {
+            session.setAttribute("flashError", "Bạn không có ca làm việc. Chức năng này chỉ khả dụng trong giờ làm.");
+            response.sendRedirect(request.getContextPath() + "/employee");
+            return;
+        }
+
         String method = request.getMethod();
         if ("GET".equalsIgnoreCase(method)) {
             switch (path) {
                 case "/":
                 case "/dashboard":
-                    showDashboard(request, response);
+                    showDashboard(request, response, noShift);
                     break;
                 case "/schedules":
                     showSchedules(request, response);
@@ -76,6 +97,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "/profile":
                     showProfile(request, response);
                     break;
+                case "/setup":
+                    showSetup(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -88,6 +112,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "/checkin":
                     handleCheckin(request, response);
                     break;
+                case "/setup":
+                    handleSetup(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -95,7 +122,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
     }
 
-    private void showDashboard(HttpServletRequest request, HttpServletResponse response)
+    private void showDashboard(HttpServletRequest request, HttpServletResponse response, boolean noShift)
             throws ServletException, IOException {
         int screeningsToday = 0;
         int checkinsToday = 0;
@@ -121,7 +148,8 @@ public class EmployeeDashboardServlet extends HttpServlet {
         request.setAttribute("empScreeningsToday", screeningsToday);
         request.setAttribute("empCheckinsToday", checkinsToday);
         request.setAttribute("empActiveMovies", activeMovies);
-        request.setAttribute("empShiftStatus", "Đang ca");
+        request.setAttribute("empShiftStatus", noShift ? "Ngoài ca" : "Đang ca");
+        request.setAttribute("noShift", noShift);
 
         request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
     }
@@ -573,6 +601,59 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/employee/checkin");
+    }
+
+    private void showSetup(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+    }
+
+    private void handleSetup(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        Account current = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (current == null) {
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
+        String fullName = request.getParameter("fullName");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String address = request.getParameter("address");
+        String dateOfBirth = request.getParameter("dateOfBirth");
+        String newPassword = request.getParameter("newPassword");
+
+        if (fullName == null || fullName.trim().isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập họ và tên.");
+            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            return;
+        }
+
+        Account updated = new Account();
+        updated.setAccountId(current.getAccountId());
+        updated.setEmail(current.getEmail());
+        updated.setFullName(fullName.trim());
+        updated.setPhoneNumber(phoneNumber);
+        updated.setAddress(address);
+        updated.setDateOfBirth(dateOfBirth);
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            updated.setPassword(newPassword.trim());
+        }
+
+        boolean ok = employeeDAO.update(updated);
+        if (ok) {
+            accountDAO.clearNeedsSetup(current.getAccountId());
+            // Update session object so the guard doesn't redirect again
+            current.setNeedsSetup(false);
+            current.setFullName(fullName.trim());
+            session.setAttribute("account", current);
+            session.setAttribute("flashSuccess", "Thông tin cá nhân đã được cập nhật. Chào mừng bạn!");
+            response.sendRedirect(request.getContextPath() + "/employee");
+        } else {
+            request.setAttribute("error", "Có lỗi xảy ra. Vui lòng thử lại.");
+            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+        }
     }
 
     private void showProfile(HttpServletRequest request, HttpServletResponse response)

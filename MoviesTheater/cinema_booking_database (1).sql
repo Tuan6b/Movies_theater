@@ -18,18 +18,21 @@ CREATE TABLE Role (
 );
 
 CREATE TABLE Account (
-    AccountID INT IDENTITY(1,1) PRIMARY KEY,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    Password    VARCHAR(255) NOT NULL,
-    RoleID INT NOT NULL,
-    IsBlocked BIT NOT NULL DEFAULT 0,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    AccountID        INT IDENTITY(1,1) PRIMARY KEY,
+    Email            VARCHAR(255)  NOT NULL UNIQUE,
+    Password         VARCHAR(255)  NOT NULL,
+    RoleID           INT           NOT NULL,
+    IsBlocked        BIT           NOT NULL DEFAULT 0,
+    AccountStatus    VARCHAR(20)   NOT NULL DEFAULT 'noneed',
+    CreatedAt        DATETIME      NOT NULL DEFAULT GETDATE(),
+    ResetToken       VARCHAR(255)  NULL,
+    ResetTokenExpiry DATETIME      NULL,
     CONSTRAINT FK_Account_Role FOREIGN KEY (RoleID) REFERENCES Role(RoleID)
 );
 
 CREATE TABLE UserProfile (
     AccountID INT PRIMARY KEY,
-    FullName NVARCHAR(100) NOT NULL,
+    FullName NVARCHAR(100) NULL,
     PhoneNumber VARCHAR(20) NULL,
     DoB DATE NULL,
     Address NVARCHAR(255) NULL,
@@ -212,6 +215,15 @@ CREATE TABLE SystemLog (
     CONSTRAINT FK_Log_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
 );
 
+CREATE TABLE SystemConfig (
+    ConfigKey   VARCHAR(100)   NOT NULL PRIMARY KEY,
+    ConfigValue NVARCHAR(MAX)  NULL,
+    Description NVARCHAR(255)  NULL,
+    UpdatedAt   DATETIME       NOT NULL DEFAULT GETDATE(),
+    UpdatedBy   INT            NULL,
+    CONSTRAINT FK_SystemConfig_Account FOREIGN KEY (UpdatedBy) REFERENCES Account(AccountID)
+);
+
 CREATE INDEX IDX_Account_Email ON Account(Email);
 CREATE INDEX IDX_Account_RoleID ON Account(RoleID);
 CREATE INDEX IDX_Schedule_StartTime ON Schedule(StartTime);
@@ -354,6 +366,17 @@ VALUES (1, 4, 1, 5, N'Phim hay cực kỳ, hiệu ứng đỉnh nóc!');
 -- System log
 INSERT INTO SystemLog (AccountID, ActionType, Description, IPAddress)
 VALUES (4, 'BOOK_TICKET', N'Customer đặt 2 vé suất 09:00 ngày 01/07/2025', '192.168.1.100');
+
+-- System config defaults
+INSERT INTO SystemConfig (ConfigKey, ConfigValue, Description) VALUES
+    ('cinema_name',           N'CGV Cinema',        N'Tên rạp chiếu phim'),
+    ('cinema_address',        N'Hà Nội, Việt Nam',  N'Địa chỉ rạp'),
+    ('cinema_phone',          '1900 6017',           N'Số điện thoại liên hệ'),
+    ('cinema_email',          'hotro@cgv.vn',        N'Email liên hệ'),
+    ('banner_url',            '',                    N'URL ảnh banner trang chủ'),
+    ('max_seats_per_booking', '8',                   N'Số ghế tối đa mỗi lần đặt'),
+    ('cancel_hours_before',   '2',                   N'Số giờ tối thiểu trước suất chiếu để hủy'),
+    ('base_ticket_price',     '90000',               N'Giá vé cơ bản mặc định (VND)');
 GO -- THÊM LỆNH GO TẠI ĐÂY ĐỂ NGẮT LÔ THỰC THI
 
 -- Available seats for a given schedule
@@ -409,3 +432,24 @@ FROM Movie m
 LEFT JOIN MovieReview r ON r.MovieID = m.MovieID
 GROUP BY m.MovieID, m.MovieName;
 GO
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Seed account passwords (hashed)
+-- ─────────────────────────────────────────────────────────────────────────────
+UPDATE Account SET Password = 'VrRq7kDRRMCIdP5SEic7ZWMq9ICyxlrvLb3+0Tmk2q9JQidIYFQVxCLooeXHAQu/' WHERE Email = 'admin@cinema.vn';
+UPDATE Account SET Password = 'n587Ib+yWv74UpJGwIkCxbMgi5gu8SW9dCpyZBZxV0gdnuE7viql8iUrUTzbYqFl' WHERE Email = 'manager@cinema.vn';
+UPDATE Account SET Password = 'akLh2b/YOF41UBNr0dDj87Z/bKdJnuJHu4QH6nLUxP3a3XRh7aMxs2q4QR3TNTpG' WHERE Email = 'employee@cinema.vn';
+UPDATE Account SET Password = 'j+MSwJ3vabzskA+Cbzrz1Ht5rfmztEs40qHh/FteAa/zMQRWf+Obn2oR4KS8oPQn' WHERE Email = 'customer1@gmail.com';
+UPDATE Account SET Password = 's75Ii1dlujeXe78qEsAkCI1p0KefnvU0qznd360y85WaZzs2JnAOc87IuXg8aQXV' WHERE Email = 'customer2@gmail.com';
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Migration: chỉ chạy các câu này khi UPDATE DB cũ (không cần cho fresh install)
+-- ─────────────────────────────────────────────────────────────────────────────
+-- IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Account') AND name = 'AccountStatus')
+--     ALTER TABLE Account ADD AccountStatus VARCHAR(20) NOT NULL DEFAULT 'noneed';
+-- IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Account') AND name = 'ResetToken')
+--     ALTER TABLE Account ADD ResetToken VARCHAR(255) NULL;
+-- IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Account') AND name = 'ResetTokenExpiry')
+--     ALTER TABLE Account ADD ResetTokenExpiry DATETIME NULL;
+-- ALTER TABLE UserProfile ALTER COLUMN FullName NVARCHAR(100) NULL;
+-- ─────────────────────────────────────────────────────────────────────────────

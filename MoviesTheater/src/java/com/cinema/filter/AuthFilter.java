@@ -47,7 +47,6 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/manager/food",
             "/manager/analytics",
             "/manager/users",
-            "/manager/settings",
             "/manager/genre",
             "/manager/shifts",
             "/manager/employees"
