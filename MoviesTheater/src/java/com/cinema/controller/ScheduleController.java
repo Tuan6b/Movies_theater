@@ -87,6 +87,8 @@ public class ScheduleController extends HttpServlet {
         }
         
         int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
+        
+        request.setAttribute("scheduleStats", scheduleDAO.getScheduleStatistics(movieId));
 
         LocalDateTime now = LocalDateTime.now();
         for (Schedule s : scheduleList) {
@@ -109,6 +111,17 @@ public class ScheduleController extends HttpServlet {
                 System.out.println("Skip schedule " + s.getScheduleID() + " due to parse error: " + startStr + " / " + endDt);
             }
         }
+
+        java.util.Map<Integer, String> movieNames = new java.util.HashMap<>();
+        for (Schedule s : scheduleList) {
+            if (!movieNames.containsKey(s.getMovieID())) {
+                clsMovie m = movieDAO.getMovieById(s.getMovieID());
+                if (m != null) {
+                    movieNames.put(s.getMovieID(), m.getMovieName());
+                }
+            }
+        }
+        request.setAttribute("movieNames", movieNames);
 
         request.setAttribute("scheduleList", scheduleList);
         request.setAttribute("currentPage", page);

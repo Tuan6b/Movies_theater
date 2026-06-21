@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class ScheduleDAO {
 
@@ -50,7 +52,8 @@ public class ScheduleDAO {
     public List<Schedule> getSchedulesByMovieIdAndPage(int movieId, int offset, int noOfRecords) {
         List<Schedule> list = new ArrayList<>();
         String sql = "SELECT ScheduleID, MovieID, RoomID, BaseTicketPrice, StartTime, EndTime, Status FROM Schedule WHERE MovieID = ? ORDER BY StartTime OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, movieId);
             stm.setInt(2, offset);
             stm.setInt(3, noOfRecords);
@@ -81,7 +84,8 @@ public class ScheduleDAO {
 
     public int getTotalSchedulesCountByMovieId(int movieId) {
         String sql = "SELECT COUNT(*) FROM Schedule WHERE MovieID = ?";
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, movieId);
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
@@ -92,6 +96,40 @@ public class ScheduleDAO {
             ex.printStackTrace();
         }
         return 0;
+    }
+
+    public Map<String, Integer> getScheduleStatistics(Integer movieId) {
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("Total", 0);
+        stats.put("Scheduled", 0);
+        stats.put("Ongoing", 0);
+        stats.put("Finished", 0);
+        stats.put("Cancelled", 0);
+
+        String sql = "SELECT Status, COUNT(*) as count FROM Schedule ";
+        if (movieId != null && movieId > 0) {
+            sql += "WHERE MovieID = ? ";
+        }
+        sql += "GROUP BY Status";
+
+        try (Connection conn = DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+            if (movieId != null && movieId > 0) {
+                stm.setInt(1, movieId);
+            }
+            try (ResultSet rs = stm.executeQuery()) {
+                int total = 0;
+                while (rs.next()) {
+                    String status = rs.getString("Status");
+                    int count = rs.getInt("count");
+                    stats.put(status, count);
+                    total += count;
+                }
+                stats.put("Total", total);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return stats;
     }
 
     public Schedule getScheduleById(int id) {
