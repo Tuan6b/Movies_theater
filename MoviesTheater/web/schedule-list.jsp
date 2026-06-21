@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
     request.setAttribute("activeNav", "schedules");
     String flashSuccess = (String) session.getAttribute("flashSuccess");
@@ -82,7 +83,7 @@
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
                                         <td style="font-weight:600;">${s.movieID}</td>
                                         <td>${s.roomID}</td>
-                                        <td>${s.baseTicketPrice}</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/></td>
                                         <td>${s.showDate}</td>
                                         <td>${s.startTime}</td>
                                         <td>${s.endTime}</td>
@@ -93,14 +94,22 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
-                                                   class="btn--cgv-outline">Edit</a>
-                                                <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                   class="btn--cgv-outline"
-                                                   style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                   onclick="return confirm('Delete schedule ${s.scheduleID}?')">
-                                                    Delete
-                                                </a>
+                                                <c:if test="${s.status ne 'Ongoing' and s.status ne 'Finished'}">
+                                                    <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                       class="btn--cgv-outline">Edit</a>
+                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                       class="btn--cgv-outline"
+                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                       onclick="return confirm('Delete schedule ${s.scheduleID}?')">
+                                                        Delete
+                                                    </a>
+                                                </c:if>
+                                                <c:if test="${s.status eq 'Ongoing'}">
+                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
+                                                </c:if>
+                                                <c:if test="${s.status eq 'Finished'}">
+                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Finished</span>
+                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>

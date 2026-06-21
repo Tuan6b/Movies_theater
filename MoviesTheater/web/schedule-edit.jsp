@@ -94,17 +94,9 @@
                     </div>
 
                     <div class="cgv-field">
-                        <label class="cgv-label">End Time</label>
-                        <input class="cgv-input" type="time" name="endTime"
-                               value="${schedule.endTime}" required>
-                    </div>
-
-                    <div class="cgv-field">
                         <label class="cgv-label">Status</label>
                         <select class="cgv-select" name="status">
                             <option value="Scheduled" ${schedule.status eq 'Scheduled' ? 'selected' : ''}>Scheduled</option>
-                            <option value="Ongoing" ${schedule.status eq 'Ongoing' ? 'selected' : ''}>Ongoing</option>
-                            <option value="Finished" ${schedule.status eq 'Finished' ? 'selected' : ''}>Finished</option>
                             <option value="Cancelled" ${schedule.status eq 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                         </select>
                     </div>

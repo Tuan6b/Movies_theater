@@ -91,16 +91,9 @@
                     </div>
 
                     <div class="cgv-field">
-                        <label class="cgv-label">End Time</label>
-                        <input class="cgv-input" type="time" name="endTime" required>
-                    </div>
-
-                    <div class="cgv-field">
                         <label class="cgv-label">Status</label>
                         <select class="cgv-select" name="status">
                             <option value="Scheduled">Scheduled</option>
-                            <option value="Ongoing">Ongoing</option>
-                            <option value="Finished">Finished</option>
                             <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>
