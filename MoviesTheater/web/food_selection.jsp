@@ -1,8 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.cinema.model.BookingCart,com.cinema.model.BookingScheduleView" %>
+<%@ page import="com.cinema.model.BookingCart,com.cinema.model.BookingScheduleView,com.cinema.model.Food" %>
+<%@ page import="java.util.List" %>
 <%
     BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
     BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+    List<Food> foodList = (List<Food>) request.getAttribute("foodList");
 
     if (cart == null || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/showtimes");
@@ -79,95 +81,42 @@
             <h1>BẮP NƯỚC & COMBOS</h1>
         </section>
 
-        <form action="<%= request.getContextPath() %>/checkout" method="post" id="foodForm">
+        <form action="<%= request.getContextPath() %>/booking" method="post" id="foodForm">
             
             <input type="hidden" name="action" value="selectFood">
 
             <section class="food-grid">
                 
-                <!-- Combo 1 -->
-                <div class="food-card">
-                    <div class="food-image">
-                        <img src="<%= request.getContextPath() %>/Image/my_combo.png" alt="My Combo" onerror="this.src='https://img.vietnamfinance.vn/upload/news/hoangnam/2018/1/3/cgv-1.jpg'">
-                    </div>
-                    <div class="food-info">
-                        <div>
-                            <h3 class="food-name">My Combo</h3>
-                            <p class="food-desc">1 Nước ngọt cỡ vừa (Medium Soda) + 1 Bắp ngọt cỡ vừa (Medium Popcorn)</p>
+                <% if (foodList != null) {
+                    for (Food food : foodList) {
+                        boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
+                %>
+                    <div class="food-card">
+                        <div class="food-image">
+                            <% if (hasImage) { %>
+                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>">
+                            <% } else { %>
+                                <div class="food-image-placeholder">
+                                    <span><%= food.getFoodName().substring(0, Math.min(2, food.getFoodName().length())) %></span>
+                                </div>
+                            <% } %>
                         </div>
-                        <div class="food-purchase">
-                            <span class="food-price">85,000 đ</span>
-                            <div class="quantity-control">
-                                <button type="button" class="qty-btn dec-btn" data-id="my_combo">-</button>
-                                <input type="text" class="qty-val" name="qty_my_combo" id="qty_my_combo" value="0" data-price="85000">
-                                <button type="button" class="qty-btn inc-btn" data-id="my_combo">+</button>
+                        <div class="food-info">
+                            <div>
+                                <h3 class="food-name"><%= food.getFoodName() %></h3>
+                            </div>
+                            <div class="food-purchase">
+                                <span class="food-price"><%= String.format("%,.0f", food.getPrice()) %> đ</span>
+                                <div class="quantity-control">
+                                    <button type="button" class="qty-btn dec-btn" data-food-id="<%= food.getFoodId() %>">-</button>
+                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="0" data-price="<%= (int) food.getPrice() %>">
+                                    <button type="button" class="qty-btn inc-btn" data-food-id="<%= food.getFoodId() %>">+</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Combo 2 -->
-                <div class="food-card">
-                    <div class="food-image">
-                        <img src="<%= request.getContextPath() %>/Image/cgv_combo.png" alt="CGV Combo" onerror="this.src='https://img.vietnamfinance.vn/upload/news/hoangnam/2018/1/3/cgv-1.jpg'">
-                    </div>
-                    <div class="food-info">
-                        <div>
-                            <h3 class="food-name">CGV Combo</h3>
-                            <p class="food-desc">2 Nước ngọt cỡ vừa (Medium Soda) + 1 Bắp ngọt cỡ lớn (Large Popcorn)</p>
-                        </div>
-                        <div class="food-purchase">
-                            <span class="food-price">115,000 đ</span>
-                            <div class="quantity-control">
-                                <button type="button" class="qty-btn dec-btn" data-id="cgv_combo">-</button>
-                                <input type="text" class="qty-val" name="qty_cgv_combo" id="qty_cgv_combo" value="0" data-price="115000">
-                                <button type="button" class="qty-btn inc-btn" data-id="cgv_combo">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Combo 3 -->
-                <div class="food-card">
-                    <div class="food-image">
-                        <img src="<%= request.getContextPath() %>/Image/twin_combo.png" alt="Twin Combo" onerror="this.src='https://img.vietnamfinance.vn/upload/news/hoangnam/2018/1/3/cgv-1.jpg'">
-                    </div>
-                    <div class="food-info">
-                        <div>
-                            <h3 class="food-name">Twin Combo</h3>
-                            <p class="food-desc">2 Nước ngọt cỡ vừa (Medium Soda) + 2 Bắp ngọt cỡ lớn (Large Popcorn)</p>
-                        </div>
-                        <div class="food-purchase">
-                            <span class="food-price">165,000 đ</span>
-                            <div class="quantity-control">
-                                <button type="button" class="qty-btn dec-btn" data-id="twin_combo">-</button>
-                                <input type="text" class="qty-val" name="qty_twin_combo" id="qty_twin_combo" value="0" data-price="165000">
-                                <button type="button" class="qty-btn inc-btn" data-id="twin_combo">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Combo 4 -->
-                <div class="food-card">
-                    <div class="food-image">
-                        <img src="<%= request.getContextPath() %>/Image/family_combo.png" alt="Family Combo" onerror="this.src='https://img.vietnamfinance.vn/upload/news/hoangnam/2018/1/3/cgv-1.jpg'">
-                    </div>
-                    <div class="food-info">
-                        <div>
-                            <h3 class="food-name">Family Combo</h3>
-                            <p class="food-desc">4 Nước ngọt cỡ vừa (Medium Soda) + 2 Bắp ngọt cỡ lớn + 2 Snack khoai tây</p>
-                        </div>
-                        <div class="food-purchase">
-                            <span class="food-price">245,000 đ</span>
-                            <div class="quantity-control">
-                                <button type="button" class="qty-btn dec-btn" data-id="family_combo">-</button>
-                                <input type="text" class="qty-val" name="qty_family_combo" id="qty_family_combo" value="0" data-price="245000">
-                                <button type="button" class="qty-btn inc-btn" data-id="family_combo">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <%  }
+                } %>
 
             </section>
 
@@ -250,7 +199,7 @@
     // Inc / Dec click handlers
     document.querySelectorAll(".inc-btn").forEach(function(button) {
         button.addEventListener("click", function() {
-            let id = button.dataset.id;
+            let id = button.dataset.foodId;
             let input = document.getElementById("qty_" + id);
             let val = parseInt(input.value);
             input.value = val + 1;
@@ -260,7 +209,7 @@
 
     document.querySelectorAll(".dec-btn").forEach(function(button) {
         button.addEventListener("click", function() {
-            let id = button.dataset.id;
+            let id = button.dataset.foodId;
             let input = document.getElementById("qty_" + id);
             let val = parseInt(input.value);
             if (val > 0) {
