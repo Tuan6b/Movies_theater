@@ -181,7 +181,7 @@
                                 <a href="${pageContext.request.contextPath}/MovieDetailController?id=${m.movieId}" class="movie-card">
                                     <div class="movie-poster">
                                         <img src="${m.poster}" alt="${m.movieName}">
-                                        <div class="movie-overlay"><span class="movie-overlay-text">Xem Chi Tiết</span></div>
+                                        <div class="movie-overlay"><span class="movie-overlay-text">Mua Vé Ngay</span></div>
                                     </div>
                                     <div class="movie-info">
                                         <div class="movie-title" title="${m.movieName}">${m.movieName}</div>

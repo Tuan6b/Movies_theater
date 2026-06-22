@@ -39,7 +39,7 @@
                     <form action="${pageContext.request.contextPath}/MovieController" method="POST">
                         <input type="hidden" name="action" value="add">
                         
-                        < class="cgv-form-grid">
+                        <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
                                 <input type="text" name="movieName" class="cgv-input" required>
@@ -48,13 +48,12 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngày khởi chiếu *</label>
                                 <input type="date" id="releaseDate" name="releaseDate" class="cgv-input" required>
-                            </div>
-
-                            <div style="margin-top: 8px;">
-                                <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-                                    <input type="checkbox" id="earlyRelease" name="earlyRelease" value="true" style="width: 14px; height: 14px;">
-                                    Phim chiếu đột xuất / Phim chiếu sớm
-                                </label>
+                                <div style="margin-top: 8px;">
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                                        <input type="checkbox" id="earlyRelease" name="earlyRelease" value="true" style="width: 14px; height: 14px;">
+                                        Phim chiếu đột xuất / Phim chiếu sớm
+                                    </label>
+                                </div>
                             </div>
 
                             <div class="cgv-field">
