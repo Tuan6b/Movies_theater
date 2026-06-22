@@ -15,6 +15,18 @@
         <servlet-class>com.cinema.controller.SeatController</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>MovieController</servlet-name>
+        <servlet-class>com.cinema.controller.MovieController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>MovieDetailController</servlet-name>
+        <servlet-class>com.cinema.controller.MovieDetailController</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>HomeController</servlet-name>
+        <servlet-class>com.cinema.controller.HomeController</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ScheduleController</servlet-name>
         <servlet-class>com.cinema.controller.ScheduleController</servlet-class>
     </servlet>
@@ -60,6 +72,19 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>GenreController</servlet-name>
+        <url-pattern>/GenreController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MovieController</servlet-name>
+        <url-pattern>/MovieController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>MovieDetailController</servlet-name>
+        <url-pattern>/MovieDetailController</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HomeController</servlet-name>
+        <url-pattern>/HomeController</url-pattern>
         <url-pattern>/admin/genre</url-pattern>
     </servlet-mapping>
     <!-- Auth Servlet -->

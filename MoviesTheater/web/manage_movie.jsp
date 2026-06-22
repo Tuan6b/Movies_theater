@@ -11,41 +11,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
     <body class="cgv-body">
-
-        <aside class="cgv-sidebar">
-            <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/">
-                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
-                </a>
-            </div>
-
-            <nav class="cgv-nav">
-                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
-                    <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
-                </a>
-                <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link active">
-                    <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
-                </a>
-                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
-                    <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
-                </a>
-                <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link">
-                    <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
-                </a>
-                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
-                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
-                </a>
-            </nav>
-
-            <div class="cgv-sidebar-bottom">
-                <a href="#" class="cgv-nav-link">
-                    <i class="fa-solid fa-gear cgv-nav-icon"></i> Cài đặt
-                </a>
-                <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link" style="color: var(--cgv-red);">
-                    <i class="fa-solid fa-arrow-right-from-bracket cgv-nav-icon"></i> Đăng xuất
-                </a>
-            </div>
-        </aside>
+        <% request.setAttribute("activeNav", "movies"); %>
+        <%@ include file="WEB-INF/manager/_sidebar.jsp" %>
 
         <main class="cgv-main">
             <header class="cgv-header">
@@ -174,16 +141,28 @@
                                     
                                     <td style="text-align: right; padding-right: 24px;">
                                         <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                            <a href="${pageContext.request.contextPath}/MovieController?action=edit&id=${m.movieId}" class="btn--cgv-outline" style="padding: 6px 14px;">
-                                                Sửa
-                                            </a>
-                                            <form action="${pageContext.request.contextPath}/MovieController" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái phim?');">
-                                                <input type="hidden" name="action" value="toggleStatus">
-                                                <input type="hidden" name="movieId" value="${m.movieId}">
-                                                <button type="submit" class="btn btn--ghost" style="color: var(--cgv-red); padding: 6px 14px;">
-                                                    ${m.active ? 'Ẩn phim' : 'Hiện phim'}
-                                                </button>
-                                            </form>
+                                            <c:choose>
+                                                <c:when test="${currentFilter == 'showing' || currentFilter == 'ended'}">
+                                                    <span class="btn--cgv-outline" style="padding: 6px 14px; opacity: 0.5; cursor: not-allowed; background-color: #f5f5f5; border-color: #ddd; color: #999;">
+                                                        Sửa
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a href="${pageContext.request.contextPath}/MovieController?action=edit&id=${m.movieId}" class="btn--cgv-outline" style="padding: 6px 14px;">
+                                                        Sửa
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+
+                                            <c:if test="${currentFilter == 'unscheduled' || currentFilter == 'hidden'}">
+                                                <form action="${pageContext.request.contextPath}/MovieController" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái phim?');">
+                                                    <input type="hidden" name="action" value="toggleStatus">
+                                                    <input type="hidden" name="movieId" value="${m.movieId}">
+                                                    <button type="submit" class="btn btn--ghost" style="color: var(--cgv-red); padding: 6px 14px;">
+                                                        ${currentFilter == 'hidden' ? 'Hiện phim' : 'Ẩn phim'}
+                                                    </button>
+                                                </form>
+                                            </c:if>
                                         </div>
                                     </td>
                                 </tr>

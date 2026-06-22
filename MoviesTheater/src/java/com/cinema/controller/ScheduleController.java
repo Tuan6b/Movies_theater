@@ -63,10 +63,29 @@ public class ScheduleController extends HttpServlet {
                 page = 1;
             }
         }
+        
+        String movieIdParam = request.getParameter("movieId");
+        Integer movieId = null;
+        if (movieIdParam != null && !movieIdParam.isEmpty()) {
+            try {
+                movieId = Integer.parseInt(movieIdParam);
+            } catch (NumberFormatException e) {
+            }
+        }
 
         int offset = (page - 1) * recordsPerPage;
-        List<Schedule> scheduleList = scheduleDAO.getSchedulesByPage(offset, recordsPerPage);
-        int totalRecords = scheduleDAO.getTotalSchedulesCount();
+        List<Schedule> scheduleList;
+        int totalRecords;
+        
+        if (movieId != null) {
+            scheduleList = scheduleDAO.getSchedulesByMovieIdAndPage(movieId, offset, recordsPerPage);
+            totalRecords = scheduleDAO.getTotalSchedulesCountByMovieId(movieId);
+            request.setAttribute("selectedMovieId", movieId);
+        } else {
+            scheduleList = scheduleDAO.getSchedulesByPage(offset, recordsPerPage);
+            totalRecords = scheduleDAO.getTotalSchedulesCount();
+        }
+        
         int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
 
         LocalDateTime now = LocalDateTime.now();

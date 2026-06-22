@@ -55,7 +55,7 @@
                 <div class="cgv-pills">
                     <span class="cgv-pill active">All Schedules</span>
                 </div>
-                <a href="ScheduleController?action=showAddForm" class="btn--cgv" style="margin-left:auto;">
+                <a href="ScheduleController?action=showAddForm<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>" class="btn--cgv" style="margin-left:auto;">
                     + Add Schedule
                 </a>
             </div>
@@ -131,7 +131,7 @@
                     <div class="cgv-pager-pages">
                         <c:forEach begin="1" end="${totalPages}" var="p">
                             <button class="cgv-pager-btn ${p eq currentPage ? 'active' : ''}"
-                                    onclick="location.href = 'ScheduleController?page=${p}'">${p}</button>
+                                    onclick="location.href = 'ScheduleController?page=${p}<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>'">${p}</button>
                         </c:forEach>
                     </div>
                 </div>

@@ -20,14 +20,13 @@ public class HomeController extends HttpServlet {
         tbMovie movieDAO = new tbMovie();
         GenreDAO genreDAO = new GenreDAO();
         
-        // 1. Lấy Thể loại (Genre) từ URL và Lấy danh sách Thể loại cho Dropdown
         String genreShowing = request.getParameter("genreShowing");
         String genreUpcoming = request.getParameter("genreUpcoming");
+        String searchKeyword = request.getParameter("search");
         
         List<Genre> genreList = genreDAO.getAllGenres();
         request.setAttribute("genreList", genreList);
         
-        // 2. Đặt Paging là 12 phim 1 trang
         int pageSize = 12;
         
         // update: Fetch showing and upcoming lists simultaneously for UC-11 UI
@@ -36,18 +35,18 @@ public class HomeController extends HttpServlet {
         if (request.getParameter("pageShowing") != null) {
             try { pageShowing = Integer.parseInt(request.getParameter("pageShowing")); } catch (Exception e) {}
         }
-        int totalShowing = movieDAO.getTotalPublicMovies("showing", genreShowing);
+        int totalShowing = movieDAO.getTotalPublicMovies("showing", genreShowing, searchKeyword);
         int totalPagesShowing = (int) Math.ceil((double) totalShowing / pageSize);
-        List<clsMovie> showingList = movieDAO.getPublicMoviesByPage("showing", (pageShowing - 1) * pageSize, pageSize, genreShowing);
+        List<clsMovie> showingList = movieDAO.getPublicMoviesByPage("showing", (pageShowing - 1) * pageSize, pageSize, genreShowing, searchKeyword);
         
         // ================= XỬ LÝ PHIM SẮP CHIẾU =================
         int pageUpcoming = 1;
         if (request.getParameter("pageUpcoming") != null) {
             try { pageUpcoming = Integer.parseInt(request.getParameter("pageUpcoming")); } catch (Exception e) {}
         }
-        int totalUpcoming = movieDAO.getTotalPublicMovies("upcoming", genreUpcoming);
+        int totalUpcoming = movieDAO.getTotalPublicMovies("upcoming", genreUpcoming, searchKeyword);
         int totalPagesUpcoming = (int) Math.ceil((double) totalUpcoming / pageSize);
-        List<clsMovie> upcomingList = movieDAO.getPublicMoviesByPage("upcoming", (pageUpcoming - 1) * pageSize, pageSize, genreUpcoming);
+        List<clsMovie> upcomingList = movieDAO.getPublicMoviesByPage("upcoming", (pageUpcoming - 1) * pageSize, pageSize, genreUpcoming, searchKeyword);
         // end update code
         
         // 3. Đẩy toàn bộ ra View
@@ -62,6 +61,7 @@ public class HomeController extends HttpServlet {
         
         request.setAttribute("genreShowing", genreShowing);
         request.setAttribute("genreUpcoming", genreUpcoming);
+        request.setAttribute("searchKeyword", searchKeyword);
         
         request.getRequestDispatcher("/home.jsp").forward(request, response);
     }
