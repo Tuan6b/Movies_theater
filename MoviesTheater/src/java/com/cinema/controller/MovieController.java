@@ -9,6 +9,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class MovieController extends HttpServlet {
 
@@ -45,6 +47,7 @@ public class MovieController extends HttpServlet {
                 List<clsMovie> movieList = movieDAO.getMoviesByFilter(filter);
                 request.setAttribute("movieList", movieList);
                 request.setAttribute("currentFilter", filter);
+                request.setAttribute("movieStats", movieDAO.getMovieStatistics());
                 request.getRequestDispatcher("manage_movie.jsp").forward(request, response);
             }
         } catch (Exception e) {
@@ -66,15 +69,6 @@ public class MovieController extends HttpServlet {
                 // UC-16: Toggle enable - disable movie
                 int movieId = Integer.parseInt(request.getParameter("movieId"));
                 
-                clsMovie existingMovie = movieDAO.getMovieById(movieId);
-                if (existingMovie != null && existingMovie.isActive()) {
-                    if (movieDAO.hasSchedule(movieId)) {
-                        request.getSession().setAttribute("error", "Lỗi: Chỉ phim chưa lên lịch mới có thể bị ẩn!");
-                        response.sendRedirect(request.getContextPath() + "/MovieController");
-                        return;
-                    }
-                }
-                
                 boolean isSuccess = movieDAO.toggleMovieStatus(movieId);
 
                 if (isSuccess) {
@@ -85,6 +79,30 @@ public class MovieController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/MovieController");
 
             } else if ("add".equals(action) || "edit".equals(action)) {
+                
+                if ("add".equals(action)) {
+                    boolean isEarlyRelease = request.getParameter("earlyRelease") != null;
+                    LocalDate releaseDateLocal = LocalDate.parse(request.getParameter("releaseDate"));
+                    LocalDate today = LocalDate.now();
+                    long diffDays = ChronoUnit.DAYS.between(today, releaseDateLocal);
+
+                    if (isEarlyRelease) {
+                        if (diffDays < 7) {
+                            request.setAttribute("error", "Lỗi: Suất chiếu sớm phải cách hiện tại ít nhất 7 ngày!");
+                            request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
+                            request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+                            return;
+                        }
+                    } else {
+                        if (diffDays < 30) {
+                            request.setAttribute("error", "Lỗi: Ngày khởi chiếu mặc định phải cách hiện tại ít nhất 30 ngày!");
+                            request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
+                            request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+                            return;
+                        }
+                    }
+                }
+
                 // use the same data for add and edit movie
                 String movieName = request.getParameter("movieName");
                 Date releaseDate = Date.valueOf(request.getParameter("releaseDate"));

@@ -72,7 +72,10 @@
                     <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
                         Xin chào, <strong>${sessionScope.account.fullName}</strong>
                     </span>
-                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
+                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost" style="margin-right: 8px;">Đăng xuất</a>
+                    <c:if test="${sessionScope.account.roleId >= 3}">
+                        <a href="${pageContext.request.contextPath}/manager" class="btn btn-primary">Quản Lý</a>
+                    </c:if>
                 </c:when>
                 <c:otherwise>
                     <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
