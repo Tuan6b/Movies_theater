@@ -133,14 +133,16 @@ public class EmployeeDAO {
     }
 
     public int add(Account account) {
-        String sqlAccount = "INSERT INTO Account (Email, Password, RoleID, IsBlocked) VALUES (?, ?, ?, 0)";
+        // Generate a random password; store plaintext back in account so servlet can show it once
+        String plainPassword = generatePassword(8);
+        String sqlAccount = "INSERT INTO Account (Email, Password, RoleID, IsBlocked, AccountStatus) VALUES (?, ?, ?, 0, 'pending')";
         String sqlProfile  = "INSERT INTO UserProfile (AccountID, FullName, PhoneNumber, Address, DoB) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(sqlAccount, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, account.getEmail());
-                ps.setString(2, PasswordHash.hash(account.getPassword()));
+                ps.setString(2, PasswordHash.hash(plainPassword));
                 ps.setInt(3, ROLE_EMPLOYEE);
                 ps.executeUpdate();
 
@@ -160,6 +162,7 @@ public class EmployeeDAO {
                             psP.executeUpdate();
                         }
                         conn.commit();
+                        account.setPassword(plainPassword);
                         return newId;
                     }
                 }
@@ -169,6 +172,16 @@ public class EmployeeDAO {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    private static String generatePassword(int length) {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        java.security.SecureRandom rng = new java.security.SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(rng.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     public boolean update(Account account) {

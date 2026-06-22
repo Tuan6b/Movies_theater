@@ -13,8 +13,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -245,6 +249,46 @@ public class WorkShiftDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public int bulkCreate(int empId, int year, int month, LocalTime start, LocalTime end) {
+        List<WorkShift> existing = getByEmployeeAndMonth(empId, year, month);
+        Set<LocalDate> occupied = new HashSet<>();
+        for (WorkShift ws : existing) {
+            if (ws.getStartTime() != null && ws.getStartTime().equals(start)) {
+                occupied.add(ws.getShiftDate());
+            }
+        }
+
+        LocalDate first = LocalDate.of(year, month, 1);
+        LocalDate last  = first.withDayOfMonth(first.lengthOfMonth());
+        LocalDate today = LocalDate.now();
+
+        String sql = "INSERT INTO WorkShift (EmployeeID, ShiftDate, StartTime, EndTime, Status) VALUES (?, ?, ?, ?, 'Scheduled')";
+        int created = 0;
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            conn.setAutoCommit(false);
+            for (LocalDate d = first; !d.isAfter(last); d = d.plusDays(1)) {
+                if (!d.isBefore(today) && !occupied.contains(d)) {
+                    ps.setInt(1, empId);
+                    ps.setDate(2, Date.valueOf(d));
+                    ps.setTime(3, Time.valueOf(start));
+                    ps.setTime(4, Time.valueOf(end));
+                    ps.addBatch();
+                    created++;
+                }
+            }
+            if (created > 0) {
+                ps.executeBatch();
+                conn.commit();
+            }
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+        return created;
     }
 
     public int countWorkingDays(int empId) {

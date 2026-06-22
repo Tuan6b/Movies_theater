@@ -17,6 +17,7 @@ public class Account {
     private String address;
     private String dateOfBirth;
     private int workingDays;
+    private boolean needsSetup;
     private String resetToken;
     private LocalDateTime resetTokenExpiry;
 
@@ -36,6 +37,9 @@ public class Account {
         this.fullName = fullName;
         this.phoneNumber = phoneNumber;
     }
+
+    public boolean isNeedsSetup() { return needsSetup; }
+    public void setNeedsSetup(boolean needsSetup) { this.needsSetup = needsSetup; }
 
     public String getResetToken() { return resetToken; }
     public void setResetToken(String resetToken) { this.resetToken = resetToken; }

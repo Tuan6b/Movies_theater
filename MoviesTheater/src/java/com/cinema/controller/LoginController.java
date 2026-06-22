@@ -7,6 +7,7 @@ package com.cinema.controller;
 import com.cinema.dao.AccountDAO;
 import com.cinema.dao.WorkShiftDAO;
 import com.cinema.model.Account;
+import com.cinema.util.SystemLogService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,9 +62,11 @@ public class LoginController extends HttpServlet {
                 return;
             }
 
-            Account account = accountDAO.login(email.trim(), password);
+            Account account = accountDAO.login(email.trim(), password.trim());
 
             if (account == null) {
+                SystemLogService.log(null, "LOGIN_FAILED",
+                        "Failed login attempt for email: " + email.trim(), request.getRemoteAddr());
                 request.setAttribute("error", "Email hoặc mật khẩu không đúng.");
                 request.setAttribute("email", email);
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
@@ -71,27 +74,33 @@ public class LoginController extends HttpServlet {
             }
 
             if (account.isIsBlocked()) {
+                SystemLogService.log(account.getAccountId(), "LOGIN_BLOCKED",
+                        "Blocked account login attempt: " + email.trim(), request.getRemoteAddr());
                 request.setAttribute("error", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
                 request.setAttribute("email", email);
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
                 return;
             }
 
-            // Employees can only log in during an active shift window
+            boolean noShift = false;
             if (account.getRoleId() == 3) {
                 WorkShiftDAO shiftDAO = new WorkShiftDAO();
-                if (!shiftDAO.hasActiveShift(account.getAccountId())) {
-                    request.setAttribute("error", "Bạn không có ca làm việc vào lúc này. Vui lòng đăng nhập trong giờ làm việc của bạn.");
-                    request.setAttribute("email", email);
-                    request.getRequestDispatcher("/login.jsp").forward(request, response);
-                    return;
+                if (shiftDAO.hasActiveShift(account.getAccountId())) {
+                    shiftDAO.checkIn(account.getAccountId());
+                } else {
+                    noShift = true;
                 }
-                // Auto mark Scheduled → Completed (check-in on login)
-                shiftDAO.checkIn(account.getAccountId());
             }
+
+            SystemLogService.log(account.getAccountId(), "LOGIN_SUCCESS",
+                    "User logged in: " + account.getEmail() + " (role " + account.getRoleId() + ")",
+                    request.getRemoteAddr());
 
             HttpSession session = request.getSession(true);
             session.setAttribute("account", account);
+            if (noShift) {
+                session.setAttribute("noShift", true);
+            }
 
             // Remember me
             // Setting session lifetime to 7 days (7 * 24 * 60 * 60) on server-side is a bad practice.
@@ -102,6 +111,13 @@ public class LoginController extends HttpServlet {
                 session.setMaxInactiveInterval(24 * 60 * 60); // 1 day
             } else {
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
+            }
+
+            // First-login: employee must complete profile setup before anything else
+            if (account.getRoleId() == 3 && account.isNeedsSetup()) {
+                session.removeAttribute("redirectAfterLogin");
+                response.sendRedirect(request.getContextPath() + "/employee/setup");
+                return;
             }
 
             String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");

@@ -146,7 +146,10 @@ public class EmployeeServlet extends HttpServlet {
 
         int newId = employeeDAO.add(account);
         if (newId > 0) {
-            request.getSession().setAttribute("flashSuccess", "Employee added successfully.");
+            // account.getPassword() now holds the auto-generated plaintext password
+            request.getSession().setAttribute("flashSuccess",
+                    "Tài khoản nhân viên đã được tạo. Mật khẩu tạm thời: " + account.getPassword()
+                    + " (Hãy thông báo cho nhân viên)");
         } else {
             request.getSession().setAttribute("flashError", "System error. Please try again.");
         }
@@ -203,12 +206,7 @@ public class EmployeeServlet extends HttpServlet {
     private Map<String, String> validateForCreate(Account account) {
         Map<String, String> errors = new LinkedHashMap<>();
         validateEmail(account.getEmail(), 0, errors);
-        validateFullName(account.getFullName(), errors);
-        if (account.getPassword() == null || account.getPassword().trim().isEmpty()) {
-            errors.put("password", "Password is required");
-        } else if (account.getPassword().trim().length() < 6) {
-            errors.put("password", "Password must be at least 6 characters");
-        }
+        // fullName and password are optional on create; employee fills them on first login
         return errors;
     }
 
