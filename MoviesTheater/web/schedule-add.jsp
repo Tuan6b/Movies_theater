@@ -90,13 +90,7 @@
                         <input class="cgv-input" type="time" name="startTime" required>
                     </div>
 
-                    <div class="cgv-field">
-                        <label class="cgv-label">Status</label>
-                        <select class="cgv-select" name="status">
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="status" value="Scheduled">
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
                         <button type="submit" class="btn--cgv">Add Schedule</button>

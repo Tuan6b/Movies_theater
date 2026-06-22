@@ -94,9 +94,11 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <c:if test="${s.status ne 'Ongoing' and s.status ne 'Finished'}">
+                                                <c:if test="${s.status eq 'Scheduled'}">
                                                     <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
                                                        class="btn--cgv-outline">Edit</a>
+                                                </c:if>
+                                                <c:if test="${s.status ne 'Ongoing'}">
                                                     <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
                                                        class="btn--cgv-outline"
                                                        style="color:var(--cgv-red);border-color:var(--cgv-red);"
@@ -104,12 +106,7 @@
                                                         Delete
                                                     </a>
                                                 </c:if>
-                                                <c:if test="${s.status eq 'Ongoing'}">
-                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Finished'}">
-                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Finished</span>
-                                                </c:if>
+                                                
                                             </div>
                                         </td>
                                     </tr>

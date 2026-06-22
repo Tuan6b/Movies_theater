@@ -50,7 +50,6 @@
             Genres
         </a>
 
-        <a href="${pageContext.request.contextPath}/manager/schedules"
         <a href="${pageContext.request.contextPath}/ScheduleController"
            class="cgv-nav-link ${activeNav eq 'schedules' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"

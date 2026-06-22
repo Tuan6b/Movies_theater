@@ -184,13 +184,31 @@ public class ScheduleController extends HttpServlet {
         response.sendRedirect("ScheduleController");
     }
 
-    /** Check if a schedule can be edited/deleted based on its computed status. */
+    /** Check if a schedule can be edited (only Scheduled). */
     private boolean isEditable(Schedule s) {
+        if ("Cancelled".equals(s.getStatus())) return false;
+        try {
+            String startDt = s.getShowDate() + "T" + s.getStartTime();
+            String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
+            LocalDateTime start = LocalDateTime.parse(startDt);
+            LocalDateTime end = LocalDateTime.parse(endDt);
+            LocalDateTime now = LocalDateTime.now();
+            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing
+            if (!now.isBefore(end)) return false; // Finished
+        } catch (Exception e) { /* allow on parse failure */ }
+        return true;
+    }
+
+    /** Check if a schedule can be deleted (not Ongoing). */
+    private boolean isDeletable(Schedule s) {
         if ("Cancelled".equals(s.getStatus())) return true;
         try {
             String startDt = s.getShowDate() + "T" + s.getStartTime();
+            String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
             LocalDateTime start = LocalDateTime.parse(startDt);
-            if (!LocalDateTime.now().isBefore(start)) return false;
+            LocalDateTime end = LocalDateTime.parse(endDt);
+            LocalDateTime now = LocalDateTime.now();
+            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing only
         } catch (Exception e) { /* allow on parse failure */ }
         return true;
     }
@@ -202,7 +220,7 @@ public class ScheduleController extends HttpServlet {
 
         if (schedule != null && !isEditable(schedule)) {
             request.getSession().setAttribute("flashError",
-                "Cannot edit an ongoing or finished schedule.");
+                "Only scheduled schedules can be edited.");
             response.sendRedirect("ScheduleController");
             return;
         }
@@ -226,7 +244,7 @@ public class ScheduleController extends HttpServlet {
             Schedule existing = scheduleDAO.getScheduleById(id);
             if (existing != null && !isEditable(existing)) {
                 request.getSession().setAttribute("flashError",
-                    "Cannot edit an ongoing or finished schedule.");
+                    "Only scheduled schedules can be edited.");
                 response.sendRedirect("ScheduleController?page=" + request.getParameter("page"));
                 return;
             }
@@ -282,9 +300,9 @@ public class ScheduleController extends HttpServlet {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             Schedule schedule = scheduleDAO.getScheduleById(id);
-            if (schedule != null && !isEditable(schedule)) {
+            if (schedule != null && !isDeletable(schedule)) {
                 request.getSession().setAttribute("flashError",
-                    "Cannot delete an ongoing or finished schedule.");
+                    "Cannot delete an ongoing schedule.");
                 response.sendRedirect("ScheduleController?page=" + request.getParameter("page"));
                 return;
             }

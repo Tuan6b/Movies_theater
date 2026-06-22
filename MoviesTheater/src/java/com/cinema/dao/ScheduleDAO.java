@@ -50,7 +50,8 @@ public class ScheduleDAO {
     public List<Schedule> getSchedulesByMovieIdAndPage(int movieId, int offset, int noOfRecords) {
         List<Schedule> list = new ArrayList<>();
         String sql = "SELECT ScheduleID, MovieID, RoomID, BaseTicketPrice, StartTime, EndTime, Status FROM Schedule WHERE MovieID = ? ORDER BY StartTime OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, movieId);
             stm.setInt(2, offset);
             stm.setInt(3, noOfRecords);
@@ -81,7 +82,8 @@ public class ScheduleDAO {
 
     public int getTotalSchedulesCountByMovieId(int movieId) {
         String sql = "SELECT COUNT(*) FROM Schedule WHERE MovieID = ?";
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, movieId);
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
