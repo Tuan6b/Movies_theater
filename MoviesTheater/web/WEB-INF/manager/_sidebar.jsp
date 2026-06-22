@@ -6,11 +6,9 @@
     <c:set var="r" value="${sessionScope.account.roleId}" />
 
     <div class="cgv-sidebar-top">
-        <a href="${pageContext.request.contextPath}/">
-            <img class="cgv-logo"
-                 src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
-                 alt="CGV Cinema">
-        </a>
+        <img class="cgv-logo"
+             src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
+             alt="CGV Cinema">
     </div>
 
     <nav class="cgv-nav">
@@ -27,7 +25,7 @@
         </a>
 
         <c:if test="${r ge 3}">
-        <a href="${pageContext.request.contextPath}/manager/movies"
+        <a href="${pageContext.request.contextPath}/MovieController"
            class="cgv-nav-link ${activeNav eq 'movies' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -43,7 +41,17 @@
             Movies
         </a>
 
+        <a href="${pageContext.request.contextPath}/GenreController"
+           class="cgv-nav-link ${activeNav eq 'genres' ? 'active' : ''}">
+            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+            </svg>
+            Genres
+        </a>
+
         <a href="${pageContext.request.contextPath}/manager/schedules"
+        <a href="${pageContext.request.contextPath}/ScheduleController"
            class="cgv-nav-link ${activeNav eq 'schedules' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -87,16 +95,6 @@
                 <path d="M3 9h18M9 21V9"/>
             </svg>
             Rooms
-        </a>
-
-        <a href="${pageContext.request.contextPath}/manager/shifts"
-           class="cgv-nav-link ${activeNav eq 'shifts' ? 'active' : ''}">
-            <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Shifts
         </a>
 
         <a href="${pageContext.request.contextPath}/manager/analytics"

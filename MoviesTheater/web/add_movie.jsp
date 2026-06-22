@@ -16,41 +16,8 @@
         </style>
     </head>
     <body class="cgv-body">
-
-        <aside class="cgv-sidebar">
-            <div class="cgv-sidebar-top">
-                <a href="${pageContext.request.contextPath}/">
-                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV" class="cgv-logo">
-                </a>
-            </div>
-
-            <nav class="cgv-nav">
-                <a href="${pageContext.request.contextPath}/manager" class="cgv-nav-link">
-                    <i class="fa-solid fa-chart-pie cgv-nav-icon"></i> Dashboard
-                </a>
-                <a href="${pageContext.request.contextPath}/MovieController" class="cgv-nav-link active">
-                    <i class="fa-solid fa-film cgv-nav-icon"></i> Quản lý Phim
-                </a>
-                <a href="${pageContext.request.contextPath}/showtimes" class="cgv-nav-link">
-                    <i class="fa-regular fa-calendar-days cgv-nav-icon"></i> Lịch chiếu
-                </a>
-                <a href="${pageContext.request.contextPath}/GenreController" class="cgv-nav-link">
-                    <i class="fa-solid fa-tags cgv-nav-icon"></i> Thể loại
-                </a>
-                <a href="${pageContext.request.contextPath}/RoomServlet" class="cgv-nav-link">
-                    <i class="fa-solid fa-desktop cgv-nav-icon"></i> Quản lý Phòng
-                </a>
-            </nav>
-
-            <div class="cgv-sidebar-bottom">
-                <a href="#" class="cgv-nav-link">
-                    <i class="fa-solid fa-gear cgv-nav-icon"></i> Cài đặt
-                </a>
-                <a href="${pageContext.request.contextPath}/Logout" class="cgv-nav-link" style="color: var(--cgv-red);">
-                    <i class="fa-solid fa-arrow-right-from-bracket cgv-nav-icon"></i> Đăng xuất
-                </a>
-            </div>
-        </aside>
+        <% request.setAttribute("activeNav", "movies"); %>
+        <%@ include file="WEB-INF/manager/_sidebar.jsp" %>
 
         <main class="cgv-main">
 
@@ -72,7 +39,7 @@
                     <form action="${pageContext.request.contextPath}/MovieController" method="POST">
                         <input type="hidden" name="action" value="add">
                         
-                        <div class="cgv-form-grid">
+                        < class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
                                 <input type="text" name="movieName" class="cgv-input" required>
@@ -81,6 +48,13 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngày khởi chiếu *</label>
                                 <input type="date" id="releaseDate" name="releaseDate" class="cgv-input" required>
+                            </div>
+
+                            <div style="margin-top: 8px;">
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                                    <input type="checkbox" id="earlyRelease" name="earlyRelease" value="true" style="width: 14px; height: 14px;">
+                                    Phim chiếu đột xuất / Phim chiếu sớm
+                                </label>
                             </div>
 
                             <div class="cgv-field">
@@ -190,18 +164,35 @@
         </main>
 
         <script>
-            // Set min date for Release Date to 14 days from today
             document.addEventListener("DOMContentLoaded", function() {
-                var today = new Date();
-                var minAllowDate = new Date(today);
-                minAllowDate.setDate(minAllowDate.getDate() + 14);
-                
-                var dd = String(minAllowDate.getDate()).padStart(2, '0');
-                var mm = String(minAllowDate.getMonth() + 1).padStart(2, '0');
-                var yyyy = minAllowDate.getFullYear();
-                
-                var minDate = yyyy + '-' + mm + '-' + dd;
-                document.getElementById("releaseDate").setAttribute("min", minDate);
+                var form = document.querySelector("form");
+
+                form.addEventListener("submit", function(e) {
+                    var releaseDateInput = document.getElementById("releaseDate").value;
+                    var isEarlyRelease = document.getElementById("earlyRelease").checked;
+
+                    if (!releaseDateInput) return;
+
+                    var releaseDate = new Date(releaseDateInput);
+                    var today = new Date();
+                    releaseDate.setHours(0,0,0,0);
+                    today.setHours(0,0,0,0);
+
+                    var diffTime = releaseDate.getTime() - today.getTime();
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (isEarlyRelease) {
+                        if (diffDays < 7) {
+                            alert("Lỗi: Phim chiếu đột xuất phải có ngày cách khởi chiếu hiện tại ít nhất 7 ngày.");
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (diffDays < 30) {
+                            alert("Lỗi: Ngày khởi chiếu mặc định phải cách hiện tại ít nhất 30 ngày.");
+                            e.preventDefault();
+                        }
+                    }
+                });
             });
         </script>
     </body>

@@ -71,7 +71,6 @@
                                     <th>Room Number</th>
                                     <th>Type</th>
                                     <th>Capacity</th>
-                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -86,11 +85,6 @@
                                                     <span class="cgv-badge type-${room.roomType}">${room.roomType}</span>
                                                 </td>
                                                 <td>${room.capacity}</td>
-                                                <td>
-                                                    <span class="cgv-badge ${room.active ? 'active' : 'inactive'}">
-                                                        ${room.active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
                                                 <td>
                                                     <div style="display:flex;gap:8px;">
                                                         <a href="RoomServlet?action=edit&id=${room.roomId}&page=${currentPage}&filter=${currentFilter}"
@@ -114,7 +108,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="6" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                            <td colspan="5" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
                                                 No rooms found.
                                             </td>
                                         </tr>
