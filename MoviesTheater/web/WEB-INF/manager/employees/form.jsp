@@ -102,34 +102,11 @@
                                value="${employee.address}" placeholder="Enter home address">
                     </div>
 
-                    <c:choose>
-                        <c:when test="${formAction eq 'create'}">
-                            <div class="cgv-field">
-                                <label class="cgv-label">Password <span style="color:var(--cgv-red)">*</span></label>
-                                <input class="cgv-input" type="password" name="password"
-                                       placeholder="Set initial password (min 6 chars)">
-                                <c:if test="${not empty errors['password']}">
-                                    <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['password']}</div>
-                                </c:if>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <%-- Collapsible password change on edit --%>
-                            <div class="cgv-field" style="margin-top:8px;">
-                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--font-cgv-ui);font-size:12px;font-weight:600;color:rgba(94,63,58,0.7);">
-                                    <input type="checkbox" id="changePwdToggle"
-                                           onchange="document.getElementById('pwdSection').style.display=this.checked?'block':'none'"
-                                           style="width:14px;height:14px;">
-                                    Change password
-                                </label>
-                                <div id="pwdSection" style="display:none;margin-top:12px;padding:16px;background:#fafafb;border:1px solid var(--cgv-border);border-radius:8px;">
-                                    <input class="cgv-input" type="password" name="password"
-                                           placeholder="New password (min 6 chars)" style="margin-bottom:0;">
-                                    <div style="font-size:11px;color:rgba(94,63,58,0.5);margin-top:6px;">Leave blank to keep current password unchanged.</div>
-                                </div>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+                    <c:if test="${formAction eq 'create'}">
+                        <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 14px;font-size:12px;color:#713f12;">
+                            Mật khẩu tạm thời sẽ được tạo tự động và hiển thị sau khi lưu. Nhân viên sẽ được yêu cầu cập nhật thông tin cá nhân khi đăng nhập lần đầu.
+                        </div>
+                    </c:if>
 
                     <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
                         <button type="submit" class="btn--cgv">Save Employee</button>

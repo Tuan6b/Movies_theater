@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class AccountDAO {
 
     public Account login(String email, String password) {
-        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
                 + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
                 + "JOIN Role r ON a.RoleID = r.RoleID "
@@ -33,6 +33,7 @@ public class AccountDAO {
                 }
             }
         } catch (SQLException e) {
+            System.out.println("[LOGIN_DEBUG] SQLException: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -88,7 +89,7 @@ public class AccountDAO {
     }
 
     public Account getAccountById(int accountId) {
-        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
                 + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
                 + "JOIN Role r ON a.RoleID = r.RoleID "
@@ -110,7 +111,7 @@ public class AccountDAO {
     }
 
     public Account getAccountByEmail(String email) {
-        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
                 + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
                 + "JOIN Role r ON a.RoleID = r.RoleID "
@@ -159,7 +160,7 @@ public class AccountDAO {
     }
 
     public Account getAccountByResetToken(String token) {
-        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.CreatedAt, "
+        String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
                 + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
                 + "JOIN Role r ON a.RoleID = r.RoleID "
@@ -191,6 +192,18 @@ public class AccountDAO {
         return false;
     }
 
+    public boolean clearNeedsSetup(int accountId) {
+        String sql = "UPDATE Account SET AccountStatus = 'active' WHERE AccountID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Account mapAccount(ResultSet rs) throws SQLException {
         Account account = new Account();
         account.setAccountId(rs.getInt("AccountID"));
@@ -199,6 +212,7 @@ public class AccountDAO {
         account.setRoleId(rs.getInt("RoleID"));
         account.setRoleName(rs.getNString("RoleName"));
         account.setIsBlocked(rs.getBoolean("IsBlocked"));
+        account.setNeedsSetup("pending".equals(rs.getString("AccountStatus")));
 
         Timestamp ts = rs.getTimestamp("CreatedAt");
         if (ts != null) {
