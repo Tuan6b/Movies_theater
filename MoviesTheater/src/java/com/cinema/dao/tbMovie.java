@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Data Access Object for Movie entity. Follows NetBeans-based tbDAO naming
@@ -244,6 +246,32 @@ public class tbMovie {
             ex.printStackTrace();
         }
         return 0;
+    }
+
+    public Map<String, Integer> getMovieStatistics() {
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("upcoming", 0);
+        stats.put("showing", 0);
+        stats.put("ended", 0);
+        stats.put("hidden", 0);
+        
+        try (Connection conn = DBUtils.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie WHERE IsActive = 0"); ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) stats.put("hidden", rs.getInt(1));
+            }
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie WHERE IsActive = 1 AND ReleaseDate > CAST(GETDATE() AS DATE)"); ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) stats.put("upcoming", rs.getInt(1));
+            }
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND ReleaseDate <= CAST(GETDATE() AS DATE) AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()))"); ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) stats.put("showing", rs.getInt(1));
+            }
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND ReleaseDate <= CAST(GETDATE() AS DATE) AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())"); ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) stats.put("ended", rs.getInt(1));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return stats;
     }
 
     public List<clsMovie> getPublicMoviesByPage(String status, int offset, int limit, String genreId, String searchKeyword) {

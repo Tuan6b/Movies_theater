@@ -123,6 +123,17 @@
             border-color: #c8253a;
             box-shadow: 0 0 0 1px #c8253a20;
         }
+        .cal-day.past-disabled {
+            background: #e9e0dd;
+            border-color: #d8c2bf;
+            cursor: not-allowed;
+        }
+        .cal-day.past-disabled:hover {
+            background: #e9e0dd;
+        }
+        .cal-day.past-disabled .cal-day-num {
+            color: rgba(94,63,58,.3);
+        }
         .cal-day-num {
             font-family: var(--font-cgv-ui, sans-serif);
             font-size: 12px;
@@ -371,6 +382,39 @@
                 </div>
             </div>
             <div class="cgv-aside-divider">
+                <div class="cgv-aside-heading">PHÂN CA THEO THÁNG</div>
+                <c:choose>
+                    <c:when test="${selectedEmpId > 0}">
+                        <form method="post" action="${pageContext.request.contextPath}/manager/shifts"
+                              style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                            <input type="hidden" name="action" value="bulk_create">
+                            <input type="hidden" name="employeeId" value="${selectedEmpId}">
+                            <input type="hidden" name="year"  value="${selectedYear}">
+                            <input type="hidden" name="month" value="${selectedMonth}">
+                            <select class="cgv-select" name="shiftType" style="height:36px;">
+                                <option value="6H_SANG">Ca 6h Sáng (08:00–14:00)</option>
+                                <option value="6H_CHIEU">Ca 6h Chiều (14:00–20:00)</option>
+                                <option value="6H_TOI">Ca 6h Tối (20:00–23:59)</option>
+                                <option value="8H_SANG">Ca 8h Sáng (08:00–17:30)</option>
+                                <option value="8H_CHIEU">Ca 8h Chiều (13:00–22:30)</option>
+                            </select>
+                            <button type="submit" class="btn--cgv" style="width:100%;text-align:center;"
+                                    onclick="return confirm('Phân ca cho toàn bộ ${monthName}?\n(Bỏ qua các ngày đã có ca này và ngày đã qua)')">
+                                Phân ca ${monthName}
+                            </button>
+                        </form>
+                        <div style="font-size:11px;color:rgba(94,63,58,.4);margin-top:8px;">
+                            Tạo ca cho tất cả các ngày còn lại trong tháng, bỏ qua ngày đã có.
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <p style="font-size:12px;color:rgba(94,63,58,.5);margin-top:8px;">
+                            Chọn nhân viên để phân ca.
+                        </p>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+            <div class="cgv-aside-divider">
                 <div class="cgv-aside-heading">ĐIỀU HƯỚNG</div>
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
                     <a href="${pageContext.request.contextPath}/manager/employees"
@@ -493,10 +537,15 @@ function buildCalendar() {
             var mm = String(MONTH).padStart(2, '0');
             var dateStr = YEAR + '-' + mm + '-' + dd;
             var isToday = (dateStr === TODAY);
+            var isPast = (dateStr < TODAY);
             var dayShifts = shiftsByDate[dateStr] || [];
 
-            html += '<div class="cal-day' + (isToday ? ' today' : '') + '"'
-                  + ' onclick="addShift(\'' + dateStr + '\')">';
+            var dayClasses = 'cal-day';
+            if (isToday) dayClasses += ' today';
+            if (isPast) dayClasses += ' past-disabled';
+
+            html += '<div class="' + dayClasses + '"'
+                  + (isPast ? '' : ' onclick="addShift(\'' + dateStr + '\')"') + '>';
             html += '<div class="cal-day-num">' + dayNum + '</div>';
 
             dayShifts.forEach(function(s) {
@@ -508,9 +557,11 @@ function buildCalendar() {
                 html += '<div class="shift-badge" style="background:' + color + '"'
                       + ' onclick="event.stopPropagation();location.href=\'' + editUrl + '\'">';
                 html += '<span class="sb-time">' + timeLabel + '</span>';
-                html += '<button type="button" class="sb-del"'
-                      + ' onclick="event.stopPropagation();deleteShift(' + s.id + ',\'' + dateStr + '\')"'
-                      + ' title="Xóa ca">&#x2715;</button>';
+                if (!isPast) {
+                    html += '<button type="button" class="sb-del"'
+                          + ' onclick="event.stopPropagation();deleteShift(' + s.id + ',\'' + dateStr + '\')"'
+                          + ' title="Xóa ca">&#x2715;</button>';
+                }
                 html += '</div>';
             });
 
@@ -525,6 +576,7 @@ function buildCalendar() {
 /* ── Add shift (click on a day) ─────────────────────────────────────── */
 function addShift(dateStr) {
     if (EMP_ID <= 0) return;
+    if (dateStr < TODAY) return;
     document.getElementById('af-date').value = dateStr;
     document.getElementById('af-type').value = selectedType;
     document.getElementById('add-form').submit();
@@ -532,6 +584,10 @@ function addShift(dateStr) {
 
 /* ── Delete shift ───────────────────────────────────────────────────── */
 function deleteShift(shiftId, dateStr) {
+    if (dateStr < TODAY) {
+        alert('Không thể xóa ca làm việc trong quá khứ.');
+        return;
+    }
     if (!confirm('Xóa ca làm việc ngày ' + dateStr + '?')) return;
     var f = document.createElement('form');
     f.method = 'post';

@@ -113,37 +113,16 @@
 
                     <!-- Rooms — each with its own time slots -->
                     <div class="cgv-field">
-                        <label class="cgv-label">Rooms &amp; Start Times</label>
-                        <div style="padding-top:4px;">
-                            <c:forEach var="r" items="${rooms}" varStatus="loop">
-                                <div class="room-card" id="card_${loop.index}">
-                                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;">
-                                        <input type="checkbox" name="roomIds" value="${r.roomId}"
-                                               data-room-name="${r.roomNumber}"
-                                               onchange="toggleRoom(${loop.index}, this.checked)"
-                                               style="width:18px;height:18px;cursor:pointer;">
-                                        ${r.roomNumber}
-                                    </label>
+                        <label class="cgv-label">Start Time</label>
+                        <input class="cgv-input" type="time" name="startTime" required>
+                    </div>
 
-                                    <div class="room-times" id="times_${loop.index}" style="display:none;">
-                                        <div class="time-slots" id="slots_${loop.index}">
-                                            <div class="time-row">
-                                                <input class="cgv-input" type="time" name="startTime_${r.roomId}" required disabled
-                                                       oninput="updateEndTime(this)">
-                                                <span class="end-preview" style="font-size:13px;color:rgba(94,63,58,0.6);white-space:nowrap;min-width:80px;"></span>
-                                                <button type="button" class="btn--cgv-outline remove-time-btn"
-                                                        onclick="this.parentElement.remove()"
-                                                        style="padding:6px 14px;font-size:13px;" title="Remove">✕</button>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn--cgv-outline" onclick="addTime(${loop.index}, ${r.roomId})"
-                                                style="margin-top:2px;font-size:13px;">
-                                            + Add Time
-                                        </button>
-                                    </div>
-                                </div>
-                            </c:forEach>
-                        </div>
+                    <div class="cgv-field">
+                        <label class="cgv-label">Status</label>
+                        <select class="cgv-select" name="status">
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
                     </div>
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
