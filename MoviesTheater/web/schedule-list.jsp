@@ -5,8 +5,10 @@
     request.setAttribute("activeNav", "schedules");
     String flashSuccess = (String) session.getAttribute("flashSuccess");
     String flashError = (String) session.getAttribute("flashError");
+    java.util.List<String> flashErrorList = (java.util.List<String>) session.getAttribute("flashErrorList");
     if (flashSuccess != null) { request.setAttribute("flashSuccess", flashSuccess); session.removeAttribute("flashSuccess"); }
     if (flashError != null) { request.setAttribute("flashError", flashError); session.removeAttribute("flashError"); }
+    if (flashErrorList != null) { request.setAttribute("flashErrorList", flashErrorList); session.removeAttribute("flashErrorList"); }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,12 +50,24 @@
                 <div style="background:#d4edda;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashSuccess}</div>
             </c:if>
             <c:if test="${not empty flashError}">
-                <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashError}</div>
+                <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:8px;">${flashError}</div>
+            </c:if>
+            <c:if test="${not empty flashErrorList}">
+                <div style="background:#fff3cd;color:#856404;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                    <c:forEach var="err" items="${flashErrorList}">
+                        <div style="margin:2px 0;">${err}</div>
+                    </c:forEach>
+                </div>
             </c:if>
 
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
-                    <span class="cgv-pill active">All Schedules</span>
+                    <c:forEach var="m" items="${movieList}">
+                        <a href="ScheduleController?movieId=${m.movieId}"
+                           class="cgv-pill ${m.movieId eq selectedMovieId ? 'active' : ''}">
+                            ${m.movieName}
+                        </a>
+                    </c:forEach>
                 </div>
                 <a href="ScheduleController?action=showAddForm<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>" class="btn--cgv" style="margin-left:auto;">
                     + Add Schedule
@@ -65,8 +79,8 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Movie ID</th>
-                            <th>Room ID</th>
+                            <th>Movie</th>
+                            <th>Room</th>
                             <th>Price</th>
                             <th>Date</th>
                             <th>Start</th>
@@ -81,9 +95,9 @@
                                 <c:forEach var="s" items="${scheduleList}" varStatus="st">
                                     <tr>
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
-                                        <td style="font-weight:600;">${s.movieID}</td>
-                                        <td>${s.roomID}</td>
-                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/></td>
+                                        <td style="font-weight:600;">${movieNameMap[s.movieID]}</td>
+                                        <td>${roomNameMap[s.roomID]}</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
                                         <td>${s.showDate}</td>
                                         <td>${s.startTime}</td>
                                         <td>${s.endTime}</td>
@@ -95,14 +109,14 @@
                                         <td>
                                             <div style="display:flex;gap:8px;">
                                                 <c:if test="${s.status eq 'Scheduled'}">
-                                                    <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                    <a href="ScheduleController?action=edit&id=${s.scheduleID}&movieId=${selectedMovieId}"
                                                        class="btn--cgv-outline">Edit</a>
                                                 </c:if>
                                                 <c:if test="${s.status ne 'Ongoing'}">
-                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&movieId=${selectedMovieId}"
                                                        class="btn--cgv-outline"
                                                        style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete schedule ${s.scheduleID}?')">
+                                                       onclick="return confirm('Delete this schedule?')">
                                                         Delete
                                                     </a>
                                                 </c:if>

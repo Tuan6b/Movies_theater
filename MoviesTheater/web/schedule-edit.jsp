@@ -19,7 +19,7 @@
         <h1 class="cgv-header-title">Edit Schedule</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
-                <a href="${pageContext.request.contextPath}/ScheduleController?page=${currentPage}"
+                <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
                    class="btn--cgv-outline" style="margin-right:8px;">
                     ← Back to Schedules
                 </a>
@@ -55,14 +55,10 @@
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="scheduleId" value="${schedule.scheduleID}">
 
+                    <input type="hidden" name="movieId" value="${schedule.movieID}">
                     <div class="cgv-field">
                         <label class="cgv-label">Movie</label>
-                        <select class="cgv-select" name="movieId" required>
-                            <option value="">-- Select Movie --</option>
-                            <c:forEach var="m" items="${movies}">
-                                <option value="${m.movieId}" ${m.movieId eq schedule.movieID ? 'selected' : ''}>${m.movieName}</option>
-                            </c:forEach>
-                        </select>
+                        <div style="padding:8px 0;font-weight:600;">${not empty editMovieName ? editMovieName : 'Movie #' + schedule.movieID}</div>
                     </div>
 
                     <div class="cgv-field">
@@ -103,7 +99,7 @@
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
                         <button type="submit" class="btn--cgv">Save Changes</button>
-                        <a href="${pageContext.request.contextPath}/ScheduleController?page=${currentPage}"
+                        <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
                            class="btn--cgv-outline">Cancel</a>
                     </div>
                 </form>
