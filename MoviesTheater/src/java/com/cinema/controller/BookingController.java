@@ -6,8 +6,12 @@ package com.cinema.controller;
 
 import com.cinema.dao.BookingScheduleDAO;
 import com.cinema.dao.BookingSeatDAO;
+import com.cinema.dao.FoodDAO;
+import com.cinema.dao.PromotionDAO;
 import com.cinema.model.BookingCart;
 import com.cinema.model.BookingScheduleView;
+import com.cinema.model.Food;
+import com.cinema.model.Promotion;
 import com.cinema.model.SeatView;
 
 import jakarta.servlet.ServletException;
@@ -19,18 +23,22 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * BookingController handles movie booking steps (seat selection).
  *
- * @author tuan6b
+ * @author TBinh
  */
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
 
     private final BookingSeatDAO seatDAO = new BookingSeatDAO();
     private final BookingScheduleDAO scheduleDAO = new BookingScheduleDAO();
+    private final FoodDAO foodDAO = new FoodDAO();
+    private final PromotionDAO promotionDAO = new PromotionDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -59,6 +67,12 @@ public class BookingController extends HttpServlet {
                 case "seat":
                     showSeatPage(request, response);
                     break;
+                case "food":
+                    showFoodPage(request, response);
+                    break;
+                case "checkout":
+                    showCheckoutPage(request, response);
+                    break;
                 default:
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
                     break;
@@ -68,6 +82,8 @@ public class BookingController extends HttpServlet {
             // POST Action routing
             if ("selectSeat".equals(action)) {
                 selectSeat(request, response);
+            } else if ("selectFood".equals(action)) {
+                selectFood(request, response);
             } else {
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
             }
@@ -126,8 +142,15 @@ public class BookingController extends HttpServlet {
                 return;
             }
 
+            if (seatIdValues.length > 8) {
+                request.setAttribute("error", "Bạn chỉ được chọn tối đa 8 ghế cho mỗi lần đặt vé.");
+                showSeatPage(request, response);
+                return;
+            }
+
             List<Integer> seatIds = new ArrayList<>();
             List<String> seatNames = new ArrayList<>();
+            double ticketTotal = 0;
 
             for (String seatIdRaw : seatIdValues) {
                 int seatId = Integer.parseInt(seatIdRaw);
@@ -140,9 +163,13 @@ public class BookingController extends HttpServlet {
 
                 seatIds.add(seatId);
                 seatNames.add(seatDAO.getSeatNameById(seatId));
-            }
 
-            double ticketTotal = schedule.getBaseTicketPrice() * seatIds.size();
+                String seatType = seatDAO.getSeatTypeById(seatId);
+                double seatPrice = "VIP".equalsIgnoreCase(seatType)
+                    ? schedule.getBaseTicketPrice() + 10000
+                    : schedule.getBaseTicketPrice();
+                ticketTotal += seatPrice;
+            }
 
             BookingCart cart = new BookingCart();
             cart.setScheduleId(scheduleId);
@@ -154,11 +181,83 @@ public class BookingController extends HttpServlet {
             session.setAttribute("bookingCart", cart);
             session.setAttribute("bookingSchedule", schedule);
 
-            response.sendRedirect(request.getContextPath() + "/food_selection.jsp");
+            response.sendRedirect(request.getContextPath() + "/booking?action=food");
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/showtimes.jsp");
         }
+    }
+
+    private void selectFood(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
+        BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+
+        if (cart == null || schedule == null) {
+            response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        List<Food> foodList = foodDAO.getAllActiveFoods();
+        Map<Integer, Integer> foodQuantities = new HashMap<>();
+        double foodTotal = 0;
+
+        for (Food food : foodList) {
+            String paramName = "qty_" + food.getFoodId();
+            String qtyRaw = request.getParameter(paramName);
+            if (qtyRaw != null) {
+                try {
+                    int qty = Integer.parseInt(qtyRaw);
+                    if (qty > 0) {
+                        foodQuantities.put(food.getFoodId(), qty);
+                        foodTotal += food.getPrice() * qty;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        cart.setFoodQuantities(foodQuantities);
+        cart.setFoodTotal(foodTotal);
+
+        session.setAttribute("bookingCart", cart);
+        response.sendRedirect(request.getContextPath() + "/booking?action=checkout");
+    }
+
+    private void showCheckoutPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
+        BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+
+        if (cart == null || schedule == null) {
+            response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        List<Food> foodList = foodDAO.getAllActiveFoods();
+        List<Promotion> promotions = promotionDAO.getActivePromotions();
+
+        request.setAttribute("foodList", foodList);
+        request.setAttribute("promotions", promotions);
+        request.getRequestDispatcher("checkout.jsp").forward(request, response);
+    }
+
+    private void showFoodPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
+        BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+
+        if (cart == null || schedule == null) {
+            response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        List<Food> foodList = foodDAO.getAllActiveFoods();
+        request.setAttribute("foodList", foodList);
+        request.getRequestDispatcher("food_selection.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
