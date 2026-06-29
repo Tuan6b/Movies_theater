@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="375" viewBox="0 0 250 375">
+  <rect width="250" height="375" fill="#2b2b2b" rx="8"/>
+  <text x="125" y="180" text-anchor="middle" fill="#e71a0f" font-size="40" font-family="Arial,sans-serif" font-weight="bold">CGV</text>
+  <text x="125" y="205" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="14">No Poster</text>
+</svg>

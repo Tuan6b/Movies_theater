@@ -113,16 +113,25 @@
 
                     <!-- Rooms — each with its own time slots -->
                     <div class="cgv-field">
-                        <label class="cgv-label">Start Time</label>
-                        <input class="cgv-input" type="time" name="startTime" required>
-                    </div>
-
-                    <div class="cgv-field">
-                        <label class="cgv-label">Status</label>
-                        <select class="cgv-select" name="status">
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <label class="cgv-label">Rooms & Start Times</label>
+                        <c:forEach var="r" items="${rooms}" varStatus="loop">
+                            <div class="room-card" id="card_${loop.index}">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                    <input type="checkbox" name="roomIds" value="${r.roomId}"
+                                           data-room-name="${r.roomNumber}"
+                                           onchange="toggleRoom(${loop.index}, this.checked)">
+                                    <span style="font-weight:600;">${r.roomNumber}</span>
+                                </label>
+                                <div class="room-times" id="times_${loop.index}" style="display:none;">
+                                    <div id="slots_${loop.index}"></div>
+                                    <button type="button" class="btn--cgv-outline"
+                                            onclick="addTime(${loop.index}, ${r.roomId})"
+                                            style="font-size:13px;padding:6px 14px;margin-top:4px;">
+                                        + Add showtime
+                                    </button>
+                                </div>
+                            </div>
+                        </c:forEach>
                     </div>
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
