@@ -143,8 +143,9 @@
                                                         </c:when>
                                                         <c:otherwise>P - Phổ biến</c:otherwise>
                                                     </c:choose>
-                                                    • Khởi chiếu: ${m.releaseDate}
-                                                    <br>
+                                                    <small class="text-muted d-block mt-1">
+                                                    Khởi chiếu: ${m.dateAdded}
+                                                </small>
                                                     <c:choose>
                                                         <c:when test="${not empty m.trailer}">
                                                             <a href="${m.trailer}" target="_blank"
