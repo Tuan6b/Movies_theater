@@ -6,8 +6,10 @@
     request.setAttribute("activeNav", "schedules");
     String flashSuccess = (String) session.getAttribute("flashSuccess");
     String flashError = (String) session.getAttribute("flashError");
+    java.util.List<String> flashErrorList = (java.util.List<String>) session.getAttribute("flashErrorList");
     if (flashSuccess != null) { request.setAttribute("flashSuccess", flashSuccess); session.removeAttribute("flashSuccess"); }
     if (flashError != null) { request.setAttribute("flashError", flashError); session.removeAttribute("flashError"); }
+    if (flashErrorList != null) { request.setAttribute("flashErrorList", flashErrorList); session.removeAttribute("flashErrorList"); }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,12 +71,24 @@
                 <div style="background:#d4edda;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashSuccess}</div>
             </c:if>
             <c:if test="${not empty flashError}">
-                <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashError}</div>
+                <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:8px;">${flashError}</div>
+            </c:if>
+            <c:if test="${not empty flashErrorList}">
+                <div style="background:#fff3cd;color:#856404;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                    <c:forEach var="err" items="${flashErrorList}">
+                        <div style="margin:2px 0;">${err}</div>
+                    </c:forEach>
+                </div>
             </c:if>
 
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
-                    <span class="cgv-pill active">All Schedules</span>
+                    <c:forEach var="m" items="${movieList}">
+                        <a href="ScheduleController?movieId=${m.movieId}"
+                           class="cgv-pill ${m.movieId eq selectedMovieId ? 'active' : ''}">
+                            ${m.movieName}
+                        </a>
+                    </c:forEach>
                 </div>
                 <a href="ScheduleController?action=showAddForm<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>" class="btn--cgv" style="margin-left:auto;">
                     + Add Schedule

@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.cinema.model.BookingScheduleView,com.cinema.model.SeatView" %>
 <%@ page import="java.util.List" %>
@@ -130,16 +127,17 @@
 
                             String seatName = seat.getSeatName();
                             String seatClass = seat.isBooked() ? "booked" : (seat.getSeatType().equalsIgnoreCase("VIP") ? "vip" : "normal");
+                            double seatPrice = seat.getSeatType().equalsIgnoreCase("VIP") ? schedule.getBaseTicketPrice() + 10000 : schedule.getBaseTicketPrice();
                     %>
                             <label class="seat <%= seatClass %>"
                                    data-seat-name="<%= seatName %>"
-                                   data-price="<%= schedule.getBaseTicketPrice() %>">
+                                   data-price="<%= (int) seatPrice %>">
 
                                 <input type="checkbox"
                                        name="seatIds"
                                        value="<%= seat.getSeatId() %>"
                                        data-seat-name="<%= seatName %>"
-                                       data-price="<%= schedule.getBaseTicketPrice() %>"
+                                       data-price="<%= (int) seatPrice %>"
                                        <%= seat.isBooked() ? "disabled" : "" %>>
 
                                 <span><%= seat.getColNumber() %></span>
@@ -166,6 +164,7 @@
                 <div class="selected-info">
                     <p>Ghế đã chọn</p>
                     <strong id="selectedSeatsText">Chưa chọn ghế</strong>
+                    <span id="selectedCount" class="seat-count-badge">0</span>
                 </div>
 
                 <div class="price-info">
@@ -202,11 +201,14 @@
     const seatForm = document.getElementById("seatForm");
     const checkboxes = document.querySelectorAll("input[name='seatIds']");
     const selectedSeatsText = document.getElementById("selectedSeatsText");
+    const selectedCount = document.getElementById("selectedCount");
     const totalPriceText = document.getElementById("totalPriceText");
 
     function formatMoney(value) {
         return new Intl.NumberFormat("vi-VN").format(value) + " đ";
     }
+
+    const MAX_SEATS = 8;
 
     function updateSelectedSeats() {
         let selectedSeats = [];
@@ -221,15 +223,26 @@
 
         if (selectedSeats.length === 0) {
             selectedSeatsText.innerText = "Chưa chọn ghế";
+            selectedCount.innerText = "0";
         } else {
             selectedSeatsText.innerText = selectedSeats.join(", ");
+            selectedCount.innerText = selectedSeats.length;
         }
 
         totalPriceText.innerText = formatMoney(total);
     }
 
     checkboxes.forEach(function (checkbox) {
-        checkbox.addEventListener("change", updateSelectedSeats);
+        checkbox.addEventListener("change", function (event) {
+            if (checkbox.checked) {
+                let checkedCount = document.querySelectorAll("input[name='seatIds']:checked").length;
+                if (checkedCount > MAX_SEATS) {
+                    checkbox.checked = false;
+                    alert("Bạn chỉ được chọn tối đa " + MAX_SEATS + " ghế cho mỗi lần đặt vé.");
+                }
+            }
+            updateSelectedSeats();
+        });
     });
 
     seatForm.addEventListener("submit", function (event) {

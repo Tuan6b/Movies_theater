@@ -85,6 +85,22 @@ public class BookingSeatDAO {
         return true;
     }
 
+    public String getSeatTypeById(int seatId) {
+        String sql = "SELECT SeatType FROM Seat WHERE SeatID = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("SeatType");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Normal";
+    }
+
     public String getSeatNameById(int seatId) {
         String sql =
                 "SELECT RowChar, ColNumber " +

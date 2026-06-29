@@ -140,6 +140,28 @@ public class PromotionDAO {
     }
 
     /**
+     * Retrieve all currently active promotions for the checkout dropdown.
+     */
+    public List<Promotion> getActivePromotions() {
+        List<Promotion> list = new ArrayList<>();
+        String sql = "SELECT * FROM Promotion "
+                + "WHERE IsActive = 1 AND Status = 'active' "
+                + "AND StartDate <= GETDATE() AND EndDate >= GETDATE() "
+                + "AND (UsageLimit IS NULL OR UsedCount < UsageLimit) "
+                + "ORDER BY DiscountValue DESC";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
      * Find a promotion by its ID.
      */
     public Promotion findById(int id) throws SQLException {

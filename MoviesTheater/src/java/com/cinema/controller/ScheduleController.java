@@ -63,7 +63,9 @@ public class ScheduleController extends HttpServlet {
                 page = 1;
             }
         }
-        
+
+        List<clsMovie> allMovies = movieDAO.getAllActiveMovies();
+
         String movieIdParam = request.getParameter("movieId");
         Integer movieId = null;
         if (movieIdParam != null && !movieIdParam.isEmpty()) {
@@ -72,11 +74,14 @@ public class ScheduleController extends HttpServlet {
             } catch (NumberFormatException e) {
             }
         }
+        if (movieId == null && !allMovies.isEmpty()) {
+            movieId = allMovies.get(0).getMovieId();
+        }
 
         int offset = (page - 1) * recordsPerPage;
         List<Schedule> scheduleList;
         int totalRecords;
-        
+
         if (movieId != null) {
             scheduleList = scheduleDAO.getSchedulesByMovieIdAndPage(movieId, offset, recordsPerPage);
             totalRecords = scheduleDAO.getTotalSchedulesCountByMovieId(movieId);
@@ -85,7 +90,7 @@ public class ScheduleController extends HttpServlet {
             scheduleList = scheduleDAO.getSchedulesByPage(offset, recordsPerPage);
             totalRecords = scheduleDAO.getTotalSchedulesCount();
         }
-        
+
         int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
         
         request.setAttribute("scheduleStats", scheduleDAO.getScheduleStatistics(movieId));
@@ -123,27 +128,71 @@ public class ScheduleController extends HttpServlet {
         }
         request.setAttribute("movieNames", movieNames);
 
+        LocalDateTime now = LocalDateTime.now();
+        for (Schedule s : scheduleList) {
+            if ("Cancelled".equals(s.getStatus())) continue;
+            String startStr = s.getShowDate() + "T" + s.getStartTime();
+            if (!startStr.contains("T") || startStr.length() < 16) continue;
+            String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
+            if (!endDt.contains("T") || endDt.length() < 16) continue;
+            try {
+                LocalDateTime start = LocalDateTime.parse(startStr);
+                LocalDateTime end = LocalDateTime.parse(endDt);
+                if (now.isAfter(end)) {
+                    s.setStatus("Finished");
+                } else if (now.isAfter(start) && now.isBefore(end)) {
+                    s.setStatus("Ongoing");
+                } else {
+                    s.setStatus("Scheduled");
+                }
+            } catch (Exception e) {
+                System.out.println("Skip schedule " + s.getScheduleID() + " due to parse error: " + startStr + " / " + endDt);
+            }
+        }
+
+        request.setAttribute("movieList", allMovies);
         request.setAttribute("scheduleList", scheduleList);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
+
+        java.util.Map<Integer, String> roomNameMap = new java.util.HashMap<>();
+        java.util.Map<Integer, String> movieNameMap = new java.util.HashMap<>();
+        List<Room> allRoomList = roomDAO.getAllRooms();
+        for (Room r : allRoomList) roomNameMap.put(r.getRoomId(), r.getRoomNumber());
+        for (clsMovie m : allMovies) movieNameMap.put(m.getMovieId(), m.getMovieName());
+        request.setAttribute("roomNameMap", roomNameMap);
+        request.setAttribute("movieNameMap", movieNameMap);
 
         request.getRequestDispatcher("schedule-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<clsMovie> movies = movieDAO.getAllActiveMovies();
+        String movieIdParam = request.getParameter("movieId");
+        int movieId = 0;
+        if (movieIdParam != null && !movieIdParam.isEmpty()) {
+            movieId = Integer.parseInt(movieIdParam);
+        }
+        clsMovie movie = movieDAO.getMovieById(movieId);
+        if (movie == null) {
+            List<clsMovie> allMovies = movieDAO.getAllActiveMovies();
+            if (!allMovies.isEmpty()) {
+                movie = allMovies.get(0);
+            }
+        }
         List<Room> rooms = roomDAO.getAllRooms();
-        request.setAttribute("movies", movies);
+
+        request.setAttribute("movie", movie);
         request.setAttribute("rooms", rooms);
         request.getRequestDispatcher("schedule-add.jsp").forward(request, response);
     }
 
     private void addSchedule(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        int movieId = 0;
         try {
-            int movieId = Integer.parseInt(request.getParameter("movieId"));
-            int roomId = Integer.parseInt(request.getParameter("roomId"));
+            movieId = Integer.parseInt(request.getParameter("movieId"));
+            String[] roomIdArr = request.getParameterValues("roomIds");
             String showDate = request.getParameter("showDate");
             String startTime = request.getParameter("startTime");
             String status = request.getParameter("status");
@@ -183,8 +232,83 @@ public class ScheduleController extends HttpServlet {
             Schedule s = new Schedule(0, movieId, roomId, baseTicketPrice, showDate, startTimeOnly, endTime, endDate, status);
             boolean ok = scheduleDAO.addSchedule(s);
 
-            if (ok) {
-                request.getSession().setAttribute("flashSuccess", "Schedule added successfully.");
+            if (roomIdArr == null || roomIdArr.length == 0) {
+                request.getSession().setAttribute("flashError", "Please select at least one room.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
+
+            clsMovie movie = movieDAO.getMovieById(movieId);
+            if (movie == null) {
+                request.getSession().setAttribute("flashError", "Movie not found.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
+
+            int totalMinutes = movie.getDuration() + 15;
+            int created = 0;
+            int skipped = 0;
+            List<String> errors = new ArrayList<>();
+
+            List<Room> allRooms = roomDAO.getAllRooms();
+            java.util.Map<Integer, String> roomMap = new java.util.HashMap<>();
+            for (Room r : allRooms) roomMap.put(r.getRoomId(), r.getRoomNumber());
+
+            for (String roomIdStr : roomIdArr) {
+                int roomId = Integer.parseInt(roomIdStr);
+                String roomLabel = roomMap.getOrDefault(roomId, "Room " + roomId);
+
+                String[] startTimes = request.getParameterValues("startTime_" + roomId);
+                if (startTimes == null || startTimes.length == 0) {
+                    errors.add(roomLabel + " — no start times, skipped.");
+                    skipped++;
+                    continue;
+                }
+
+                for (String startTime : startTimes) {
+                    String cleanStart = startTime;
+                    if (cleanStart == null || cleanStart.trim().isEmpty()) continue;
+                    if (cleanStart.contains(".")) cleanStart = cleanStart.substring(0, cleanStart.indexOf('.'));
+                    if (cleanStart.length() > 5) cleanStart = cleanStart.substring(0, 5);
+
+                    LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + cleanStart + ":00");
+                    LocalDateTime endDT = startDT.plusMinutes(totalMinutes);
+                    String endDate = endDT.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    String endTime = endDT.format(DateTimeFormatter.ofPattern("HH:mm"));
+
+                    String startDateTime = showDate + " " + cleanStart;
+                    String endDateTime = endDate + " " + endTime;
+
+                    if (scheduleDAO.hasOverlappingSchedule(roomId, startDateTime, endDateTime, -1)) {
+                        errors.add(roomLabel + " @ " + cleanStart + " — time conflict, skipped.");
+                        skipped++;
+                        continue;
+                    }
+
+                    Schedule s = new Schedule(0, movieId, roomId, baseTicketPrice,
+                            showDate, cleanStart, endTime, endDate, status);
+                    if (scheduleDAO.addSchedule(s)) {
+                        created++;
+                    } else {
+                        errors.add(roomLabel + " @ " + cleanStart + " — DB error, skipped.");
+                        skipped++;
+                    }
+                }
+            }
+
+            StringBuilder msg = new StringBuilder();
+            if (created > 0) {
+                msg.append(created).append(" schedule(s) created.");
+            }
+            if (skipped > 0) {
+                if (msg.length() > 0) msg.append(" ");
+                msg.append(skipped).append(" skipped.");
+            }
+            if (!errors.isEmpty()) {
+                request.getSession().setAttribute("flashErrorList", errors);
+                request.getSession().setAttribute("flashError", msg.toString());
+            } else if (created > 0) {
+                request.getSession().setAttribute("flashSuccess", msg.toString());
             } else {
                 request.getSession().setAttribute("flashError", "Failed to add schedule. Check server logs.");
             }
@@ -194,7 +318,36 @@ public class ScheduleController extends HttpServlet {
             request.getSession().setAttribute("flashError", "Error: " + e.getMessage());
         }
 
-        response.sendRedirect("ScheduleController");
+        response.sendRedirect("ScheduleController?movieId=" + movieId);
+    }
+
+    /** Check if a schedule can be edited (only Scheduled). */
+    private boolean isEditable(Schedule s) {
+        if ("Cancelled".equals(s.getStatus())) return false;
+        try {
+            String startDt = s.getShowDate() + "T" + s.getStartTime();
+            String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
+            LocalDateTime start = LocalDateTime.parse(startDt);
+            LocalDateTime end = LocalDateTime.parse(endDt);
+            LocalDateTime now = LocalDateTime.now();
+            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing
+            if (!now.isBefore(end)) return false; // Finished
+        } catch (Exception e) { /* allow on parse failure */ }
+        return true;
+    }
+
+    /** Check if a schedule can be deleted (not Ongoing). */
+    private boolean isDeletable(Schedule s) {
+        if ("Cancelled".equals(s.getStatus())) return true;
+        try {
+            String startDt = s.getShowDate() + "T" + s.getStartTime();
+            String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
+            LocalDateTime start = LocalDateTime.parse(startDt);
+            LocalDateTime end = LocalDateTime.parse(endDt);
+            LocalDateTime now = LocalDateTime.now();
+            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing only
+        } catch (Exception e) { /* allow on parse failure */ }
+        return true;
     }
 
     /** Check if a schedule can be edited/deleted based on its computed status. */
@@ -222,18 +375,22 @@ public class ScheduleController extends HttpServlet {
 
         List<clsMovie> movies = movieDAO.getAllActiveMovies();
         List<Room> rooms = roomDAO.getAllRooms();
+        String movieName = "";
+        if (schedule != null) {
+            clsMovie m = movieDAO.getMovieById(schedule.getMovieID());
+            if (m != null) movieName = m.getMovieName();
+        }
 
-        String currentPage = request.getParameter("page");
-        request.setAttribute("currentPage", currentPage);
         request.setAttribute("schedule", schedule);
-        request.setAttribute("movies", movies);
         request.setAttribute("rooms", rooms);
+        request.setAttribute("editMovieName", movieName);
 
         request.getRequestDispatcher("schedule-edit.jsp").forward(request, response);
     }
 
     private void updateSchedule(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        int movieId = 0;
         try {
             int id = Integer.parseInt(request.getParameter("scheduleId"));
             Schedule existing = scheduleDAO.getScheduleById(id);
@@ -285,13 +442,12 @@ public class ScheduleController extends HttpServlet {
             request.getSession().setAttribute("flashError", "Error: " + e.getMessage());
         }
 
-        String page = request.getParameter("page");
-        if (page == null || page.isEmpty()) page = "1";
-        response.sendRedirect("ScheduleController?page=" + page);
+        response.sendRedirect("ScheduleController?movieId=" + movieId);
     }
 
     private void deleteSchedule(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        int movieId = 0;
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             Schedule schedule = scheduleDAO.getScheduleById(id);
@@ -314,9 +470,7 @@ public class ScheduleController extends HttpServlet {
             request.getSession().setAttribute("flashError", "Error: " + e.getMessage());
         }
 
-        String page = request.getParameter("page");
-        if (page == null || page.isEmpty()) page = "1";
-        response.sendRedirect("ScheduleController?page=" + page);
+        response.sendRedirect("ScheduleController?movieId=" + movieId);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
