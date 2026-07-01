@@ -11,7 +11,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ManagerServlet extends HttpServlet {
 
@@ -30,8 +32,85 @@ public class ManagerServlet extends HttpServlet {
         if ("/analytics".equals(path)) {
             showAnalytics(request, response);
         } else {
-            request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
+            showDashboard(request, response);
         }
+    }
+
+    private void showDashboard(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        double revenueToday = 0;
+        int ticketsToday = 0;
+        int screeningsToday = 0;
+        int activePromos = 0;
+
+        String sqlRevToday = "SELECT COALESCE(SUM(i.TotalAmount),0) FROM Invoice i "
+                + "WHERE i.PaymentStatus='Paid' AND CAST(i.CreatedAt AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlRevToday);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) revenueToday = rs.getDouble(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        String sqlTktToday = "SELECT COUNT(t.TicketID) FROM Ticket t JOIN Invoice i ON t.InvoiceID=i.InvoiceID "
+                + "WHERE i.PaymentStatus='Paid' AND CAST(i.CreatedAt AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlTktToday);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) ticketsToday = rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        String sqlScreeningsToday = "SELECT COUNT(*) FROM Schedule WHERE CAST(StartTime AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlScreeningsToday);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) screeningsToday = rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        try {
+            activePromos = new com.cinema.dao.PromotionDAO().countTotal(null, null, "active");
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 7-day revenue chart, zero-filled so every day appears even with no invoices
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate start = today.minusDays(6);
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+        Map<java.time.LocalDate, Double> revByDay = new LinkedHashMap<>();
+        for (java.time.LocalDate d = start; !d.isAfter(today); d = d.plusDays(1)) {
+            revByDay.put(d, 0.0);
+        }
+
+        String sqlChart = "SELECT CAST(i.CreatedAt AS DATE) AS D, SUM(i.TotalAmount) AS Rev "
+                + "FROM Invoice i WHERE i.PaymentStatus='Paid' "
+                + "AND CAST(i.CreatedAt AS DATE) BETWEEN ? AND ? "
+                + "GROUP BY CAST(i.CreatedAt AS DATE)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlChart)) {
+            ps.setDate(1, java.sql.Date.valueOf(start));
+            ps.setDate(2, java.sql.Date.valueOf(today));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    revByDay.put(rs.getDate("D").toLocalDate(), rs.getDouble("Rev"));
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        List<String> chartLabels = new ArrayList<>();
+        List<Double> chartValues = new ArrayList<>();
+        for (Map.Entry<java.time.LocalDate, Double> entry : revByDay.entrySet()) {
+            chartLabels.add(entry.getKey().format(fmt));
+            chartValues.add(entry.getValue());
+        }
+        Map<String, Object> chartMap = new LinkedHashMap<>();
+        chartMap.put("labels", chartLabels);
+        chartMap.put("values", chartValues);
+
+        request.setAttribute("dashRevenueToday",    String.format("%,.0f", revenueToday));
+        request.setAttribute("dashTicketsToday",    ticketsToday);
+        request.setAttribute("dashScreeningsToday", screeningsToday);
+        request.setAttribute("dashActivePromos",    activePromos);
+        request.setAttribute("revenueChartJson",    new com.google.gson.Gson().toJson(chartMap));
+
+        request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
     }
 
     private void showAnalytics(HttpServletRequest request, HttpServletResponse response)

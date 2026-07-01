@@ -33,7 +33,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EmployeeDashboardServlet extends HttpServlet {
 
@@ -163,6 +165,25 @@ public class EmployeeDashboardServlet extends HttpServlet {
         request.setAttribute("empActiveMovies", activeMovies);
         request.setAttribute("empShiftStatus", noShift ? "Ngoài ca" : "Đang ca");
         request.setAttribute("noShift", noShift);
+
+        Account emp = (Account) request.getSession().getAttribute("account");
+        int sang = 0, chieu = 0, toi = 0;
+        if (emp != null) {
+            java.time.LocalDate now = java.time.LocalDate.now();
+            List<WorkShift> myShifts = shiftDAO.getByEmployeeAndMonth(emp.getAccountId(), now.getYear(), now.getMonthValue());
+            for (WorkShift ws : myShifts) {
+                java.time.LocalTime st = ws.getStartTime();
+                if (st == null) continue;
+                int hour = st.getHour();
+                if (hour < 12) sang++;
+                else if (hour < 18) chieu++;
+                else toi++;
+            }
+        }
+        Map<String, Object> shiftChartMap = new LinkedHashMap<>();
+        shiftChartMap.put("labels", java.util.Arrays.asList("Ca sáng", "Ca chiều", "Ca tối"));
+        shiftChartMap.put("values", java.util.Arrays.asList(sang, chieu, toi));
+        request.setAttribute("shiftChartJson", new com.google.gson.Gson().toJson(shiftChartMap));
 
         request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
     }

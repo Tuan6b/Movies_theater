@@ -41,8 +41,63 @@ public class AdminServlet extends HttpServlet {
                 }
                 break;
             default:
-                request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
+                showDashboard(request, response);
         }
+    }
+
+    private void showDashboard(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int totalUsers = 0;
+        int totalStaff = 0;
+
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Account WHERE RoleID = 2");
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) totalUsers = rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Account WHERE RoleID IN (3,4)");
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) totalStaff = rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 7-day system activity chart, zero-filled
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate start = today.minusDays(6);
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+        Map<java.time.LocalDate, Integer> countByDay = new LinkedHashMap<>();
+        for (java.time.LocalDate d = start; !d.isAfter(today); d = d.plusDays(1)) {
+            countByDay.put(d, 0);
+        }
+
+        String sqlChart = "SELECT CAST(CreatedAt AS DATE) AS D, COUNT(*) AS Cnt FROM SystemLog "
+                + "WHERE CAST(CreatedAt AS DATE) BETWEEN ? AND ? GROUP BY CAST(CreatedAt AS DATE)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlChart)) {
+            ps.setDate(1, java.sql.Date.valueOf(start));
+            ps.setDate(2, java.sql.Date.valueOf(today));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    countByDay.put(rs.getDate("D").toLocalDate(), rs.getInt("Cnt"));
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        List<String> chartLabels = new ArrayList<>();
+        List<Integer> chartValues = new ArrayList<>();
+        for (Map.Entry<java.time.LocalDate, Integer> entry : countByDay.entrySet()) {
+            chartLabels.add(entry.getKey().format(fmt));
+            chartValues.add(entry.getValue());
+        }
+        Map<String, Object> chartMap = new LinkedHashMap<>();
+        chartMap.put("labels", chartLabels);
+        chartMap.put("values", chartValues);
+
+        request.setAttribute("adminTotalUsers",   totalUsers);
+        request.setAttribute("adminTotalStaff",   totalStaff);
+        request.setAttribute("activityChartJson", new com.google.gson.Gson().toJson(chartMap));
+        request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
     }
 
     // ─── UC 51: System Logs ──────────────────────────────────────────────────
