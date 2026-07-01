@@ -192,6 +192,15 @@
         <servlet-name>ScheduleController</servlet-name>
         <url-pattern>/manager/schedules</url-pattern>
     </servlet-mapping>
+    
+        <servlet>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <servlet-class>com.cinema.controller.WorkShiftServlet</servlet-class>
+    </servlet>
+        <servlet-mapping>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <url-pattern>/manager/shifts</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

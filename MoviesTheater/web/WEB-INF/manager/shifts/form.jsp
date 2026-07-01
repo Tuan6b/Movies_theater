@@ -19,7 +19,7 @@
         <h1 class="cgv-header-title">Chỉnh Sửa Ca Làm Việc</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
-                <a href="${pageContext.request.contextPath}/manager/shifts?empId=${shift.employeeId}&year=${param.year}&month=${param.month}"
+                <a href="${pageContext.request.contextPath}/manager/shifts?shiftType=${param.shiftType}&year=${param.year}&month=${param.month}"
                    class="btn--cgv-outline" style="margin-right:8px;">
                     ← Quay lại lịch
                 </a>
@@ -76,8 +76,9 @@
                     <form method="post" action="${pageContext.request.contextPath}/manager/shifts">
                         <input type="hidden" name="action"  value="update">
                         <input type="hidden" name="shiftId" value="${shift.shiftId}">
-                        <input type="hidden" name="year"    value="${param.year}">
+                        <input type="hidden" name="year"      value="${param.year}">
                         <input type="hidden" name="month"   value="${param.month}">
+                        <input type="hidden" name="shiftType" value="${param.shiftType}">
 
                         <div class="cgv-field">
                             <label class="cgv-label">Trạng Thái</label>
@@ -96,7 +97,7 @@
 
                         <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
                             <button type="submit" class="btn--cgv">Lưu thay đổi</button>
-                            <a href="${pageContext.request.contextPath}/manager/shifts?empId=${shift.employeeId}&year=${param.year}&month=${param.month}"
+                            <a href="${pageContext.request.contextPath}/manager/shifts?shiftType=${param.shiftType}&year=${param.year}&month=${param.month}"
                                class="btn--cgv-outline">Hủy</a>
                         </div>
                     </form>

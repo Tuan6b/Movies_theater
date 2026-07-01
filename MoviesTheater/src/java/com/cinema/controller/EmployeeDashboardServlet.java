@@ -5,14 +5,18 @@ import com.cinema.dao.EmployeeDAO;
 import com.cinema.dao.PromotionDAO;
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.SeatDAO;
+import com.cinema.dao.ShiftExchangeDAO;
 import com.cinema.dao.TicketDAO;
+import com.cinema.dao.WorkShiftDAO;
 import com.cinema.dao.tbMovie;
 import com.cinema.dao.tbSchedule;
 import com.cinema.model.Account;
 import com.cinema.model.Promotion;
 import com.cinema.model.Room;
 import com.cinema.model.Seat;
+import com.cinema.model.ShiftExchangeRequest;
 import com.cinema.model.Ticket;
+import com.cinema.model.WorkShift;
 import com.cinema.model.clsMovie;
 import com.cinema.model.clsSchedule;
 import com.cinema.util.DBUtils;
@@ -33,16 +37,19 @@ import java.util.List;
 
 public class EmployeeDashboardServlet extends HttpServlet {
 
-    private static final String DASHBOARD_JSP = "/WEB-INF/employee/dashboard.jsp";
-    private static final String SCHEDULES_JSP = "/WEB-INF/employee/schedules.jsp";
-    private static final String TICKETS_JSP = "/WEB-INF/employee/tickets.jsp";
-    private static final String BOOK_JSP = "/WEB-INF/employee/book.jsp";
-    private static final String CHECKIN_JSP = "/WEB-INF/employee/checkin.jsp";
-    private static final String PROFILE_JSP = "/WEB-INF/employee/profile.jsp";
-    private static final String SETUP_JSP = "/WEB-INF/employee/setup.jsp";
+    private static final String DASHBOARD_JSP  = "/WEB-INF/employee/dashboard.jsp";
+    private static final String SCHEDULES_JSP  = "/WEB-INF/employee/schedules.jsp";
+    private static final String TICKETS_JSP    = "/WEB-INF/employee/tickets.jsp";
+    private static final String BOOK_JSP       = "/WEB-INF/employee/book.jsp";
+    private static final String CHECKIN_JSP    = "/WEB-INF/employee/checkin.jsp";
+    private static final String PROFILE_JSP    = "/WEB-INF/employee/profile.jsp";
+    private static final String SETUP_JSP      = "/WEB-INF/employee/setup.jsp";
+    private static final String MY_SHIFTS_JSP  = "/WEB-INF/employee/my-shifts.jsp";
 
-    private final AccountDAO accountDAO = new AccountDAO();
-    private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final AccountDAO      accountDAO      = new AccountDAO();
+    private final EmployeeDAO     employeeDAO     = new EmployeeDAO();
+    private final WorkShiftDAO    shiftDAO        = new WorkShiftDAO();
+    private final ShiftExchangeDAO exchangeDAO    = new ShiftExchangeDAO();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -100,6 +107,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "/setup":
                     showSetup(request, response);
                     break;
+                case "/my-shifts":
+                    showMyShifts(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -114,6 +124,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     break;
                 case "/setup":
                     handleSetup(request, response);
+                    break;
+                case "/my-shifts":
+                    handleMyShiftsPost(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -654,6 +667,114 @@ public class EmployeeDashboardServlet extends HttpServlet {
             request.setAttribute("error", "Có lỗi xảy ra. Vui lòng thử lại.");
             request.getRequestDispatcher(SETUP_JSP).forward(request, response);
         }
+    }
+
+    private void showMyShifts(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        Account emp = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (emp == null) { response.sendRedirect(request.getContextPath() + "/Login"); return; }
+
+        int empId = emp.getAccountId();
+        int year  = java.time.LocalDate.now().getYear();
+        int month = java.time.LocalDate.now().getMonthValue();
+
+        String yearStr  = request.getParameter("year");
+        String monthStr = request.getParameter("month");
+        if (yearStr  != null && !yearStr.isEmpty())  { try { year  = Integer.parseInt(yearStr);  } catch (NumberFormatException ignored) {} }
+        if (monthStr != null && !monthStr.isEmpty()) { try { month = Integer.parseInt(monthStr); } catch (NumberFormatException ignored) {} }
+        if (month < 1)  month = 1;
+        if (month > 12) month = 12;
+
+        List<WorkShift> myShifts = shiftDAO.getByEmployeeAndMonth(empId, year, month);
+        List<ShiftExchangeRequest> incoming = exchangeDAO.getIncoming(empId);
+        List<ShiftExchangeRequest> outgoing = exchangeDAO.getOutgoing(empId);
+        List<Account> colleagues = employeeDAO.getAll(null, 1, 200, "name", "ASC");
+
+        int prevMonth = month == 1 ? 12 : month - 1;
+        int prevYear  = month == 1 ? year - 1 : year;
+        int nextMonth = month == 12 ? 1 : month + 1;
+        int nextYear  = month == 12 ? year + 1 : year;
+
+        request.setAttribute("myShifts",    myShifts);
+        request.setAttribute("incoming",    incoming);
+        request.setAttribute("outgoing",    outgoing);
+        request.setAttribute("colleagues",  colleagues);
+        request.setAttribute("selYear",     year);
+        request.setAttribute("selMonth",    month);
+        request.setAttribute("prevYear",    prevYear);
+        request.setAttribute("prevMonth",   prevMonth);
+        request.setAttribute("nextYear",    nextYear);
+        request.setAttribute("nextMonth",   nextMonth);
+        request.setAttribute("serverToday", java.time.LocalDate.now());
+        request.getRequestDispatcher(MY_SHIFTS_JSP).forward(request, response);
+    }
+
+    private void handleMyShiftsPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        Account emp = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (emp == null) { response.sendRedirect(request.getContextPath() + "/Login"); return; }
+
+        int    empId  = emp.getAccountId();
+        String action = request.getParameter("action");
+        String backUrl = request.getContextPath() + "/employee/my-shifts";
+
+        try {
+            switch (action != null ? action : "") {
+                case "request_exchange": {
+                    int    shiftId  = Integer.parseInt(request.getParameter("shiftId"));
+                    int    targetId = Integer.parseInt(request.getParameter("targetEmpId"));
+                    String message  = request.getParameter("message");
+                    if (targetId == empId) {
+                        session.setAttribute("flashError", "Không thể chuyển ca cho chính mình.");
+                        break;
+                    }
+                    WorkShift targetShift = shiftDAO.getById(shiftId);
+                    if (targetShift == null || targetShift.getEmployeeId() != empId
+                            || !"Scheduled".equals(targetShift.getStatus())
+                            || targetShift.getShiftDate().isBefore(java.time.LocalDate.now())) {
+                        session.setAttribute("flashError", "Ca này không thể chuyển (đã qua hoặc không thuộc về bạn).");
+                        break;
+                    }
+                    int created = exchangeDAO.createRequest(shiftId, empId, targetId, message);
+                    if (created > 0) {
+                        session.setAttribute("flashSuccess", "Yêu cầu chuyển ca đã được gửi.");
+                    } else {
+                        session.setAttribute("flashError", "Không thể gửi yêu cầu. Vui lòng thử lại.");
+                    }
+                    break;
+                }
+                case "accept_exchange": {
+                    int requestId = Integer.parseInt(request.getParameter("requestId"));
+                    boolean ok = exchangeDAO.accept(requestId, empId);
+                    session.setAttribute(ok ? "flashSuccess" : "flashError",
+                            ok ? "Đã nhận ca thành công." : "Không thể nhận ca. Yêu cầu có thể đã hết hạn.");
+                    break;
+                }
+                case "reject_exchange": {
+                    int requestId = Integer.parseInt(request.getParameter("requestId"));
+                    boolean ok = exchangeDAO.reject(requestId, empId);
+                    session.setAttribute(ok ? "flashSuccess" : "flashError",
+                            ok ? "Đã từ chối yêu cầu." : "Không thể từ chối. Vui lòng thử lại.");
+                    break;
+                }
+                case "cancel_exchange": {
+                    int requestId = Integer.parseInt(request.getParameter("requestId"));
+                    boolean ok = exchangeDAO.cancel(requestId, empId);
+                    session.setAttribute(ok ? "flashSuccess" : "flashError",
+                            ok ? "Đã hủy yêu cầu chuyển ca." : "Không thể hủy. Vui lòng thử lại.");
+                    break;
+                }
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("flashError", "Lỗi hệ thống. Vui lòng thử lại.");
+        }
+        response.sendRedirect(backUrl);
     }
 
     private void showProfile(HttpServletRequest request, HttpServletResponse response)

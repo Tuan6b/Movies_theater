@@ -131,7 +131,7 @@ public class LoginController extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/manager");
                         break;
                     case 3: // Employee
-                        response.sendRedirect(request.getContextPath() + "/manager/employees");
+                        response.sendRedirect(request.getContextPath() + "/employee");
                         break;
                     default: // Customer
                         response.sendRedirect(request.getContextPath() + "/");

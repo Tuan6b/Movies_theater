@@ -96,9 +96,12 @@ public class WorkShiftServlet extends HttpServlet {
         }
     }
 
+    // Shift-type-first calendar: shows all employees assigned to the selected type for the month.
     private void showCalendar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int empId = parseIntParam(request.getParameter("empId"), 0);
+        String shiftType = request.getParameter("shiftType");
+        if (shiftType == null || !SHIFT_TIMES.containsKey(shiftType)) shiftType = "6H_SANG";
+
         LocalDate today = LocalDate.now();
         int year  = parseIntParam(request.getParameter("year"),  today.getYear());
         int month = parseIntParam(request.getParameter("month"), today.getMonthValue());
@@ -112,9 +115,11 @@ public class WorkShiftServlet extends HttpServlet {
         }
 
         List<Account> employees = employeeDAO.getAll(null, 1, 200, "name", "ASC");
-        List<WorkShift> shifts  = empId > 0
-                ? shiftDAO.getByEmployeeAndMonth(empId, year, month)
-                : java.util.Collections.emptyList();
+
+        String[] times   = SHIFT_TIMES.get(shiftType);
+        LocalTime start  = LocalTime.parse(times[0]);
+        LocalTime end    = LocalTime.parse(times[1]);
+        List<WorkShift> shifts = shiftDAO.getByShiftTypeAndMonth(start, end, year, month);
 
         int prevMonth = month == 1 ? 12 : month - 1;
         int prevYear  = month == 1 ? year - 1 : year;
@@ -124,18 +129,18 @@ public class WorkShiftServlet extends HttpServlet {
         LocalTime now = LocalTime.now();
         String currentTime = String.format("%02d:%02d", now.getHour(), now.getMinute());
 
-        request.setAttribute("employees",     employees);
-        request.setAttribute("shifts",        shifts);
-        request.setAttribute("selectedEmpId", empId);
-        request.setAttribute("selectedYear",  year);
-        request.setAttribute("selectedMonth", month);
-        request.setAttribute("monthName",     MONTH_VI[month] + " " + year);
-        request.setAttribute("prevMonth",     prevMonth);
-        request.setAttribute("prevYear",      prevYear);
-        request.setAttribute("nextMonth",     nextMonth);
-        request.setAttribute("nextYear",      nextYear);
-        request.setAttribute("serverToday",   today.toString());
-        request.setAttribute("serverTime",    currentTime);
+        request.setAttribute("employees",          employees);
+        request.setAttribute("shifts",             shifts);
+        request.setAttribute("selectedShiftType",  shiftType);
+        request.setAttribute("selectedYear",       year);
+        request.setAttribute("selectedMonth",      month);
+        request.setAttribute("monthName",          MONTH_VI[month] + " " + year);
+        request.setAttribute("prevMonth",          prevMonth);
+        request.setAttribute("prevYear",           prevYear);
+        request.setAttribute("nextMonth",          nextMonth);
+        request.setAttribute("nextYear",           nextYear);
+        request.setAttribute("serverToday",        today.toString());
+        request.setAttribute("serverTime",         currentTime);
         request.getRequestDispatcher(LIST_JSP).forward(request, response);
     }
 
@@ -154,11 +159,10 @@ public class WorkShiftServlet extends HttpServlet {
         int    empId     = parseIntParam(request.getParameter("employeeId"), 0);
         String shiftType = request.getParameter("shiftType");
         String dateStr   = request.getParameter("shiftDate");
-        String notes     = request.getParameter("notes");
         String yearStr   = request.getParameter("year");
         String monthStr  = request.getParameter("month");
 
-        String backUrl = buildCalendarUrl(request.getContextPath(), empId, yearStr, monthStr);
+        String backUrl = buildCalendarUrl(request.getContextPath(), shiftType, yearStr, monthStr);
         String[] times = (shiftType != null) ? SHIFT_TIMES.get(shiftType) : null;
 
         if (empId <= 0 || times == null || dateStr == null || dateStr.isEmpty()) {
@@ -168,15 +172,15 @@ public class WorkShiftServlet extends HttpServlet {
         }
 
         try {
-            LocalDate date  = LocalDate.parse(dateStr);
+            LocalDate date = LocalDate.parse(dateStr);
             if (date.isBefore(LocalDate.now())) {
                 request.getSession().setAttribute("flashError", "Không thể lên lịch ca làm việc cho những ngày trong quá khứ.");
                 response.sendRedirect(backUrl);
                 return;
             }
-            LocalTime start = LocalTime.parse(times[0]);
+            LocalTime shiftStart = LocalTime.parse(times[0]);
 
-            if (shiftDAO.existsShift(empId, date, start)) {
+            if (shiftDAO.existsShift(empId, date, shiftStart)) {
                 request.getSession().setAttribute("flashError", "Nhân viên đã có ca này vào ngày " + dateStr + ".");
                 response.sendRedirect(backUrl);
                 return;
@@ -185,10 +189,9 @@ public class WorkShiftServlet extends HttpServlet {
             WorkShift shift = new WorkShift();
             shift.setEmployeeId(empId);
             shift.setShiftDate(date);
-            shift.setStartTime(start);
+            shift.setStartTime(shiftStart);
             shift.setEndTime(LocalTime.parse(times[1]));
             shift.setStatus("Scheduled");
-            shift.setNotes(notes);
             shiftDAO.add(shift);
         } catch (Exception e) {
             request.getSession().setAttribute("flashError", "Lỗi hệ thống. Vui lòng thử lại.");
@@ -210,18 +213,18 @@ public class WorkShiftServlet extends HttpServlet {
         shift.setNotes(notes);
         shiftDAO.update(shift);
 
+        String shiftTypeKey = getShiftTypeKey(shift.getStartTime(), shift.getEndTime());
         String year  = String.valueOf(shift.getShiftDate().getYear());
         String month = String.valueOf(shift.getShiftDate().getMonthValue());
-        response.sendRedirect(buildCalendarUrl(request.getContextPath(), shift.getEmployeeId(), year, month));
+        response.sendRedirect(buildCalendarUrl(request.getContextPath(), shiftTypeKey, year, month));
     }
 
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int id = parseIntParam(request.getParameter("shiftId"), 0);
-        String empIdStr = request.getParameter("empId");
-        String yearStr  = request.getParameter("year");
-        String monthStr = request.getParameter("month");
-        int empId = parseIntParam(empIdStr, 0);
+        int    id        = parseIntParam(request.getParameter("shiftId"), 0);
+        String shiftType = request.getParameter("shiftType");
+        String yearStr   = request.getParameter("year");
+        String monthStr  = request.getParameter("month");
 
         if (id > 0) {
             try {
@@ -238,7 +241,7 @@ public class WorkShiftServlet extends HttpServlet {
                 request.getSession().setAttribute("flashError", "Lỗi khi xóa ca làm việc.");
             }
         }
-        response.sendRedirect(buildCalendarUrl(request.getContextPath(), empId, yearStr, monthStr));
+        response.sendRedirect(buildCalendarUrl(request.getContextPath(), shiftType, yearStr, monthStr));
     }
 
     private void handleBulkCreate(HttpServletRequest request, HttpServletResponse response)
@@ -248,11 +251,11 @@ public class WorkShiftServlet extends HttpServlet {
         String yearStr   = request.getParameter("year");
         String monthStr  = request.getParameter("month");
 
-        String backUrl = buildCalendarUrl(request.getContextPath(), empId, yearStr, monthStr);
+        String backUrl = buildCalendarUrl(request.getContextPath(), shiftType, yearStr, monthStr);
         String[] times = (shiftType != null) ? SHIFT_TIMES.get(shiftType) : null;
 
         if (empId <= 0 || times == null) {
-            request.getSession().setAttribute("flashError", "Thiếu thông tin phân ca.");
+            request.getSession().setAttribute("flashError", "Chọn nhân viên để phân ca.");
             response.sendRedirect(backUrl);
             return;
         }
@@ -278,12 +281,24 @@ public class WorkShiftServlet extends HttpServlet {
         response.sendRedirect(backUrl);
     }
 
-    private String buildCalendarUrl(String contextPath, int empId, String year, String month) {
+    private String buildCalendarUrl(String contextPath, String shiftType, String year, String month) {
+        if (shiftType == null || !SHIFT_TIMES.containsKey(shiftType)) shiftType = "6H_SANG";
         StringBuilder url = new StringBuilder(contextPath + LIST_URL);
-        url.append("?empId=").append(empId);
+        url.append("?shiftType=").append(shiftType);
         if (year  != null && !year.isEmpty())  url.append("&year=").append(year);
         if (month != null && !month.isEmpty()) url.append("&month=").append(month);
         return url.toString();
+    }
+
+    // Resolves shift type key from start/end times for redirect after update.
+    private String getShiftTypeKey(LocalTime start, LocalTime end) {
+        for (Map.Entry<String, String[]> entry : SHIFT_TIMES.entrySet()) {
+            if (LocalTime.parse(entry.getValue()[0]).equals(start)
+                    && LocalTime.parse(entry.getValue()[1]).equals(end)) {
+                return entry.getKey();
+            }
+        }
+        return "6H_SANG";
     }
 
     private void transferFlash(HttpSession session, HttpServletRequest request, String key) {
@@ -336,7 +351,7 @@ public class WorkShiftServlet extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Work Shift Manager Servlet - Calendar-based scheduling";
+        return "Work Shift Manager Servlet - Shift-type-first calendar scheduling";
     }// </editor-fold>
 
 }
