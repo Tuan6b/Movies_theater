@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
-  <rect width="300" height="200" fill="#C62828" rx="12"/>
-  <circle cx="150" cy="100" r="50" fill="#FFD700" opacity="0.3"/>
-  <text x="150" y="95" text-anchor="middle" fill="white" font-size="16" font-weight="bold">CGV Combo</text>
-  <text x="150" y="120" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12">Bắp lớn + 2 Nước</text>
-</svg>
