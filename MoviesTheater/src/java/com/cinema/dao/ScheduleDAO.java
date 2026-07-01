@@ -196,6 +196,18 @@ public class ScheduleDAO {
         return false;
     }
 
+    public boolean cancelSchedule(int id) {
+        String sql = "UPDATE Schedule SET Status = 'Cancelled' WHERE ScheduleID = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setInt(1, id);
+            return stm.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean hasOverlappingSchedule(int roomId, String startDateTime, String endDateTime, int excludeScheduleId) {
         String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ? AND ScheduleID != ? "
                 + "AND Status != 'Cancelled' AND StartTime < ? AND EndTime > ?";

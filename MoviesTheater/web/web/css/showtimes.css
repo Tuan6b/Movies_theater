@@ -1,0 +1,540 @@
+/* ============================================================
+   CGV Cinema — Showtime schedule page styles
+   ============================================================ */
+
+.movie-hero-section {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(15,0,0,0.92) 0%, rgba(20,0,0,0.97) 100%);
+    color: #ffffff;
+    padding: 60px 0;
+}
+
+.movie-hero-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-size: cover;
+    background-position: center;
+    filter: blur(35px) brightness(0.28);
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.movie-hero-backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15,0,0,0.4) 0%, rgba(15,0,0,0.95) 100%);
+}
+
+.movie-hero-container {
+    position: relative;
+    z-index: 2;
+    max-width: var(--inner);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.movie-hero-content {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.movie-hero-poster {
+    flex-shrink: 0;
+    width: 250px;
+    aspect-ratio: 2/3;
+    border-radius: var(--r-xl);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.12);
+    overflow: hidden;
+    background: var(--cgv-red-dark);
+}
+
+.movie-hero-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.movie-hero-poster-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--cgv-red-light);
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+.movie-hero-info {
+    flex-grow: 1;
+}
+
+.movie-hero-title {
+    font-family: var(--font-display);
+    font-size: 42px;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-bottom: 16px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.movie-badge-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.movie-badge-item {
+    padding: 4px 12px;
+    border-radius: var(--r-sm);
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+}
+
+.badge-age-c18 { background: #e00000; color: #ffffff; }
+.badge-age-c16 { background: #ff5e00; color: #ffffff; }
+.badge-age-c13 { background: #ffaa00; color: #ffffff; }
+.badge-age-p { background: #00aa5c; color: #ffffff; }
+.badge-format { background: rgba(255,255,255,0.14); color: #ffffff; border: 1px solid rgba(255,255,255,0.18); }
+
+.movie-hero-synopsis {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.78);
+    margin-bottom: 28px;
+    max-width: 820px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.movie-hero-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 24px;
+    max-width: 820px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 20px;
+}
+
+.detail-item {
+    display: flex;
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.detail-label {
+    width: 100px;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* ============================================================
+   MAIN CONTENT SECTION (LIGHT THEME)
+   ============================================================ */
+
+.showtimes-main-section {
+    padding: 48px 0 64px;
+}
+
+.showtimes-main-container {
+    max-width: var(--inner);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.section-title-alt {
+    font-family: var(--font-display);
+    font-size: 24px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--cgv-text);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title-alt svg {
+    color: var(--cgv-red);
+}
+
+/* ============================================================
+   DATE PICKER TIMELINE
+   ============================================================ */
+
+.date-timeline-container {
+    margin-bottom: 40px;
+}
+
+.date-timeline {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 4px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cgv-border) rgba(189,0,0,0.02);
+}
+
+.date-timeline::-webkit-scrollbar {
+    height: 6px;
+}
+
+.date-timeline::-webkit-scrollbar-track {
+    background: rgba(189,0,0,0.03);
+    border-radius: 10px;
+}
+
+.date-timeline::-webkit-scrollbar-thumb {
+    background: var(--cgv-border);
+    border-radius: 10px;
+}
+
+.date-timeline::-webkit-scrollbar-thumb:hover {
+    background: var(--cgv-red);
+}
+
+.date-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 105px;
+    height: 94px;
+    border-radius: var(--r-xl);
+    background: var(--cgv-surface);
+    border: 1px solid var(--cgv-border);
+    transition: all var(--dur) var(--ease);
+    text-align: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.date-card:hover {
+    border-color: var(--cgv-red);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(189,0,0,0.06);
+    text-decoration: none;
+}
+
+.date-card.active {
+    background: var(--cgv-red);
+    border-color: var(--cgv-red);
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(189,0,0,0.22);
+    transform: translateY(-3px);
+}
+
+.date-card-dayname {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cgv-text-muted);
+    margin-bottom: 6px;
+    transition: color var(--dur) var(--ease);
+}
+
+.date-card.active .date-card-dayname {
+    color: rgba(255,255,255,0.75);
+}
+
+.date-card-daynum {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+    color: var(--cgv-text);
+    transition: color var(--dur) var(--ease);
+}
+
+.date-card.active .date-card-daynum {
+    color: #ffffff;
+}
+
+.date-card-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--cgv-text-dim);
+    transition: color var(--dur) var(--ease);
+}
+
+.date-card.active .date-card-month {
+    color: rgba(255,255,255,0.75);
+}
+
+/* ============================================================
+   SHOWTIMES BY ROOM / SCREEN TYPE
+   ============================================================ */
+
+.showtimes-rooms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.room-card {
+    background: var(--cgv-surface);
+    border: 1px solid var(--cgv-border);
+    border-radius: var(--r-2xl);
+    padding: 28px;
+    transition: all var(--dur) var(--ease);
+    box-shadow: 0 2px 12px rgba(189,0,0,0.01);
+}
+
+.room-card:hover {
+    box-shadow: 0 12px 32px rgba(189,0,0,0.04);
+}
+
+.room-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(232,188,181,0.35);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.room-info-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.room-number-badge {
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    background: rgba(189,0,0,0.06);
+    color: var(--cgv-red);
+    padding: 6px 14px;
+    border-radius: var(--r-md);
+    text-transform: uppercase;
+}
+
+.room-type-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--cgv-red);
+    color: var(--cgv-red);
+    padding: 3px 8px;
+    border-radius: var(--r-sm);
+}
+
+.room-capacity {
+    font-size: 12.5px;
+    color: var(--cgv-text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.showtime-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px;
+}
+
+.showtime-slot-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 72px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--cgv-border);
+    background: var(--cgv-surface);
+    transition: all var(--dur) var(--ease);
+    text-decoration: none !important;
+    cursor: pointer;
+}
+
+.showtime-slot-btn:hover {
+    background: var(--cgv-red);
+    border-color: var(--cgv-red);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(189,0,0,0.18);
+}
+
+.showtime-slot-time {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cgv-red);
+    transition: color var(--dur) var(--ease);
+}
+
+.showtime-slot-btn:hover .showtime-slot-time {
+    color: #ffffff;
+}
+
+.showtime-slot-price {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cgv-text-dim);
+    margin-top: 3px;
+    transition: color var(--dur) var(--ease);
+}
+
+.showtime-slot-btn:hover .showtime-slot-price {
+    color: rgba(255,255,255,0.85);
+}
+
+.showtime-slot-seats {
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 2px;
+    transition: color var(--dur) var(--ease);
+}
+
+.showtime-slot-seats.seats-available {
+    color: var(--cgv-text-dim);
+}
+
+.showtime-slot-btn:hover .showtime-slot-seats.seats-available {
+    color: rgba(255,255,255,0.75);
+}
+
+.showtime-slot-seats.seats-full {
+    color: #e71a0f;
+    font-weight: 700;
+}
+
+.showtime-slot-btn.slot-full {
+    border-color: #e71a0f;
+    background: rgba(231, 26, 15, 0.06);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.showtime-slot-btn.slot-full:hover {
+    background: rgba(231, 26, 15, 0.12);
+    border-color: #e71a0f;
+    transform: none;
+    box-shadow: none;
+}
+
+.showtime-slot-btn.slot-full .showtime-slot-time {
+    color: #e71a0f;
+}
+
+.showtime-slot-btn.slot-full .showtime-slot-price {
+    color: rgba(231, 26, 15, 0.6);
+}
+
+/* ============================================================
+   PLACEHOLDERS & EMPTY STATES
+   ============================================================ */
+
+.no-showtimes-placeholder {
+    text-align: center;
+    padding: 64px 24px;
+    background: var(--cgv-surface);
+    border: 1px solid var(--cgv-border);
+    border-radius: var(--r-2xl);
+    color: var(--cgv-text-dim);
+}
+
+.no-showtimes-placeholder svg {
+    margin-bottom: 16px;
+    color: var(--cgv-border);
+}
+
+.no-showtimes-placeholder p {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN RULES
+   ============================================================ */
+
+@media (max-width: 960px) {
+    .movie-hero-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .movie-hero-poster {
+        width: 200px;
+    }
+
+    .movie-badge-strip {
+        justify-content: center;
+    }
+
+    .movie-hero-synopsis {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .movie-hero-details-grid {
+        margin-left: auto;
+        margin-right: auto;
+        grid-template-columns: 1fr;
+    }
+
+    .detail-item {
+        justify-content: center;
+    }
+
+    .detail-label {
+        text-align: right;
+        padding-right: 12px;
+    }
+    
+    .detail-value {
+        text-align: left;
+    }
+}
+
+@media (max-width: 600px) {
+    .movie-hero-section {
+        padding: 40px 0;
+    }
+
+    .movie-hero-container,
+    .showtimes-main-container {
+        padding: 0 20px;
+    }
+
+    .movie-hero-title {
+        font-size: 32px;
+    }
+
+    .room-card {
+        padding: 20px;
+    }
+
+    .room-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .showtime-slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
