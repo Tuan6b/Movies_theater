@@ -76,6 +76,8 @@ CREATE TABLE Room (
     RoomNumber NVARCHAR(50) NOT NULL UNIQUE,
     RoomType VARCHAR(20) NOT NULL DEFAULT '2D',  -- '2D','3D','IMAX','4DX'
     Capacity INT NOT NULL,
+    NumberOfRows INT NOT NULL DEFAULT 5,
+    SeatsPerRow INT NOT NULL DEFAULT 10,
     IsActive BIT NOT NULL DEFAULT 1,
     CONSTRAINT CHK_Room_Type CHECK (RoomType IN ('2D', '3D', 'IMAX', '4DX'))
 );
@@ -86,9 +88,10 @@ CREATE TABLE Seat (
     RowChar VARCHAR(5) NOT NULL,   -- e.g. 'A', 'B', 'C'
     ColNumber INT NOT NULL,   -- e.g. 1, 2, 3
     SeatType VARCHAR(20) NOT NULL DEFAULT 'Normal',  -- 'Normal', 'VIP'
+    IsActive BIT NOT NULL DEFAULT 1,
     CONSTRAINT FK_Seat_Room FOREIGN KEY (RoomID) REFERENCES Room(RoomID),
     CONSTRAINT UQ_Seat_Position UNIQUE (RoomID, RowChar, ColNumber),
-    CONSTRAINT CHK_Seat_Type CHECK (SeatType IN ('Normal', 'VIP'))
+    CONSTRAINT CHK_Seat_Type CHECK (SeatType IN ('Normal', 'VIP', 'Couple'))
 );
 
 CREATE TABLE Schedule (
@@ -289,11 +292,11 @@ INSERT INTO UserProfile (AccountID, FullName, PhoneNumber) VALUES
     (5, N'Nguyễn Thị Lan',   '0987654321');
 
 -- Rooms
-INSERT INTO Room (RoomNumber, RoomType, Capacity) VALUES
-    (N'P01', '2D',   100),
-    (N'P02', '3D',   80),
-    (N'P03', 'IMAX', 120),
-    (N'P04', '4DX',  60);
+INSERT INTO Room (RoomNumber, RoomType, Capacity, NumberOfRows, SeatsPerRow) VALUES
+    (N'P01', '2D',   50, 5,  10),
+    (N'P02', '3D',   40, 5,  8),
+    (N'P03', 'IMAX', 120, 10, 12),
+    (N'P04', '4DX',  30, 3,  10);
 
 -- Seats for Room 1 (rows A-E, cols 1-10 = 50 Normal + 10 VIP row E)
 DECLARE @row VARCHAR(1), @col INT;
@@ -323,6 +326,87 @@ BEGIN
     SET @col = @col + 1;
 END
 
+-- Seats for Room 2 (rows A-E, cols 1-8)
+SET @col = 1;
+DELETE FROM @rows;
+INSERT INTO @rows VALUES ('A'),('B'),('C'),('D');
+DECLARE row_cursor2 CURSOR FOR SELECT r FROM @rows;
+OPEN row_cursor2;
+FETCH NEXT FROM row_cursor2 INTO @row;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @col = 1;
+    WHILE @col <= 8
+    BEGIN
+        INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (2, @row, @col, 'Normal');
+        SET @col = @col + 1;
+    END
+    FETCH NEXT FROM row_cursor2 INTO @row;
+END
+CLOSE row_cursor2;
+DEALLOCATE row_cursor2;
+-- VIP row E for Room 2
+SET @col = 1;
+WHILE @col <= 8
+BEGIN
+    INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (2, 'E', @col, 'VIP');
+    SET @col = @col + 1;
+END
+
+-- Seats for Room 3 (rows A-J, cols 1-12)
+SET @col = 1;
+DELETE FROM @rows;
+INSERT INTO @rows VALUES ('A'),('B'),('C'),('D'),('E'),('F'),('G'),('H'),('I');
+DECLARE row_cursor3 CURSOR FOR SELECT r FROM @rows;
+OPEN row_cursor3;
+FETCH NEXT FROM row_cursor3 INTO @row;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @col = 1;
+    WHILE @col <= 12
+    BEGIN
+        INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (3, @row, @col, 'Normal');
+        SET @col = @col + 1;
+    END
+    FETCH NEXT FROM row_cursor3 INTO @row;
+END
+CLOSE row_cursor3;
+DEALLOCATE row_cursor3;
+-- VIP row J for Room 3
+SET @col = 1;
+WHILE @col <= 12
+BEGIN
+    INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (3, 'J', @col, 'VIP');
+    SET @col = @col + 1;
+END
+
+-- Seats for Room 4 (rows A-C, cols 1-10)
+SET @col = 1;
+DELETE FROM @rows;
+INSERT INTO @rows VALUES ('A'),('B');
+DECLARE row_cursor4 CURSOR FOR SELECT r FROM @rows;
+OPEN row_cursor4;
+FETCH NEXT FROM row_cursor4 INTO @row;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @col = 1;
+    WHILE @col <= 10
+    BEGIN
+        INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (4, @row, @col, 'Normal');
+        SET @col = @col + 1;
+    END
+    FETCH NEXT FROM row_cursor4 INTO @row;
+END
+CLOSE row_cursor4;
+DEALLOCATE row_cursor4;
+-- VIP row C for Room 4
+SET @col = 1;
+WHILE @col <= 10
+BEGIN
+    INSERT INTO Seat (RoomID, RowChar, ColNumber, SeatType) VALUES (4, 'C', @col, 'VIP');
+    SET @col = @col + 1;
+END
+
 -- Movies
 INSERT INTO Movie (MovieName, Description, Duration, ReleaseDate, Language, Subtitle, Director, Cast, Country, AgeRestriction, IsActive) VALUES
     (N'Avengers: Secret Wars',  N'Cuộc chiến bí mật của các siêu anh hùng Marvel.',    150, '2025-05-01', N'Anh', N'Việt',    'Joe Russo',    N'Robert Downey Jr., Chris Evans',  N'Mỹ',    13, 1),
@@ -331,13 +415,6 @@ INSERT INTO Movie (MovieName, Description, Duration, ReleaseDate, Language, Subt
 
 -- MovieGenre
 INSERT INTO MovieGenre VALUES (1,1),(1,6),(1,8),(2,2),(2,4),(3,1),(3,6);
-
--- Schedule
-INSERT INTO Schedule (RoomID, MovieID, StartTime, EndTime, BaseTicketPrice, Status) VALUES
-    (1, 1, '2025-07-01 09:00', '2025-07-01 11:30', 90000, 'Scheduled'),
-    (1, 1, '2025-07-01 14:00', '2025-07-01 16:30', 90000, 'Scheduled'),
-    (2, 2, '2025-07-01 10:00', '2025-07-01 12:00', 85000, 'Scheduled'),
-    (3, 3, '2025-07-02 19:00', '2025-07-02 21:00', 120000,'Scheduled');
 
 -- Food
 INSERT INTO Food (FoodName, Price, IsActive) VALUES
@@ -366,25 +443,6 @@ UPDATE Promotion SET
         WHEN StartDate <= GETDATE() AND EndDate >= GETDATE() THEN 1
         ELSE 0
     END;
-
--- Sample Invoice + Ticket
-INSERT INTO Invoice (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount, PaymentMethod, PaymentStatus)
-VALUES (4, 1, 180000, 45000, 135000, 'VNPay', 'Paid');
-
-INSERT INTO Ticket (ScheduleID, SeatID, InvoiceID, PriceAtBooking, Code, IsCheckedIn, CheckedInAt)
-VALUES (1, 5, 1, 90000, 'TK-20250701-0001', 1, '2025-07-01 08:55'),
-       (1, 6, 1, 90000, 'TK-20250701-0002', 1, '2025-07-01 08:55');
-
-INSERT INTO InvoiceFood (InvoiceID, FoodID, Quantity, PriceAtBooking)
-VALUES (1, 5, 1, 65000);
-
--- Sample Review (ticket already checked in)
-INSERT INTO MovieReview (MovieID, AccountID, TicketID, RatingValue, Comment)
-VALUES (1, 4, 1, 5, N'Phim hay cực kỳ, hiệu ứng đỉnh nóc!');
-
--- System log
-INSERT INTO SystemLog (AccountID, ActionType, Description, IPAddress)
-VALUES (4, 'BOOK_TICKET', N'Customer đặt 2 vé suất 09:00 ngày 01/07/2025', '192.168.1.100');
 
 -- System config defaults
 INSERT INTO SystemConfig (ConfigKey, ConfigValue, Description) VALUES
@@ -455,11 +513,12 @@ GO
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Seed account passwords (hashed)
 -- ─────────────────────────────────────────────────────────────────────────────
-UPDATE Account SET Password = 'VrRq7kDRRMCIdP5SEic7ZWMq9ICyxlrvLb3+0Tmk2q9JQidIYFQVxCLooeXHAQu/' WHERE Email = 'admin@cinema.vn';
-UPDATE Account SET Password = 'n587Ib+yWv74UpJGwIkCxbMgi5gu8SW9dCpyZBZxV0gdnuE7viql8iUrUTzbYqFl' WHERE Email = 'manager@cinema.vn';
-UPDATE Account SET Password = 'akLh2b/YOF41UBNr0dDj87Z/bKdJnuJHu4QH6nLUxP3a3XRh7aMxs2q4QR3TNTpG' WHERE Email = 'employee@cinema.vn';
-UPDATE Account SET Password = 'j+MSwJ3vabzskA+Cbzrz1Ht5rfmztEs40qHh/FteAa/zMQRWf+Obn2oR4KS8oPQn' WHERE Email = 'customer1@gmail.com';
-UPDATE Account SET Password = 's75Ii1dlujeXe78qEsAkCI1p0KefnvU0qznd360y85WaZzs2JnAOc87IuXg8aQXV' WHERE Email = 'customer2@gmail.com';
+-- All accounts use password = 123456
+UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL' WHERE Email = 'admin@cinema.vn';
+UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL' WHERE Email = 'manager@cinema.vn';
+UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL' WHERE Email = 'employee@cinema.vn';
+UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL' WHERE Email = 'customer1@gmail.com';
+UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL' WHERE Email = 'customer2@gmail.com';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Migration: chỉ chạy các câu này khi UPDATE DB cũ (không cần cho fresh install)

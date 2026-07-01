@@ -101,7 +101,7 @@
                         <tr>
                             <th>#</th>
                             <th>Movie</th>
-                            <th>Room ID</th>
+                            <th>Room</th>
                             <th>Price</th>
                             <th>Date</th>
                             <th>Start</th>
@@ -118,11 +118,11 @@
                                         <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
                                         <td style="font-weight:600;">
                                             <c:choose>
-                                                <c:when test="${not empty movieNames[s.movieID]}">${movieNames[s.movieID]}</c:when>
+                                                <c:when test="${not empty movieNameMap[s.movieID]}">${movieNameMap[s.movieID]}</c:when>
                                                 <c:otherwise>Movie ${s.movieID}</c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td>${s.roomID}</td>
+                                        <td>${not empty roomNameMap[s.roomID] ? roomNameMap[s.roomID] : s.roomID}</td>
                                         <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
                                         <td>
                                             <fmt:parseDate value="${s.showDate}" pattern="yyyy-MM-dd" var="parsedDate" type="date"/>
@@ -137,21 +137,26 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <c:if test="${s.status ne 'Ongoing' and s.status ne 'Finished'}">
+                                                <c:if test="${s.status eq 'Scheduled'}">
                                                     <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
                                                        class="btn--cgv-outline">Edit</a>
                                                     <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
                                                        class="btn--cgv-outline"
                                                        style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete schedule ${s.scheduleID}?')">
+                                                       onclick="return confirm('Delete this schedule?')">
+                                                        Delete
+                                                    </a>
+                                                </c:if>
+                                                <c:if test="${s.status eq 'Cancelled' or s.status eq 'Finished'}">
+                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                       class="btn--cgv-outline"
+                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                       onclick="return confirm('Delete this schedule?')">
                                                         Delete
                                                     </a>
                                                 </c:if>
                                                 <c:if test="${s.status eq 'Ongoing'}">
                                                     <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Finished'}">
-                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Finished</span>
                                                 </c:if>
                                             </div>
                                         </td>
