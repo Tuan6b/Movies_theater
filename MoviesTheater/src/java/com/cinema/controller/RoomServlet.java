@@ -2,6 +2,7 @@ package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.SeatDAO;
+import com.cinema.dao.ScheduleDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -23,6 +24,7 @@ public class RoomServlet extends HttpServlet {
 
     // DAO used for seat operations
     private final SeatDAO seatDAO = new SeatDAO();
+    private final ScheduleDAO scheduleDAO = new ScheduleDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -198,6 +200,17 @@ public class RoomServlet extends HttpServlet {
 
         boolean active = request.getParameter("active") != null;
 
+        // If layout changed but room has schedules → reject
+        if (oldRoom != null
+                && (oldRoom.getNumberOfRows() != numberOfRows
+                    || oldRoom.getSeatsPerRow() != seatsPerRow)
+                && scheduleDAO.hasSchedulesForRoom(roomId)) {
+            response.sendRedirect("RoomServlet?action=edit&id="
+                    + roomId + "&error=has_schedules&page="
+                    + currentPage + "&filter=" + currentFilter);
+            return;
+        }
+
         Room room = new Room();
         room.setRoomId(roomId);
         room.setRoomNumber(roomNumber);
@@ -237,9 +250,6 @@ public class RoomServlet extends HttpServlet {
         int roomId = Integer.parseInt(
                 request.getParameter("id"));
 
-        // Deactivate room in database
-        roomDAO.deleteRoom(roomId);
-
         String currentPage = request.getParameter("page");
         if (currentPage == null || currentPage.isEmpty()) {
             currentPage = "1";
@@ -248,6 +258,16 @@ public class RoomServlet extends HttpServlet {
         if (currentFilter == null || currentFilter.isEmpty()) {
             currentFilter = "active";
         }
+
+        // Block deactivation if room has non-cancelled schedules
+        if (scheduleDAO.hasSchedulesForRoom(roomId)) {
+            response.sendRedirect("RoomServlet?page=" + currentPage
+                    + "&filter=" + currentFilter + "&error=room_has_schedules");
+            return;
+        }
+
+        // Deactivate room in database
+        roomDAO.deleteRoom(roomId);
 
         response.sendRedirect("RoomServlet?page=" + currentPage
                 + "&filter=" + currentFilter);
@@ -270,6 +290,10 @@ public class RoomServlet extends HttpServlet {
 
         String currentPage = request.getParameter("page");
         request.setAttribute("currentPage", currentPage);
+
+        // Check if room has schedules (layout cannot be changed)
+        boolean hasSchedules = scheduleDAO.hasSchedulesForRoom(roomId);
+        request.setAttribute("hasSchedules", hasSchedules);
 
         // Send room data to JSP
         request.setAttribute("room", room);

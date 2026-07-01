@@ -51,6 +51,10 @@
                         <div class="cgv-alert cgv-alert-danger">Room number already exists. Please use a different room number.</div>
                     </c:if>
 
+                    <c:if test="${param.error eq 'room_has_schedules'}">
+                        <div class="cgv-alert cgv-alert-danger">Cannot deactivate room — it has existing schedules.</div>
+                    </c:if>
+
                     <div class="cgv-toolbar">
                         <div class="cgv-pills">
                             <a href="RoomServlet?filter=active"

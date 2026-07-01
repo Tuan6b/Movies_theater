@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.cinema.dao.SeatDAO;
 import com.cinema.dao.RoomDAO;
+import com.cinema.dao.ScheduleDAO;
 import com.cinema.model.Seat;
 import com.cinema.model.Room;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class SeatController extends HttpServlet {
     // DAO used for seat operations
     private final SeatDAO seatDAO = new SeatDAO();
     private final RoomDAO roomDAO = new RoomDAO();
+    private final ScheduleDAO scheduleDAO = new ScheduleDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -86,6 +88,7 @@ public class SeatController extends HttpServlet {
 
         request.setAttribute("seatsByRow", seatsByRow);
         request.setAttribute("room", room);
+        request.setAttribute("hasSchedules", scheduleDAO.hasSchedulesForRoom(roomId));
 
         request.getRequestDispatcher("seat-layout.jsp").forward(request, response);
     }
@@ -97,6 +100,11 @@ public class SeatController extends HttpServlet {
         int roomId = Integer.parseInt(request.getParameter("roomId"));
         String rowChar = request.getParameter("rowChar");
         String seatType = request.getParameter("seatType");
+
+        if (scheduleDAO.hasSchedulesForRoom(roomId)) {
+            response.sendRedirect("SeatController?roomId=" + roomId + "&error=has_schedules");
+            return;
+        }
 
         seatDAO.updateSeatsByRow(roomId, rowChar, seatType);
 
