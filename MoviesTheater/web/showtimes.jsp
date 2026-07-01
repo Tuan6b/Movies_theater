@@ -177,7 +177,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Khởi chiếu:</span>
-                            <span class="detail-value"><%= movie.getReleaseDate() != null ? movie.getReleaseDate() : "Đang cập nhật" %></span>
+                            <span class="detail-value"><%= movie.getDateAdded() != null ? movie.getDateAdded() : "Đang cập nhật" %></span>
                         </div>
                     </div>
 

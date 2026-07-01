@@ -11,8 +11,14 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
             /* Class hỗ trợ chia form 2 cột cho ngay ngắn */
-            .cgv-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-            .cgv-form-full { grid-column: span 2; }
+            .cgv-form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0 24px;
+            }
+            .cgv-form-full {
+                grid-column: span 2;
+            }
         </style>
     </head>
     <body class="cgv-body">
@@ -33,28 +39,34 @@
 
             <div class="cgv-page" style="flex-direction: column;">
                 <div class="cgv-data-wrap fade-in" style="padding: 32px; max-width: 900px; margin: 0 auto; width: 100%;">
-                    
+
                     <h2 class="cgv-page-title" style="margin-bottom: 24px;">Thông tin chi tiết</h2>
-                    
+
                     <form action="${pageContext.request.contextPath}/MovieController" method="POST">
                         <input type="hidden" name="action" value="add">
-                        
+
                         <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
-                                <input type="text" name="movieName" class="cgv-input" required>
-                            </div>
-                            
-                            <div class="cgv-field">
-                                <label class="cgv-label">Ngày khởi chiếu *</label>
-                                <input type="date" id="releaseDate" name="releaseDate" class="cgv-input" required>
-                                <div style="margin-top: 8px;">
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">
-                                        <input type="checkbox" id="earlyRelease" name="earlyRelease" value="true" style="width: 14px; height: 14px;">
-                                        Phim chiếu đột xuất / Phim chiếu sớm
-                                    </label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" name="movieName" class="cgv-input" required style="flex: 1;">
+                                    <button type="button" id="btnFetchTMDB" style="background: #e50914; color: white; border: none; padding: 0 12px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                                        <i class="fa-solid fa-cloud-arrow-down"></i> Dữ liệu TMDB
+                                    </button>
                                 </div>
                             </div>
+
+                            <div class="cgv-field">
+                                <label class="cgv-label">Kinh phí sản xuất</label>
+                                <input type="text" name="budget" class="cgv-input" placeholder="VD: 500 Triệu USD">
+                            </div>
+
+                            <div class="cgv-field">
+                                <label class="cgv-label">Doanh thu toàn cầu</label>
+                                <input type="text" name="globalBoxOffice" class="cgv-input" placeholder="VD: 2.8 Tỷ USD">
+                            </div>
+
+
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
@@ -82,7 +94,7 @@
                                     <option value="Khác">Khác</option>
                                 </select>
                             </div>
-                            
+
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
                                 <select name="subtitle" class="cgv-select">
@@ -133,17 +145,17 @@
                                 <label class="cgv-label">URL Ảnh Poster</label>
                                 <input type="url" name="poster" class="cgv-input" placeholder="https://...">
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Trailer (Youtube)</label>
                                 <input type="url" name="trailer" class="cgv-input" placeholder="https://youtube.com/...">
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Nội dung tóm tắt *</label>
                                 <textarea name="description" class="cgv-textarea" rows="4" required></textarea>
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cgv-dark); cursor: pointer;">
                                     <input type="checkbox" name="isActive" value="true" checked style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
@@ -157,41 +169,70 @@
                             <button type="submit" class="btn--cgv"><i class="fa-solid fa-save"></i> Lưu thông tin</button>
                         </div>
                     </form>
-                    
+
                 </div>
             </div>
         </main>
 
+
+
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                var form = document.querySelector("form");
+            document.getElementById('btnFetchTMDB').addEventListener('click', function () {
+                // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
+                var movieName = document.querySelector('input[name="movieName"]').value;
+                if (!movieName) {
+                    alert("Vui lòng nhập Tên phim trước để hệ thống biết cần tra cứu số liệu của phim nào!");
+                    return;
+                }
 
-                form.addEventListener("submit", function(e) {
-                    var releaseDateInput = document.getElementById("releaseDate").value;
-                    var isEarlyRelease = document.getElementById("earlyRelease").checked;
+                var btn = this;
+                btn.innerText = "Đang tra cứu số liệu...";
+                btn.disabled = true;
 
-                    if (!releaseDateInput) return;
+                fetch('TMDBController?query=' + encodeURIComponent(movieName))
+                        .then(response => response.json())
+                        .then(data => {
+                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
+                            btn.disabled = false;
 
-                    var releaseDate = new Date(releaseDateInput);
-                    var today = new Date();
-                    releaseDate.setHours(0,0,0,0);
-                    today.setHours(0,0,0,0);
+                            if (data.error) {
+                                alert("Không tìm thấy dữ liệu số của phim này trên TMDB!");
+                                return;
+                            }
 
-                    var diffTime = releaseDate.getTime() - today.getTime();
-                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            // [SỰ KHÁC BIỆT]: Bỏ qua toàn bộ Tên phim, Poster, Trailer, Mô tả...
+                            // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
 
-                    if (isEarlyRelease) {
-                        if (diffDays < 7) {
-                            alert("Lỗi: Phim chiếu đột xuất phải có ngày cách khởi chiếu hiện tại ít nhất 7 ngày.");
-                            e.preventDefault();
-                        }
-                    } else {
-                        if (diffDays < 30) {
-                            alert("Lỗi: Ngày khởi chiếu mặc định phải cách hiện tại ít nhất 30 ngày.");
-                            e.preventDefault();
-                        }
-                    }
-                });
+                            let hasUpdate = false;
+
+                            if (data.Budget && data.Budget !== "0") {
+                                let budgetInput = document.querySelector('input[name="budget"]');
+                                if (budgetInput) {
+                                    budgetInput.value = data.Budget;
+                                    hasUpdate = true;
+                                }
+                            }
+
+                            if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
+                                let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
+                                if (boxOfficeInput) {
+                                    boxOfficeInput.value = data.GlobalBoxOffice;
+                                    hasUpdate = true;
+                                }
+                            }
+
+                            if (hasUpdate) {
+                                alert("Đã tải xong số liệu Kinh phí & Doanh thu thành công!");
+                            } else {
+                                alert("TMDB không có sẵn số liệu kinh tế của phim này.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
+                            btn.disabled = false;
+                            alert("Có lỗi mạng xảy ra khi tra cứu!");
+                        });
             });
         </script>
     </body>

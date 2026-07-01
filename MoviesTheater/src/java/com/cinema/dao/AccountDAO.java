@@ -26,7 +26,7 @@ public class AccountDAO {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String storedHash = rs.getString("Password");
+                    String storedHash = rs.getString("Password").trim();
                     if (PasswordHash.verify(password, storedHash)) {
                         return mapAccount(rs);
                     }
@@ -208,7 +208,7 @@ public class AccountDAO {
         Account account = new Account();
         account.setAccountId(rs.getInt("AccountID"));
         account.setEmail(rs.getString("Email"));
-        account.setPassword(rs.getString("Password"));
+        account.setPassword(rs.getString("Password").trim());
         account.setRoleId(rs.getInt("RoleID"));
         account.setRoleName(rs.getNString("RoleName"));
         account.setIsBlocked(rs.getBoolean("IsBlocked"));

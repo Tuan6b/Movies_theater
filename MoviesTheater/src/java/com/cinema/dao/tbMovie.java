@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,11 @@ public class tbMovie {
         movie.setMovieName(rs.getString("MovieName"));
         movie.setDescription(rs.getString("Description"));
         movie.setDuration(rs.getInt("Duration"));
-        movie.setReleaseDate(rs.getDate("ReleaseDate"));
+        movie.setDateAdded(rs.getTimestamp("DateAdded"));
+        movie.setBudget(rs.getString("Budget"));
+        movie.setGlobalBoxOffice(rs.getString("GlobalBoxOffice"));
+        movie.setWeeklyRevenueRank(rs.getInt("WeeklyRevenueRank"));
+        movie.setTicketsSoldMilestone(rs.getInt("TicketsSoldMilestone"));
         movie.setPoster(rs.getString("Poster"));
         movie.setTrailer(rs.getString("Trailer"));
         movie.setLanguage(rs.getString("Language"));
@@ -45,7 +50,7 @@ public class tbMovie {
         movie.setCast(rs.getString("Cast"));
         movie.setCountry(rs.getString("Country"));
         movie.setAgeRestriction(rs.getInt("AgeRestriction"));
-        movie.setActive(rs.getBoolean("IsActive"));
+        movie.setIsActive(rs.getBoolean("IsActive"));
 
         return movie;
     }
@@ -109,15 +114,13 @@ public class tbMovie {
                 break;
             case "showing":
                 sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
-                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
-                        + "AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
+                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) "
                         + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
             case "ended":
                 sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
                         + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
-                        + "AND m.ReleaseDate <= CAST(GETDATE() AS DATE) "
                         + "AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
@@ -127,8 +130,8 @@ public class tbMovie {
             case "upcoming":
             default:
                 sql = "SELECT m.* FROM Movie m WHERE m.IsActive = 1 "
-                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) "
-                        + "AND m.ReleaseDate > CAST(GETDATE() AS DATE) "
+                        + "AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime > GETDATE()) "
+                        + "AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) "
                         + "ORDER BY m.MovieID DESC";
                 break;
         }
@@ -145,7 +148,7 @@ public class tbMovie {
     }
 
     public boolean updateMovie(clsMovie movie) {
-        String sql = "UPDATE Movie SET MovieName=?, Description=?, Duration=?, ReleaseDate=?, Poster=?, Trailer=?, Language=?, "
+        String sql = "UPDATE Movie SET MovieName=?, Description=?, Duration=?, DateAdded=?, Budget=?, GlobalBoxOffice=?, WeeklyRevenueRank=?, TicketsSoldMilestone=?, Poster=?, Trailer=?, Language=?, "
                 + "Subtitle=?, Director=?, Cast=?, Country=?, AgeRestriction=?, IsActive=? WHERE MovieID=?";
 
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -153,17 +156,21 @@ public class tbMovie {
             ps.setString(1, movie.getMovieName());
             ps.setString(2, movie.getDescription());
             ps.setInt(3, movie.getDuration());
-            ps.setDate(4, movie.getReleaseDate());
-            ps.setString(5, movie.getPoster());
-            ps.setString(6, movie.getTrailer());
-            ps.setString(7, movie.getLanguage());
-            ps.setString(8, movie.getSubtitle());
-            ps.setString(9, movie.getDirector());
-            ps.setString(10, movie.getCast());
-            ps.setString(11, movie.getCountry());
-            ps.setInt(12, movie.getAgeRestriction());
-            ps.setBoolean(13, movie.isActive());
-            ps.setInt(14, movie.getMovieId());
+            ps.setTimestamp(4, movie.getDateAdded() != null ? new Timestamp(movie.getDateAdded().getTime()) : new Timestamp(System.currentTimeMillis()));
+            ps.setString(5, movie.getBudget());
+            ps.setString(6, movie.getGlobalBoxOffice());
+            ps.setInt(7, movie.getWeeklyRevenueRank());
+            ps.setInt(8, movie.getTicketsSoldMilestone());
+            ps.setString(9, movie.getPoster());
+            ps.setString(10, movie.getTrailer());
+            ps.setString(11, movie.getLanguage());
+            ps.setString(12, movie.getSubtitle());
+            ps.setString(13, movie.getDirector());
+            ps.setString(14, movie.getCast());
+            ps.setString(15, movie.getCountry());
+            ps.setInt(16, movie.getAgeRestriction());
+            ps.setBoolean(17, movie.isIsActive());
+            ps.setInt(18, movie.getMovieId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -208,13 +215,9 @@ public class tbMovie {
         sql.append("WHERE m.IsActive = 1 ");
 
         if ("upcoming".equals(status)) {
-            sql.append(" AND m.ReleaseDate > CAST(GETDATE() AS DATE) ");
+            sql.append(" AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime > GETDATE()) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) ");
         } else if ("showing".equals(status)) {
-            // update: Loại trừ các phim đã hết hạn chiếu
-            sql.append(" AND m.ReleaseDate <= CAST(GETDATE() AS DATE) ");
-            sql.append(" AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) ");
-            sql.append(" OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())) ");
-            // end update code
+            sql.append(" AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) ");
         }
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
@@ -259,13 +262,13 @@ public class tbMovie {
             try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie WHERE IsActive = 0"); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) stats.put("hidden", rs.getInt(1));
             }
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie WHERE IsActive = 1 AND ReleaseDate > CAST(GETDATE() AS DATE)"); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime > GETDATE()) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE())"); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) stats.put("upcoming", rs.getInt(1));
             }
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND ReleaseDate <= CAST(GETDATE() AS DATE) AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()))"); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())"); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) stats.put("showing", rs.getInt(1));
             }
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND ReleaseDate <= CAST(GETDATE() AS DATE) AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())"); ResultSet rs = ps.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM Movie m WHERE IsActive = 1 AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())"); ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) stats.put("ended", rs.getInt(1));
             }
         } catch (SQLException ex) {
@@ -285,13 +288,9 @@ public class tbMovie {
         sql.append("WHERE m.IsActive = 1 ");
 
         if ("upcoming".equals(status)) {
-            sql.append(" AND m.ReleaseDate > CAST(GETDATE() AS DATE) ");
+            sql.append(" AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime > GETDATE()) AND NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) ");
         } else if ("showing".equals(status)) {
-            // update: Loại trừ các phim đã hết hạn chiếu
-            sql.append(" AND m.ReleaseDate <= CAST(GETDATE() AS DATE) ");
-            sql.append(" AND (NOT EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID) ");
-            sql.append(" OR EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE())) ");
-            // end update code
+            sql.append(" AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.StartTime <= GETDATE()) AND EXISTS (SELECT 1 FROM Schedule s WHERE s.MovieID = m.MovieID AND s.EndTime >= GETDATE()) ");
         }
 
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
@@ -302,11 +301,7 @@ public class tbMovie {
             sql.append(" AND mg.GenreID = ? ");
         }
 
-        if ("upcoming".equals(status)) {
-            sql.append("ORDER BY m.ReleaseDate ASC ");
-        } else {
-            sql.append("ORDER BY m.ReleaseDate DESC ");
-        }
+        sql.append("ORDER BY m.MovieID DESC ");
 
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
 
@@ -334,25 +329,29 @@ public class tbMovie {
     }
 
     public int insertMovieAndGetId(clsMovie movie) {
-        String sql = "INSERT INTO Movie (MovieName, Description, Duration, ReleaseDate, Poster, Trailer, "
+        String sql = "INSERT INTO Movie (MovieName, Description, Duration, DateAdded, Budget, GlobalBoxOffice, WeeklyRevenueRank, TicketsSoldMilestone, Poster, Trailer, "
                 + "Language, Subtitle, Director, Cast, Country, AgeRestriction, IsActive) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBUtils.getConnection(); // Yêu cầu trả về ID tự tăng
                  PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setNString(1, movie.getMovieName());
-            ps.setNString(2, movie.getDescription());
+            ps.setString(1, movie.getMovieName());
+            ps.setString(2, movie.getDescription());
             ps.setInt(3, movie.getDuration());
-            ps.setDate(4, movie.getReleaseDate());
-            ps.setString(5, movie.getPoster());
-            ps.setString(6, movie.getTrailer());
-            ps.setNString(7, movie.getLanguage());
-            ps.setNString(8, movie.getSubtitle());
-            ps.setNString(9, movie.getDirector());
-            ps.setNString(10, movie.getCast());
-            ps.setNString(11, movie.getCountry());
-            ps.setInt(12, movie.getAgeRestriction());
-            ps.setBoolean(13, movie.isActive());
+            ps.setTimestamp(4, movie.getDateAdded() != null ? new Timestamp(movie.getDateAdded().getTime()) : new Timestamp(System.currentTimeMillis()));
+            ps.setString(5, movie.getBudget());
+            ps.setString(6, movie.getGlobalBoxOffice());
+            ps.setInt(7, movie.getWeeklyRevenueRank());
+            ps.setInt(8, movie.getTicketsSoldMilestone());
+            ps.setString(9, movie.getPoster());
+            ps.setString(10, movie.getTrailer());
+            ps.setString(11, movie.getLanguage());
+            ps.setString(12, movie.getSubtitle());
+            ps.setString(13, movie.getDirector());
+            ps.setString(14, movie.getCast());
+            ps.setString(15, movie.getCountry());
+            ps.setInt(16, movie.getAgeRestriction());
+            ps.setBoolean(17, movie.isIsActive());
             ps.executeUpdate();
 
             // Lấy ID vừa tạo ra
