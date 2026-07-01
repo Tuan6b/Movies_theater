@@ -1,14 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.cinema.model;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 /**
- * Model class representing the Movie entity.
- * Uses the cls prefix following the project standards.
+ * Model class representing the Movie entity. Uses the cls prefix following the
+ * project standards.
  *
  * @author TBinh
  */
@@ -18,7 +15,11 @@ public class clsMovie {
     private String movieName;
     private String description;
     private int duration;
-    private Date releaseDate;
+    private java.sql.Timestamp dateAdded; // Thay thế releaseDate
+    private String budget;
+    private String globalBoxOffice;
+    private int weeklyRevenueRank;
+    private int ticketsSoldMilestone;
     private String poster;
     private String trailer;
     private String language;
@@ -35,32 +36,16 @@ public class clsMovie {
     public clsMovie() {
     }
 
-    /**
-     * Full constructor.
-     *
-     * @param movieId ID of the movie
-     * @param movieName Name of the movie
-     * @param description Plot summary
-     * @param duration Duration in minutes
-     * @param releaseDate Release date
-     * @param poster Poster image URL
-     * @param trailer Trailer YouTube URL
-     * @param language Spoken language
-     * @param subtitle Subtitle language
-     * @param director Movie director
-     * @param cast Main cast members
-     * @param country Production country
-     * @param ageRestriction Minimum age limit
-     * @param isActive Active status
-     */
-    public clsMovie(int movieId, String movieName, String description, int duration, Date releaseDate,
-            String poster, String trailer, String language, String subtitle, String director,
-            String cast, String country, int ageRestriction, boolean isActive) {
+    public clsMovie(int movieId, String movieName, String description, int duration, Timestamp dateAdded, String budget, String globalBoxOffice, int weeklyRevenueRank, int ticketsSoldMilestone, String poster, String trailer, String language, String subtitle, String director, String cast, String country, int ageRestriction, boolean isActive) {
         this.movieId = movieId;
         this.movieName = movieName;
         this.description = description;
         this.duration = duration;
-        this.releaseDate = releaseDate;
+        this.dateAdded = dateAdded;
+        this.budget = budget;
+        this.globalBoxOffice = globalBoxOffice;
+        this.weeklyRevenueRank = weeklyRevenueRank;
+        this.ticketsSoldMilestone = ticketsSoldMilestone;
         this.poster = poster;
         this.trailer = trailer;
         this.language = language;
@@ -104,12 +89,44 @@ public class clsMovie {
         this.duration = duration;
     }
 
-    public Date getReleaseDate() {
-        return releaseDate;
+    public Timestamp getDateAdded() {
+        return dateAdded;
     }
 
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
+    public void setDateAdded(Timestamp dateAdded) {
+        this.dateAdded = dateAdded;
+    }
+
+    public String getBudget() {
+        return budget;
+    }
+
+    public void setBudget(String budget) {
+        this.budget = budget;
+    }
+
+    public String getGlobalBoxOffice() {
+        return globalBoxOffice;
+    }
+
+    public void setGlobalBoxOffice(String globalBoxOffice) {
+        this.globalBoxOffice = globalBoxOffice;
+    }
+
+    public int getWeeklyRevenueRank() {
+        return weeklyRevenueRank;
+    }
+
+    public void setWeeklyRevenueRank(int weeklyRevenueRank) {
+        this.weeklyRevenueRank = weeklyRevenueRank;
+    }
+
+    public int getTicketsSoldMilestone() {
+        return ticketsSoldMilestone;
+    }
+
+    public void setTicketsSoldMilestone(int ticketsSoldMilestone) {
+        this.ticketsSoldMilestone = ticketsSoldMilestone;
     }
 
     public String getPoster() {
@@ -176,16 +193,11 @@ public class clsMovie {
         this.ageRestriction = ageRestriction;
     }
 
-    public boolean isActive() {
+    public boolean isIsActive() {
         return isActive;
     }
 
-    public void setActive(boolean isActive) {
+    public void setIsActive(boolean isActive) {
         this.isActive = isActive;
-    }
-
-    @Override
-    public String toString() {
-        return "clsMovie{" + "movieId=" + movieId + ", movieName=" + movieName + ", duration=" + duration + '}';
     }
 }

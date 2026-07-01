@@ -10,8 +10,14 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            .cgv-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-            .cgv-form-full { grid-column: span 2; }
+            .cgv-form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0 24px;
+            }
+            .cgv-form-full {
+                grid-column: span 2;
+            }
         </style>
     </head>
     <body class="cgv-body">
@@ -32,31 +38,43 @@
             </header>
 
             <div class="cgv-page" style="flex-direction: column;">
-                
+
                 <c:if test="${not empty error}">
                     <div class="cgv-alert cgv-alert-danger fade-in">
                         <strong>Lỗi!</strong> ${error}
                     </div>
                 </c:if>
-                
+
                 <div class="cgv-data-wrap fade-in" style="padding: 32px; max-width: 900px; margin: 0 auto; width: 100%;">
-                    
+
                     <h2 class="cgv-page-title" style="margin-bottom: 24px;">Chỉnh sửa thông tin phim</h2>
-                    
+
                     <form action="${pageContext.request.contextPath}/MovieController" method="POST">
                         <input type="hidden" name="action" value="edit">
                         <input type="hidden" name="movieId" value="${movie.movieId}">
-                        
+
                         <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
-                                <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" readonly style="background-color: #f5f5f5;" required>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" readonly style="background-color: #f5f5f5; flex: 1;" required>
+                                    <button type="button" id="btnFetchTMDB" style="background: #e50914; color: white; border: none; padding: 0 12px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                                        <i class="fa-solid fa-cloud-arrow-down"></i> Dữ liệu TMDB
+                                    </button>
+                                </div>
                             </div>
-                            
+
                             <div class="cgv-field">
-                                <label class="cgv-label">Ngày khởi chiếu *</label>
-                                <input type="date" name="releaseDate" class="cgv-input" value="${movie.releaseDate}" readonly style="background-color: #f5f5f5;" required>
+                                <label class="cgv-label">Kinh phí sản xuất</label>
+                                <input type="text" name="budget" class="cgv-input" value="${movie.budget}" placeholder="VD: 500 Triệu USD">
                             </div>
+
+                            <div class="cgv-field">
+                                <label class="cgv-label">Doanh thu toàn cầu</label>
+                                <input type="text" name="globalBoxOffice" class="cgv-input" value="${movie.globalBoxOffice}" placeholder="VD: 2.8 Tỷ USD">
+                            </div>
+
+
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
@@ -77,7 +95,7 @@
                                 <label class="cgv-label">Ngôn ngữ</label>
                                 <input type="text" name="language" class="cgv-input" value="${movie.language}" placeholder="VD: Tiếng Anh">
                             </div>
-                            
+
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
                                 <input type="text" name="subtitle" class="cgv-input" value="${movie.subtitle}" placeholder="VD: Phụ đề Tiếng Việt">
@@ -116,7 +134,7 @@
                                 <label class="cgv-label">URL Ảnh Poster</label>
                                 <input type="url" name="poster" class="cgv-input" value="${movie.poster}" readonly style="background-color: #f5f5f5;">
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Trailer (Youtube)</label>
                                 <input type="url" name="trailer" class="cgv-input" value="${movie.trailer}">
@@ -126,7 +144,7 @@
                                 <label class="cgv-label">Nội dung tóm tắt *</label>
                                 <textarea name="description" class="cgv-textarea" rows="4" required>${movie.description}</textarea>
                             </div>
-                            
+
                             <div class="cgv-field cgv-form-full">
                                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cgv-dark); cursor: pointer;">
                                     <input type="checkbox" name="isActive" value="true" ${movie.active ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
@@ -140,9 +158,71 @@
                             <button type="submit" class="btn--cgv"><i class="fa-solid fa-save"></i> Cập nhật thông tin</button>
                         </div>
                     </form>
-                    
+
                 </div>
             </div>
         </main>
+
+
+
+        <script>
+            document.getElementById('btnFetchTMDB').addEventListener('click', function () {
+                // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
+                var movieName = document.querySelector('input[name="movieName"]').value;
+                if (!movieName) {
+                    alert("Vui lòng nhập Tên phim trước để hệ thống biết cần tra cứu số liệu của phim nào!");
+                    return;
+                }
+
+                var btn = this;
+                btn.innerText = "Đang tra cứu số liệu...";
+                btn.disabled = true;
+
+                fetch('TMDBController?query=' + encodeURIComponent(movieName))
+                        .then(response => response.json())
+                        .then(data => {
+                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
+                            btn.disabled = false;
+
+                            if (data.error) {
+                                alert("Không tìm thấy dữ liệu số của phim này trên TMDB!");
+                                return;
+                            }
+
+                            // [SỰ KHÁC BIỆT]: Bỏ qua toàn bộ Tên phim, Poster, Trailer, Mô tả...
+                            // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
+
+                            let hasUpdate = false;
+
+                            if (data.Budget && data.Budget !== "0") {
+                                let budgetInput = document.querySelector('input[name="budget"]');
+                                if (budgetInput) {
+                                    budgetInput.value = data.Budget;
+                                    hasUpdate = true;
+                                }
+                            }
+
+                            if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
+                                let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
+                                if (boxOfficeInput) {
+                                    boxOfficeInput.value = data.GlobalBoxOffice;
+                                    hasUpdate = true;
+                                }
+                            }
+
+                            if (hasUpdate) {
+                                alert("Đã tải xong số liệu Kinh phí & Doanh thu thành công!");
+                            } else {
+                                alert("TMDB không có sẵn số liệu kinh tế của phim này.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
+                            btn.disabled = false;
+                            alert("Có lỗi mạng xảy ra khi tra cứu!");
+                        });
+            });
+        </script>
     </body>
 </html>

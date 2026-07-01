@@ -6,7 +6,7 @@
 
 /**
  *
- * @author ADMIN
+ * @author ADMIN 
  */
 package com.cinema.model;
 

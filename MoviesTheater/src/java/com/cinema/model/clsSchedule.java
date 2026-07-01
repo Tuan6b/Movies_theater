@@ -26,6 +26,9 @@ public class clsSchedule {
     private clsMovie movie;
     private Room room;
 
+    // Number of booked seats for this schedule (populated by queries)
+    private int bookedCount;
+
     /**
      * Default constructor.
      */
@@ -124,6 +127,14 @@ public class clsSchedule {
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    public int getBookedCount() {
+        return bookedCount;
+    }
+
+    public void setBookedCount(int bookedCount) {
+        this.bookedCount = bookedCount;
     }
 
     @Override

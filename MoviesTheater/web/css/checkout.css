@@ -1,23 +1,19 @@
-/* ============================================================
-   CGV Cinema — Food & Drink selection styles
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --cgv-red:        #e71a0f;
-    --cgv-red-dark:   #bd120a;
-    --cgv-red-glow:   rgba(231, 26, 15, 0.4);
-    --cgv-bg:         #fdfcf0; /* CGV signature vintage paper background */
-    --cgv-surface:    #ffffff;
-    --cgv-dark:       #151515;
-    --cgv-dark-grey:  #222222;
-    --cgv-border:     #e2dfcc;
-    --cgv-text:       #2b2b2b;
+    --cgv-red: #e71a0f;
+    --cgv-red-dark: #bd120a;
+    --cgv-red-glow: rgba(231, 26, 15, 0.4);
+    --cgv-bg: #fdfcf0;
+    --cgv-surface: #ffffff;
+    --cgv-dark: #151515;
+    --cgv-dark-grey: #222222;
+    --cgv-border: #e2dfcc;
+    --cgv-text: #2b2b2b;
     --cgv-text-muted: #666666;
-    
+    --cgv-text-dim: #999999;
     --font-display: 'Anton', system-ui, sans-serif;
-    --font-body:    'Be Vietnam Pro', system-ui, sans-serif;
+    --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
 }
 
 * {
@@ -33,7 +29,6 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Header */
 .top-dark {
     background: var(--cgv-dark);
     border-bottom: 3px solid var(--cgv-red);
@@ -57,6 +52,7 @@ body {
     font-size: 26px;
     letter-spacing: 0.05em;
     color: var(--cgv-red);
+    text-decoration: none;
 }
 
 .nav {
@@ -76,7 +72,6 @@ body {
     color: var(--cgv-red);
 }
 
-/* Booking Steps bar */
 .booking-step {
     display: flex;
     align-items: center;
@@ -129,8 +124,7 @@ body {
     margin: 0 16px;
 }
 
-/* Main Container */
-.food-container {
+.checkout-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px 60px;
@@ -157,174 +151,174 @@ body {
     text-transform: uppercase;
 }
 
-/* Grid Layout */
-.food-grid {
+.checkout-layout {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    margin-bottom: 32px;
+    grid-template-columns: 1fr 360px;
+    gap: 32px;
+    align-items: start;
 }
 
-.food-card {
+.checkout-card {
     background: var(--cgv-surface);
     border: 1px solid var(--cgv-border);
     border-radius: 12px;
-    overflow: hidden;
-    display: flex;
+    padding: 20px 24px;
+    margin-bottom: 20px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.food-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-}
-
-.food-image {
-    width: 150px;
-    height: 150px;
-    background-color: #f7f7f7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.food-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.food-image-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #e71a0f, #bd120a);
-    color: white;
-    font-size: 32px;
-    font-weight: 800;
-    font-family: var(--font-display);
+.card-title {
+    font-size: 15px;
+    font-weight: 700;
     text-transform: uppercase;
+    color: var(--cgv-red);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cgv-border);
 }
 
-.food-info {
-    padding: 16px 20px;
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.info-grid div {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    flex-grow: 1;
+    gap: 4px;
 }
 
-.food-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--cgv-dark);
-    margin-bottom: 4px;
-}
-
-.food-desc {
-    font-size: 13px;
-    color: var(--cgv-text-muted);
-    line-height: 1.5;
-    margin-bottom: 12px;
-}
-
-.food-purchase {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.food-price {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--cgv-red);
-}
-
-.quantity-control {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--cgv-border);
-    border-radius: 6px;
-    overflow: hidden;
-    background: var(--cgv-surface);
-}
-
-.qty-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #f4f3ec;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--cgv-dark);
-    transition: background 0.15s;
-}
-
-.qty-btn:hover {
-    background: #e2dfcc;
-}
-
-.qty-val {
-    width: 38px;
-    height: 32px;
-    border: none;
-    text-align: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--cgv-dark);
-    background: white;
-    pointer-events: none;
-}
-
-/* Checkout panel/drawer bar */
-.checkout-bar {
-    background: var(--cgv-surface);
-    border: 2px solid var(--cgv-dark);
-    border-radius: 12px;
-    padding: 24px;
-    display: grid;
-    grid-template-columns: 1.8fr 1fr auto;
-    align-items: center;
-    gap: 32px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-}
-
-.selected-info p,
-.price-info p {
-    margin-bottom: 4px;
+.info-grid span {
     color: var(--cgv-text-muted);
     font-size: 12px;
     text-transform: uppercase;
     font-weight: 600;
-    letter-spacing: 0.02em;
 }
 
-.selected-info strong {
+.info-grid strong {
     color: var(--cgv-dark);
     font-size: 15px;
     font-weight: 700;
-    display: block;
-    line-height: 1.5;
 }
 
-.price-info strong {
+.seat-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.seat-summary-count {
+    background: var(--cgv-red);
+    color: white;
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.item-row + .item-row {
+    border-top: 1px solid var(--cgv-border);
+}
+
+.item-row span:last-child {
+    font-weight: 600;
+    color: var(--cgv-dark);
+}
+
+.promotion-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--cgv-border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--font-body);
+    background: var(--cgv-surface);
+    color: var(--cgv-text);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.promotion-select:focus {
+    border-color: var(--cgv-red);
+}
+
+.promotion-info {
+    margin-top: 8px;
+    font-size: 13px;
     color: var(--cgv-red);
-    font-size: 26px;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+.summary-card {
+    background: var(--cgv-surface);
+    border: 2px solid var(--cgv-dark);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 100px;
+}
+
+.summary-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: var(--cgv-dark);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.summary-row span:last-child {
+    font-weight: 600;
+}
+
+.summary-divider {
+    height: 1px;
+    background: var(--cgv-border);
+    margin: 8px 0;
+}
+
+.discount-row {
+    color: #27ae60;
+}
+
+.discount-row span:last-child {
+    color: #27ae60;
+}
+
+.summary-total {
+    font-size: 18px;
     font-weight: 800;
 }
 
-.action-group {
-    display: flex;
-    gap: 16px;
+.summary-total span:last-child {
+    color: var(--cgv-red);
+    font-size: 22px;
+}
+
+.btn-block {
+    width: 100%;
+    margin-top: 20px;
 }
 
 .btn {
@@ -340,15 +334,7 @@ body {
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-.btn-back {
-    background: #e2dfcc;
-    color: var(--cgv-dark);
-}
-
-.btn-back:hover {
-    background: #d4d1bc;
+    font-family: var(--font-body);
 }
 
 .btn-next {
@@ -361,7 +347,6 @@ body {
     box-shadow: 0 4px 12px var(--cgv-red-glow);
 }
 
-/* Footer style */
 .footer-dark {
     background: var(--cgv-dark);
     color: rgba(255,255,255,0.4);
@@ -386,12 +371,20 @@ body {
 }
 
 @media (max-width: 900px) {
-    .food-grid {
+    .checkout-layout {
         grid-template-columns: 1fr;
     }
 
-    .checkout-bar {
+    .info-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+    }
+
+    .booking-step {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .step-line {
+        width: 24px;
     }
 }

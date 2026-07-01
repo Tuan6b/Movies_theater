@@ -62,6 +62,13 @@ public class tbSchedule {
             // Ignore if Movie columns are not present in result set
         }
 
+        // Map booked count if present in the projection
+        try {
+            schedule.setBookedCount(rs.getInt("BookedCount"));
+        } catch (SQLException ex) {
+            // Ignore if BookedCount column is not present
+        }
+
         return schedule;
     }
 
@@ -108,7 +115,12 @@ public class tbSchedule {
         String sql = """
                      SELECT s.*, 
                             r.RoomNumber, r.RoomType, r.Capacity, r.IsActive AS RoomActive,
-                            m.MovieName, m.Duration, m.Poster
+                            m.MovieName, m.Duration, m.Poster,
+                            (SELECT COUNT(*) FROM Ticket t
+                             JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+                             WHERE t.ScheduleID = s.ScheduleID
+                               AND i.PaymentStatus IN ('PENDING', 'PAID')
+                            ) AS BookedCount
                      FROM Schedule s
                      INNER JOIN Room r ON s.RoomID = r.RoomID
                      INNER JOIN Movie m ON s.MovieID = m.MovieID
@@ -144,7 +156,12 @@ public class tbSchedule {
         String sql = """
                      SELECT s.*, 
                             r.RoomNumber, r.RoomType, r.Capacity, r.IsActive AS RoomActive,
-                            m.MovieName, m.Duration, m.Poster
+                            m.MovieName, m.Duration, m.Poster,
+                            (SELECT COUNT(*) FROM Ticket t
+                             JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+                             WHERE t.ScheduleID = s.ScheduleID
+                               AND i.PaymentStatus IN ('PENDING', 'PAID')
+                            ) AS BookedCount
                      FROM Schedule s
                      INNER JOIN Room r ON s.RoomID = r.RoomID
                      INNER JOIN Movie m ON s.MovieID = m.MovieID
@@ -174,7 +191,12 @@ public class tbSchedule {
         StringBuilder sql = new StringBuilder("""
                      SELECT s.*, 
                             r.RoomNumber, r.RoomType, r.Capacity, r.IsActive AS RoomActive,
-                            m.MovieName, m.Duration, m.Poster
+                            m.MovieName, m.Duration, m.Poster,
+                            (SELECT COUNT(*) FROM Ticket t
+                             JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+                             WHERE t.ScheduleID = s.ScheduleID
+                               AND i.PaymentStatus IN ('PENDING', 'PAID')
+                            ) AS BookedCount
                      FROM Schedule s
                      INNER JOIN Room r ON s.RoomID = r.RoomID
                      INNER JOIN Movie m ON s.MovieID = m.MovieID

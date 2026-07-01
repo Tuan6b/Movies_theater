@@ -9,6 +9,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -27,8 +28,9 @@ public class MovieDetailController extends HttpServlet {
             int movieId = Integer.parseInt(request.getParameter("id"));
             clsMovie movie = movieDAO.getMovieById(movieId);
             
-            if (movie == null || !movie.isActive()) {
-                response.sendRedirect(request.getContextPath() + "/HomeController");
+            // Kiểm tra trạng thái kích hoạt (Active) của phim
+            if (movie == null || !movie.isIsActive()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Phim không tồn tại hoặc đã ngừng chiếu.");
                 return;
             }
 
@@ -72,6 +74,18 @@ public class MovieDetailController extends HttpServlet {
             request.setAttribute("totalReviews", totalReviews);
             request.setAttribute("avgRating", avgRating);
             request.setAttribute("starCounts", starCounts);
+
+            // Kiểm tra quyền đánh giá của User hiện tại (UC19 & UC20)
+            HttpSession session = request.getSession();
+            com.cinema.model.Account account = (com.cinema.model.Account) session.getAttribute("account");
+            if (account != null) {
+                boolean canReview = (reviewDAO.getCheckedInTicketId(account.getAccountId(), movieId) != -1);
+                request.setAttribute("canReview", canReview);
+                
+                // Kéo review của user (nếu đã từng đánh giá)
+                com.cinema.model.clsMovieReview userReview = reviewDAO.getReviewByAccountAndMovie(account.getAccountId(), movieId);
+                request.setAttribute("userReview", userReview);
+            }
 
             request.getRequestDispatcher("/movie-detail.jsp").forward(request, response);
 

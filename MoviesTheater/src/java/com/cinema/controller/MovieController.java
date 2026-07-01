@@ -81,31 +81,27 @@ public class MovieController extends HttpServlet {
             } else if ("add".equals(action) || "edit".equals(action)) {
                 
                 if ("add".equals(action)) {
-                    boolean isEarlyRelease = request.getParameter("earlyRelease") != null;
-                    LocalDate releaseDateLocal = LocalDate.parse(request.getParameter("releaseDate"));
-                    LocalDate today = LocalDate.now();
-                    long diffDays = ChronoUnit.DAYS.between(today, releaseDateLocal);
-
-                    if (isEarlyRelease) {
-                        if (diffDays < 7) {
-                            request.setAttribute("error", "Lỗi: Suất chiếu sớm phải cách hiện tại ít nhất 7 ngày!");
-                            request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
-                            request.getRequestDispatcher("add_movie.jsp").forward(request, response);
-                            return;
-                        }
-                    } else {
-                        if (diffDays < 30) {
-                            request.setAttribute("error", "Lỗi: Ngày khởi chiếu mặc định phải cách hiện tại ít nhất 30 ngày!");
-                            request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
-                            request.getRequestDispatcher("add_movie.jsp").forward(request, response);
-                            return;
-                        }
-                    }
+                    // Logic validation for early release was removed because releaseDate is now handled via schedule.
                 }
 
                 // use the same data for add and edit movie
                 String movieName = request.getParameter("movieName");
-                Date releaseDate = Date.valueOf(request.getParameter("releaseDate"));
+                String budget = request.getParameter("budget");
+                String globalBoxOffice = request.getParameter("globalBoxOffice");
+                
+                int weeklyRevenueRank = 0;
+                int ticketsSoldMilestone = 0;
+                
+                if ("edit".equals(action)) {
+                    try {
+                        int movieId = Integer.parseInt(request.getParameter("id"));
+                        clsMovie oldMovie = movieDAO.getMovieById(movieId);
+                        if (oldMovie != null) {
+                            weeklyRevenueRank = oldMovie.getWeeklyRevenueRank();
+                            ticketsSoldMilestone = oldMovie.getTicketsSoldMilestone();
+                        }
+                    } catch (Exception e) {}
+                }
                 int duration = Integer.parseInt(request.getParameter("duration"));
                 int ageRestriction = Integer.parseInt(request.getParameter("ageRestriction"));
                 String language = request.getParameter("language");
@@ -119,7 +115,8 @@ public class MovieController extends HttpServlet {
                 boolean isActive = request.getParameter("isActive") != null; // Có tick là true, không tick là false
                 String[] genreIds = request.getParameterValues("genreIds");
 
-                clsMovie movie = new clsMovie(0, movieName, description, duration, releaseDate,
+                clsMovie movie = new clsMovie(0, movieName, description, duration, null,
+                        budget, globalBoxOffice, weeklyRevenueRank, ticketsSoldMilestone,
                         poster, trailer, language, subtitle, director,
                         cast, country, ageRestriction, isActive);
 
@@ -143,7 +140,7 @@ public class MovieController extends HttpServlet {
                         movie.setMovieName(existingMovie.getMovieName());
                         movie.setDuration(existingMovie.getDuration());
                         movie.setPoster(existingMovie.getPoster());
-                        movie.setReleaseDate(existingMovie.getReleaseDate());
+                        movie.setDateAdded(existingMovie.getDateAdded());
                     }
                     
                     isSuccess = movieDAO.updateMovie(movie);

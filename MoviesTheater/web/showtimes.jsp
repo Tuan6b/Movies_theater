@@ -177,7 +177,7 @@
                         </div>
                         <div class="detail-item">
                             <span class="detail-label">Khởi chiếu:</span>
-                            <span class="detail-value"><%= movie.getReleaseDate() != null ? movie.getReleaseDate() : "Đang cập nhật" %></span>
+                            <span class="detail-value"><%= movie.getDateAdded() != null ? movie.getDateAdded() : "Đang cập nhật" %></span>
                         </div>
                     </div>
 
@@ -272,10 +272,16 @@
 
                                     <!-- Time slot button selections -->
                                     <div class="showtime-slots-grid">
-                                        <% for (clsSchedule s : roomSlots) { %>
-                                            <a href="#" class="showtime-slot-btn" onclick="handleBooking(event, <%= s.getScheduleId() %>, '<%= timeFormat.format(s.getStartTime()) %>')">
+                                        <% for (clsSchedule s : roomSlots) { 
+                                            int remaining = room.getCapacity() - s.getBookedCount();
+                                            boolean isFull = remaining <= 0;
+                                        %>
+                                            <a href="<%= isFull ? "#" : "#" %>" class="showtime-slot-btn <%= isFull ? "slot-full" : "" %>" onclick="<%= isFull ? "event.preventDefault(); showCinematicToast('Suất chiếu này đã hết ghế trống.');" : "handleBooking(event, " + s.getScheduleId() + ", '" + timeFormat.format(s.getStartTime()) + "')" %>">
                                                 <span class="showtime-slot-time"><%= timeFormat.format(s.getStartTime()) %></span> 
                                                 <span class="showtime-slot-price"><%= String.format("%,.0f", s.getBaseTicketPrice()) %> đ</span>
+                                                <span class="showtime-slot-seats <%= isFull ? "seats-full" : "seats-available" %>">
+                                                    <%= isFull ? "Hết ghế" : + remaining + "/" + room.getCapacity() + ""%>
+                                                </span>
                                             </a>
                                         <% } %>
                                     </div>
