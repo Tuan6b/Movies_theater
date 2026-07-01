@@ -48,53 +48,40 @@
                 </div>
             </div>
 
-            <%-- Account management --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">QUẢN LÝ TÀI KHOẢN</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Tài khoản người dùng</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Xem, khoá và mở khoá tất cả tài khoản trong hệ thống</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/admin/users" class="btn--cgv-outline">Danh sách</a>
-                    </div>
+            <%-- System activity chart --%>
+            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">HOẠT ĐỘNG HỆ THỐNG (7 NGÀY GẦN NHẤT)</div>
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
+                <div style="height:300px;">
+                    <canvas id="activityChart"></canvas>
                 </div>
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Nhân viên &amp; Phân quyền</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Tạo tài khoản nhân viên, quản lý vai trò và quyền truy cập</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/admin/staff" class="btn--cgv-outline">Danh sách</a>
-                        <a href="${pageContext.request.contextPath}/admin/staff?action=add" class="btn--cgv">+ Thêm mới</a>
-                    </div>
-                </div>
-
-            </div>
-
-            <%-- System --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">HỆ THỐNG</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Nhật ký hệ thống</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Xem nhật ký hoạt động và kiểm toán của toàn hệ thống</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/admin/logs" class="btn--cgv-outline">Xem nhật ký</a>
-                    </div>
-                </div>
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Cấu hình hệ thống</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Thiết lập thông số vận hành và cấu hình ứng dụng</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/admin/config" class="btn--cgv-outline">Cấu hình</a>
-                    </div>
-                </div>
-
             </div>
 
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+        integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
+        crossorigin="anonymous"></script>
+<script>
+    var activityChartData = ${activityChartJson};
+    new Chart(document.getElementById('activityChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: activityChartData.labels,
+            datasets: [{
+                label: 'Số lượt hoạt động',
+                data: activityChartData.values,
+                backgroundColor: 'rgba(94,63,58,0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+</script>
 </body>
 </html>

@@ -197,6 +197,14 @@
         <servlet-name>ScheduleController</servlet-name>
         <url-pattern>/manager/schedules</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <servlet-class>com.cinema.controller.WorkShiftServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>WorkShiftServlet</servlet-name>
+        <url-pattern>/manager/shifts</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>TMDBController</servlet-name>
         <url-pattern>/TMDBController</url-pattern>

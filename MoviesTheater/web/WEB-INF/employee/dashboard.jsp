@@ -68,54 +68,17 @@
                 </div>
             </div>
 
-            <%-- Operations --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">VẬN HÀNH</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Check-in vé</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Tra cứu và xác nhận vé đặt chỗ của khách</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <c:choose>
-                            <c:when test="${noShift}">
-                                <button disabled class="btn--cgv" style="opacity:0.4;cursor:not-allowed;" title="Chỉ khả dụng trong giờ làm">Check-in ngay</button>
-                            </c:when>
-                            <c:otherwise>
-                                <a href="${pageContext.request.contextPath}/employee/checkin" class="btn--cgv">Check-in ngay</a>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
+            <%-- Shift breakdown chart --%>
+            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">CA LÀM VIỆC THÁNG NÀY</div>
+            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;margin-bottom:32px;">
+                <div style="height:300px;">
+                    <canvas id="shiftChart"></canvas>
                 </div>
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Lịch chiếu</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Xem lịch chiếu và thông tin suất chiếu hôm nay</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/employee/schedules" class="btn--cgv-outline">Xem lịch chiếu</a>
-                    </div>
-                </div>
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Phim &amp; Thể loại</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Xem danh sách phim đang chiếu và sắp chiếu</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/employee/movies" class="btn--cgv-outline">Danh sách phim</a>
-                    </div>
-                </div>
-
             </div>
 
-            <%-- Profile --%>
+            <%-- Account --%>
             <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">TÀI KHOẢN</div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Thông tin cá nhân</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Cập nhật thông tin hồ sơ của bạn</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/employee/profile" class="btn--cgv-outline">Xem hồ sơ</a>
-                    </div>
-                </div>
 
                 <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
                     <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Đổi mật khẩu</div>
@@ -130,5 +93,23 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+        integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
+        crossorigin="anonymous"></script>
+<script>
+    var shiftChartData = ${shiftChartJson};
+    new Chart(document.getElementById('shiftChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: shiftChartData.labels,
+            datasets: [{
+                data: shiftChartData.values,
+                backgroundColor: ['#865300', '#bd0000', '#5e3f3a']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+</script>
 </body>
 </html>

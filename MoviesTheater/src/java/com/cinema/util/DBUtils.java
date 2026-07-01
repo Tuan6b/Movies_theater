@@ -27,7 +27,8 @@ public class DBUtils {
     private static final String CONNECTION_URL = "jdbc:sqlserver://"
             + SERVER + ":" + PORT
             + ";databaseName=" + DATABASE
-            + ";encrypt=false";
+            + ";encrypt=false"
+            + ";sendTimeAsDatetime=false";
 
     /**
      * Thread-local holding a shared test connection injected by integration tests.

@@ -291,6 +291,32 @@ public class WorkShiftDAO {
         return created;
     }
 
+    public List<WorkShift> getByShiftTypeAndMonth(LocalTime start, LocalTime end, int year, int month) {
+        String sql = "SELECT ws.ShiftID, ws.EmployeeID, ws.ShiftDate, ws.StartTime, ws.EndTime, "
+                + "ws.Status, ws.Notes, ws.CreatedAt, "
+                + "u.FullName AS EmployeeName, a.Email AS EmployeeEmail "
+                + "FROM WorkShift ws "
+                + "JOIN Account a ON ws.EmployeeID = a.AccountID "
+                + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
+                + "WHERE CAST(ws.StartTime AS TIME) = ? AND CAST(ws.EndTime AS TIME) = ? "
+                + "AND YEAR(ws.ShiftDate) = ? AND MONTH(ws.ShiftDate) = ? "
+                + "ORDER BY ws.ShiftDate ASC, ws.EmployeeID ASC";
+        List<WorkShift> list = new ArrayList<>();
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTime(1, Time.valueOf(start));
+            ps.setTime(2, Time.valueOf(end));
+            ps.setInt(3, year);
+            ps.setInt(4, month);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapShift(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public int countWorkingDays(int empId) {
         String sql = "SELECT COUNT(*) FROM WorkShift WHERE EmployeeID = ? AND Status = 'Completed'";
         try (Connection conn = DBUtils.getConnection();

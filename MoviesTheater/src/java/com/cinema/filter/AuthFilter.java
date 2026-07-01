@@ -124,7 +124,7 @@ public class AuthFilter extends HttpFilter implements Filter {
         }
 
         // ===== EMPLOYEE AREA =====
-        if (path.startsWith("/manager") && roleId < 3) {
+        if (path.startsWith("/manager") && roleId < 4) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;

@@ -208,6 +208,25 @@ CREATE TABLE WorkShift (
 CREATE INDEX IDX_WorkShift_EmployeeID ON WorkShift(EmployeeID);
 CREATE INDEX IDX_WorkShift_ShiftDate  ON WorkShift(ShiftDate);
 
+CREATE TABLE ShiftExchangeRequest (
+    RequestID   INT IDENTITY(1,1) PRIMARY KEY,
+    ShiftID     INT NOT NULL,
+    RequesterID INT NOT NULL,
+    TargetEmpID INT NOT NULL,
+    Message     NVARCHAR(500) NULL,
+    Status      VARCHAR(20)   NOT NULL DEFAULT 'Pending',
+    CreatedAt   DATETIME      NOT NULL DEFAULT GETDATE(),
+    RespondedAt DATETIME      NULL,
+    CONSTRAINT FK_SER_Shift      FOREIGN KEY (ShiftID)     REFERENCES WorkShift(ShiftID) ON DELETE CASCADE,
+    CONSTRAINT FK_SER_Requester  FOREIGN KEY (RequesterID) REFERENCES Account(AccountID),
+    CONSTRAINT FK_SER_Target     FOREIGN KEY (TargetEmpID) REFERENCES Account(AccountID),
+    CONSTRAINT CHK_SER_Status    CHECK (Status IN ('Pending', 'Accepted', 'Rejected', 'Cancelled'))
+);
+
+CREATE INDEX IDX_SER_ShiftID     ON ShiftExchangeRequest(ShiftID);
+CREATE INDEX IDX_SER_RequesterID ON ShiftExchangeRequest(RequesterID);
+CREATE INDEX IDX_SER_TargetEmpID ON ShiftExchangeRequest(TargetEmpID);
+
 CREATE TABLE SystemLog (
     LogID INT IDENTITY(1,1) PRIMARY KEY,
     AccountID INT NULL,
