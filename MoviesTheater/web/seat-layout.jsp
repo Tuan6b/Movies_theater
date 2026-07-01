@@ -49,6 +49,16 @@
 
         <div class="screen-bar">SCREEN</div>
 
+        <c:if test="${param.error eq 'has_schedules'}">
+            <div class="cgv-alert cgv-alert-danger" style="margin-bottom:16px;">Cannot change seat types — room has existing schedules.</div>
+        </c:if>
+
+        <c:if test="${hasSchedules}">
+            <div style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                This room has existing schedules. Seat types cannot be changed.
+            </div>
+        </c:if>
+
         <c:choose>
             <c:when test="${empty seatsByRow}">
                 <div style="text-align:center;padding:48px;color:var(--md-on-surface-variant);">
@@ -77,12 +87,12 @@
                                 <input type="hidden" name="action" value="updateRow">
                                 <input type="hidden" name="roomId" value="${room.roomId}">
                                 <input type="hidden" name="rowChar" value="${entry.key}">
-                                <select name="seatType">
+                                <select name="seatType" ${hasSchedules ? 'disabled style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                                     <option value="Normal" ${firstSeat.seatType eq 'Normal' ? 'selected' : ''}>Normal</option>
                                     <option value="VIP" ${firstSeat.seatType eq 'VIP' ? 'selected' : ''}>VIP</option>
                                     <option value="Couple" ${firstSeat.seatType eq 'Couple' ? 'selected' : ''}>Couple</option>
                                 </select>
-                                <button type="submit">Save</button>
+                                <button type="submit" ${hasSchedules ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Save</button>
                             </form>
                         </div>
                     </c:forEach>

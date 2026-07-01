@@ -54,7 +54,12 @@ CREATE TABLE Movie (
     Cast NVARCHAR(500) NULL,
     Country NVARCHAR(100) NULL,
     AgeRestriction INT NOT NULL DEFAULT 0,
-    IsActive BIT NOT NULL DEFAULT 1
+    IsActive BIT NOT NULL DEFAULT 1,
+    DateAdded DATETIME NULL,
+    Budget VARCHAR(50) NULL,
+    GlobalBoxOffice VARCHAR(50) NULL,
+    WeeklyRevenueRank INT NULL DEFAULT 0,
+    TicketsSoldMilestone INT NULL DEFAULT 0
 );
 
 CREATE TABLE Genre (

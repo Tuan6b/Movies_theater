@@ -54,8 +54,17 @@
                     <c:if test="${param.error eq 'room_number_exists'}">
                         <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
                     </c:if>
+                    <c:if test="${param.error eq 'has_schedules'}">
+                        <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing schedules.</div>
+                    </c:if>
                     <c:if test="${param.error eq 'cannot_change_layout'}">
                         <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing bookings.</div>
+                    </c:if>
+
+                    <c:if test="${hasSchedules}">
+                        <div class="cgv-alert cgv-alert-warning" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                            This room has existing schedules. Seat layout (rows/seats) cannot be changed.
+                        </div>
                     </c:if>
 
                     <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
@@ -86,13 +95,15 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Number of Rows</label>
                                 <input class="cgv-input" type="number" name="numberOfRows"
-                                       value="${room.numberOfRows}" min="1" required>
+                                       value="${room.numberOfRows}" min="1" required
+                                       ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Seats per Row</label>
                                 <input class="cgv-input" type="number" name="seatsPerRow"
-                                       value="${room.seatsPerRow}" min="1" required>
+                                       value="${room.seatsPerRow}" min="1" required
+                                       ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                             </div>
 
                             <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">

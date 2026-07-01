@@ -208,6 +208,20 @@ public class ScheduleDAO {
         return false;
     }
 
+    public boolean hasSchedulesForRoom(int roomId) {
+        String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setInt(1, roomId);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean hasOverlappingSchedule(int roomId, String startDateTime, String endDateTime, int excludeScheduleId) {
         String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ? AND ScheduleID != ? "
                 + "AND Status != 'Cancelled' AND StartTime < ? AND EndTime > ?";
