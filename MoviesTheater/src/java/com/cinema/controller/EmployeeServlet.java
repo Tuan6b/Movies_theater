@@ -25,8 +25,8 @@ public class EmployeeServlet extends HttpServlet {
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     private static final int PAGE_SIZE = 10;
-    private static final String LIST_JSP = "/WEB-INF/manager/employees/list.jsp";
-    private static final String FORM_JSP = "/WEB-INF/manager/employees/form.jsp";
+    private static final String LIST_JSP = "/view/manager/employees/list.jsp";
+    private static final String FORM_JSP = "/view/manager/employees/form.jsp";
     private static final String LIST_URL = "/manager/employees";
 
     /**

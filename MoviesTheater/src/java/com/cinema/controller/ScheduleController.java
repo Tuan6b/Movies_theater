@@ -129,7 +129,7 @@ public class ScheduleController extends HttpServlet {
         request.setAttribute("roomNameMap", roomNameMap);
         request.setAttribute("movieNameMap", movieNameMap);
 
-        request.getRequestDispatcher("schedule-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/schedule-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
@@ -150,7 +150,7 @@ public class ScheduleController extends HttpServlet {
 
         request.setAttribute("movie", movie);
         request.setAttribute("rooms", rooms);
-        request.getRequestDispatcher("schedule-add.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/schedule-add.jsp").forward(request, response);
     }
 
     private void addSchedule(HttpServletRequest request, HttpServletResponse response)
@@ -304,7 +304,7 @@ public class ScheduleController extends HttpServlet {
         request.setAttribute("rooms", rooms);
         request.setAttribute("editMovieName", movieName);
 
-        request.getRequestDispatcher("schedule-edit.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/schedule-edit.jsp").forward(request, response);
     }
 
     private void updateSchedule(HttpServletRequest request, HttpServletResponse response)

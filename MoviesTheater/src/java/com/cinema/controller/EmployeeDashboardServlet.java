@@ -39,14 +39,14 @@ import java.util.Map;
 
 public class EmployeeDashboardServlet extends HttpServlet {
 
-    private static final String DASHBOARD_JSP  = "/WEB-INF/employee/dashboard.jsp";
-    private static final String SCHEDULES_JSP  = "/WEB-INF/employee/schedules.jsp";
-    private static final String TICKETS_JSP    = "/WEB-INF/employee/tickets.jsp";
-    private static final String BOOK_JSP       = "/WEB-INF/employee/book.jsp";
-    private static final String CHECKIN_JSP    = "/WEB-INF/employee/checkin.jsp";
-    private static final String PROFILE_JSP    = "/WEB-INF/employee/profile.jsp";
-    private static final String SETUP_JSP      = "/WEB-INF/employee/setup.jsp";
-    private static final String MY_SHIFTS_JSP  = "/WEB-INF/employee/my-shifts.jsp";
+    private static final String DASHBOARD_JSP  = "/view/employee/dashboard.jsp";
+    private static final String SCHEDULES_JSP  = "/view/employee/schedules.jsp";
+    private static final String TICKETS_JSP    = "/view/employee/tickets.jsp";
+    private static final String BOOK_JSP       = "/view/employee/book.jsp";
+    private static final String CHECKIN_JSP    = "/view/employee/checkin.jsp";
+    private static final String PROFILE_JSP    = "/view/employee/profile.jsp";
+    private static final String SETUP_JSP      = "/view/employee/setup.jsp";
+    private static final String MY_SHIFTS_JSP  = "/view/employee/my-shifts.jsp";
 
     private final AccountDAO      accountDAO      = new AccountDAO();
     private final EmployeeDAO     employeeDAO     = new EmployeeDAO();

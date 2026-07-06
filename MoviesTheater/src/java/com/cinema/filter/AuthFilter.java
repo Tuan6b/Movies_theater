@@ -21,16 +21,16 @@ public class AuthFilter extends HttpFilter implements Filter {
     // Public pages
     private static final List<String> EXACT_PUBLIC_PATHS = Arrays.asList(
             "/",
-            "/index.jsp",
-            "/home.jsp",
-            "/movie-detail.jsp",
+            "/view/customer/index.jsp",
+            "/view/customer/home.jsp",
+            "/view/customer/movie-detail.jsp",
             "/HomeController",
             "/MovieDetailController",
-            "/login.jsp",
-            "/register.jsp",
+            "/view/auth/login.jsp",
+            "/view/auth/register.jsp",
             "/Login",
             "/Register",
-            "/Error.jsp",
+            "/view/common/Error.jsp",
             "/showtimes",
             "/RoomServlet"
     );
@@ -110,7 +110,7 @@ public class AuthFilter extends HttpFilter implements Filter {
          */
 
         // ===== ADMIN ONLY =====
-        if (path.startsWith("/admin") && roleId < 5) {
+        if ((path.startsWith("/admin") || path.startsWith("/view/admin")) && roleId < 5) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;
@@ -124,14 +124,14 @@ public class AuthFilter extends HttpFilter implements Filter {
         }
 
         // ===== EMPLOYEE AREA =====
-        if (path.startsWith("/manager") && roleId < 4) {
+        if ((path.startsWith("/manager") || path.startsWith("/view/manager")) && roleId < 4) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;
         }
 
         // ===== EMPLOYEE DASHBOARD =====
-        if (path.startsWith("/employee") && roleId < 3) {
+        if ((path.startsWith("/employee") || path.startsWith("/view/employee")) && roleId < 3) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN,
                     "Access Denied");
             return;

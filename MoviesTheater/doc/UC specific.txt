@@ -1,0 +1,295 @@
+USE CASE SPECIFICATION
+2.1. Danh sách Tác nhân (Actors)
+Guest (Khách vãng lai): Người dùng chưa đăng nhập, chỉ có quyền xem thông tin công khai.
+User (Người dùng hệ thống): Tác nhân Cha (Abstract Actor) đại diện cho bất kỳ ai đã xác thực tài khoản thành công.
+Customer (Khách hàng): Tác nhân con, đa kế thừa từ User (để dùng tài khoản) và Guest (để xem phim). Có quyền mua vé và đánh giá.
+Employee (Nhân viên rạp): Tác nhân con, kế thừa từ User. Có quyền thao tác soát vé và bán đồ ăn tại quầy.
+Manager (Quản lý rạp): 	Tác nhân con, kế thừa từ User. Điều hành hoạt động kinh doanh (Phim, lịch chiếu, nhân sự, khuyến mãi).
+System Admin (Quản trị hệ thống): Tác nhân con, kế thừa từ User. Bảo trì nền tảng, quản lý phân quyền và cấu hình.
+2.2. Chi tiết Use Case theo phân tầng kế thừa
+Nhóm 1: Use Case của Guest (Khách chưa đăng nhập)
+Register: Đăng ký tài khoản hệ thống.
+View Movie List: Xem danh sách phim.
+Mở rộng (<<extend>>): View Movie Detail (Xem chi tiết phim).
+Mở rộng (<<extend>>): View Rating List (Xem đánh giá từ khách hàng khác).
+Nhóm 2: Use Case của User (Tác nhân Cha - Đã đăng nhập)
+(Mọi Actor con: Customer, Employee, Manager, System Admin đều mặc định sở hữu các chức năng này)
+Login (Đăng nhập)
+Mở rộng (<<extend>>): Forgot Password (Quên mật khẩu).
+Logout (Đăng xuất)
+Manage Profile (Quản lý hồ sơ)
+Mở rộng (<<extend>>): Edit Profile (Cập nhật thông tin).
+Mở rộng (<<extend>>): Change Password (Đổi mật khẩu).
+Nhóm 3: Use Case của Customer (Khách hàng)
+(Đa kế thừa toàn bộ Use Case của User và Guest)
+Book Ticket (Đặt vé trực tuyến):
+Bao gồm (<<include>>): Select Seat (Bắt buộc chọn ghế).
+Bao gồm (<<include>>): Pay (Bắt buộc thanh toán).
+Mở rộng (<<extend>>): Select Food (Chọn đồ ăn kèm).
+Mở rộng (<<extend>>): Apply Promotion (Áp mã giảm giá).
+View Booked Tickets (Xem lịch sử đặt vé):
+Mở rộng (<<extend>>): Rate Movie (Chỉ áp dụng với vé đã xem).
+Mở rộng (<<extend>>): View Feedback (Xem phản hồi).
+Nhóm 4: Use Case của Employee (Nhân viên rạp)
+(Kế thừa từ User)
+Ticket Checking (Kiểm tra vé):
+Mở rộng (<<extend>>): Scan QR / Check-in (Quét mã vé).
+Mở rộng (<<extend>>): View Booking Ticket List (Xem danh sách vé).
+Mở rộng (<<extend>>): Create Ticket (Bán vé offline tại quầy).
+Manage Food (Quản lý quầy đồ ăn): Add, Edit, Delete, View Food List.
+Room Checking: Kiểm tra trạng thái phòng chiếu.
+Nhóm 5: Use Case của Manager (Quản lý rạp)
+(Kế thừa từ User)
+Manage Movie: Add, Edit, Delete Movie.
+Manage Movie Schedule: Add, Edit, Delete Schedule.
+Manage Promotion: Tạo, sửa, xóa, quản lý mã Voucher.
+Manage Room: Add Room, Edit Room, Seat Management, Set VIP Seat.
+Manage Employee: Thêm, sửa, vô hiệu hóa nhân viên.
+View Ticket Statistic: Báo cáo doanh thu (vé + đồ ăn).
+Nhóm 6: Use Case của System Admin (Quản trị hệ thống)
+(Kế thừa từ User)
+Manage User Accounts: Assign Roles (Cấp quyền), Block/Unblock Account.
+Manage System Configuration: Cấu hình giao diện, policy web.
+System Monitoring: View System Logs, Backup/Restore Database.
+
+
+
+
+NHÓM 1 — Authentication & User Management
+Actor: Guest · Customer · System Admin
+ID
+Use Case
+Actor
+Mô tả
+UC01
+Register
+Guest
+Tạo tài khoản mới
+UC02
+Login
+User
+Đăng nhập vào hệ thống
+UC03
+Logout
+User
+Đăng xuất khỏi hệ thống
+UC04
+Forgot Password
+Guest
+Gửi email reset mật khẩu
+UC05
+Change Password
+User
+Đổi mật khẩu khi đã đăng nhập
+UC06
+View Profile
+User
+Xem thông tin hồ sơ cá nhân
+UC07
+Edit Profile
+User
+Chỉnh sửa thông tin cá nhân
+UC08
+Block / Unblock Account
+System Admin
+Khóa/mở khóa tài khoản vi phạm
+UC09
+Assign Role
+System Admin
+Phân quyền Manager/Employee cho tài khoản
+UC10
+View User Account List
+System Admin
+Xem danh sách tất cả tài khoản trong hệ thống
+
+NHÓM 2 — Movie, Genre & Rating
+Actor: Guest · Customer · Manager
+ID
+Use Case
+Actor
+Mô tả
+UC11
+View Movie List
+Guest
+Xem danh sách phim đang & sắp chiếu
+UC12
+View Movie Detail
+Guest
+Xem chi tiết thông tin phim (extend từ UC11)
+UC13
+Search Movie
+Guest
+Tìm kiếm phim theo tên / thể loại / ngày chiếu
+UC14
+Add Movie
+Manager
+Thêm phim mới vào hệ thống
+UC15
+Edit Movie
+Manager
+Chỉnh sửa thông tin phim
+UC16
+Delete / Hide Movie
+Manager
+Ẩn hoặc xóa phim khỏi hệ thống
+UC17
+Manage Genre
+Manager
+Thêm/sửa/xóa thể loại phim, gán thể loại cho phim
+UC18
+View Rating List
+Guest
+Xem danh sách đánh giá của một phim (extend từ UC12)
+UC19
+Rate Movie
+Customer
+Đánh giá phim (chỉ khi vé đã checkin)
+UC20
+Edit / Delete Own Rating
+Customer
+Chỉnh sửa hoặc xóa đánh giá của mình
+UC21
+View Rating Statistics
+Guest
+Xem điểm trung bình và biểu đồ đánh giá
+
+
+NHÓM 3 — Ticket Booking & Payment
+ID
+Use Case
+Actor
+Mô tả
+UC22
+View Showtime Schedule
+Guest
+Xem lịch chiếu của phim theo ngày/rạp
+UC23
+Book Ticket
+Customer
+Bắt đầu quy trình đặt vé
+UC24
+Select Seat
+Customer
+Chọn ghế trong phòng chiếu (include từ UC23)
+UC25
+Select Food
+Customer
+Chọn đồ ăn kèm vé (extend từ UC23)
+UC26
+Apply Promotion
+Customer
+Show chon mã giảm giá truoc khi thanh toán (extend từ UC23)
+UC27
+Pay
+Customer
+Thanh toán hóa đơn, sinh mã QR vé (include từ UC 23)
+UC28
+View Booked Tickets
+Customer
+Xem danh sách vé đã mua
+UC29
+View Ticket Detail
+Customer
+Xem chi tiết vé, mã QR (extend từ UC28)
+UC30
+View Invoice History
+Customer
+Xem lịch sử hóa đơn thanh toán
+
+
+NHÓM 4 — Cinema Room, Schedule & Food
+Actor: Manager · Employee
+ID
+Use Case
+Actor
+Mô tả
+UC31
+Add Cinema Room
+Manager
+Thêm phòng chiếu mới với loại phòng, sức chứa
+UC32
+Edit Cinema Room
+Manager
+Cập nhật thông tin phòng chiếu
+UC33
+Delete Cinema Room
+Manager
+Vô hiệu hóa phòng chiếu
+UC34
+Manage Seat Layout
+Manager
+Sắp xếp sơ đồ ghế, đặt ghế VIP (extend từ UC33)
+UC35
+Add Schedule
+Manager
+Tạo lịch chiếu mới cho phim
+UC36
+Edit Schedule
+Manager
+Chỉnh sửa giờ chiếu, phòng chiếu
+UC37
+Delete Schedule
+Manager
+Hủy suất chiếu
+UC38
+View Food List
+Employee
+Xem danh sách đồ ăn đang bán
+UC39
+Add Food Item
+Employee
+Thêm món ăn mới vào menu
+UC40
+Edit Food Item
+Employee
+Cập nhật thông tin, giá món ăn
+UC41
+Remove Food Item
+Employee
+Ẩn/xóa món ăn khỏi menu
+
+
+NHÓM 5 — Promotion, Staff, Statistics & System
+Actor: Manager · Employee · System Admin
+ID
+Use Case
+Actor
+Mô tả
+UC42
+Manage Promotion
+Manager
+Tạo, sửa, xóa mã giảm giá/voucher
+UC43
+View Promotion List
+Manager
+Xem toàn bộ danh sách khuyến mãi
+UC44
+Manage Employee
+Manager
+Thêm, sửa, kích hoạt/vô hiệu hóa nhân viên
+UC45
+View Employee List
+Manager
+Xem danh sách nhân viên
+UC47
+View Booking Ticket List
+Employee
+Xem danh sách vé đã đặt của suất chiếu
+UC48
+Create Manual Ticket
+Employee
+Tạo vé thủ công tại quầy
+UC49
+View Ticket Revenue Statistics
+Manager
+Báo cáo doanh thu vé & đồ ăn
+UC50
+Manage System Configuration
+System Admin
+Thay đổi banner, giao diện, chính sách web
+UC51
+View System Logs
+System Admin
+Xem nhật ký thao tác hệ thống
+
+

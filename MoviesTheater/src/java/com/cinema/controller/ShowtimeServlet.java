@@ -58,7 +58,7 @@ public class ShowtimeServlet extends HttpServlet {
 
                 if (movie == null) {
                     request.setAttribute("ERROR", "Movie not found.");
-                    request.getRequestDispatcher("Error.jsp").forward(request, response);
+                    request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
                     return;
                 }
 
@@ -84,15 +84,15 @@ public class ShowtimeServlet extends HttpServlet {
                 request.setAttribute("selectedDate", selectedDateStr);
                 request.setAttribute("schedules", schedules);
 
-                request.getRequestDispatcher("showtimes.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/customer/showtimes.jsp").forward(request, response);
 
             } catch (NumberFormatException e) {
                 request.setAttribute("ERROR", "Invalid Movie ID format.");
-                request.getRequestDispatcher("Error.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
             } catch (Exception e) {
                 e.printStackTrace();
                 request.setAttribute("ERROR", "An unexpected error occurred while fetching showtimes.");
-                request.getRequestDispatcher("Error.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
             }
 
         } else if ("POST".equalsIgnoreCase(method)) {

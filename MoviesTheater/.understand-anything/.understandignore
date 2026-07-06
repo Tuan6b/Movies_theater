@@ -1,0 +1,22 @@
+# .understandignore
+# Syntax: same as .gitignore
+
+# --- From .gitignore (uncomment to exclude) ---
+
+# .DS_Store
+# Thumbs.db
+
+# --- Detected directories (uncomment to exclude) ---
+
+# test/
+allowedlib/
+build/
+nbproject/
+.idea/
+*.class
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# *.test.*
+# *.spec.*
+# *.snap

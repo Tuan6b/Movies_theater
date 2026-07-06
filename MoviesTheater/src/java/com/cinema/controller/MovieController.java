@@ -26,7 +26,7 @@ public class MovieController extends HttpServlet {
             if ("add".equals(action)) {
                 // Đẩy list thể loại ra JSP để render Checkbox
                 request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
-                request.getRequestDispatcher("add_movie.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/manager/add_movie.jsp").forward(request, response);
 
             } else if ("edit".equals(action)) {
                 int movieId = Integer.parseInt(request.getParameter("id"));
@@ -37,7 +37,7 @@ public class MovieController extends HttpServlet {
                 request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
                 request.setAttribute("selectedGenres", movieDAO.getGenreIdsByMovie(movieId));
                 
-                request.getRequestDispatcher("edit_movie.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/manager/edit_movie.jsp").forward(request, response);
             } else {
                 String filter = request.getParameter("filter");
                 if (filter == null || filter.isEmpty()) {
@@ -48,12 +48,12 @@ public class MovieController extends HttpServlet {
                 request.setAttribute("movieList", movieList);
                 request.setAttribute("currentFilter", filter);
                 request.setAttribute("movieStats", movieDAO.getMovieStatistics());
-                request.getRequestDispatcher("manage_movie.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/manager/manage_movie.jsp").forward(request, response);
             }
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi tải trang: " + e.getMessage());
-            request.getRequestDispatcher("manage_movie.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/manager/manage_movie.jsp").forward(request, response);
         }
     }
 
@@ -155,14 +155,14 @@ public class MovieController extends HttpServlet {
                 } else {
                     request.setAttribute("error", "Lỗi DB: Không thể lưu thông tin phim.");
                     request.setAttribute("movie", movie); // Giữ lại thông tin đang nhập dở
-                    String targetJSP = "add".equals(action) ? "add_movie.jsp" : "edit_movie.jsp";
+                    String targetJSP = "add".equals(action) ? "/view/manager/add_movie.jsp" : "/view/manager/edit_movie.jsp";
                     request.getRequestDispatcher(targetJSP).forward(request, response);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi dữ liệu: " + e.getMessage());
-            String targetJSP = "add".equals(action) ? "add_movie.jsp" : "edit_movie.jsp";
+            String targetJSP = "add".equals(action) ? "/view/manager/add_movie.jsp" : "/view/manager/edit_movie.jsp";
             request.getRequestDispatcher(targetJSP).forward(request, response);
         }
     }
