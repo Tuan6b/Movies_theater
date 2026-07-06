@@ -22,7 +22,7 @@ public class ChangePasswordController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
-        request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
     }
 
     @Override
@@ -42,26 +42,26 @@ public class ChangePasswordController extends HttpServlet {
 
         if (oldPassword == null || oldPassword.isEmpty()) {
             request.setAttribute("error", "Vui lòng nhập mật khẩu hiện tại.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
             return;
         }
 
         Account dbAccount = accountDAO.getAccountById(account.getAccountId());
         if (dbAccount == null || !PasswordHash.verify(oldPassword, dbAccount.getPassword())) {
             request.setAttribute("error", "Mật khẩu hiện tại không đúng.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
             return;
         }
 
         if (newPassword == null || newPassword.length() < 6) {
             request.setAttribute("error", "Mật khẩu mới phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
             return;
         }
 
         if (!newPassword.equals(confirmPassword)) {
             request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
-            request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
             return;
         }
 
@@ -70,6 +70,6 @@ public class ChangePasswordController extends HttpServlet {
         } else {
             request.setAttribute("error", "Có lỗi xảy ra, vui lòng thử lại.");
         }
-        request.getRequestDispatcher("/change-password.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/auth/change-password.jsp").forward(request, response);
     }
 }

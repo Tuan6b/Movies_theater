@@ -41,7 +41,7 @@ public class GenreController extends HttpServlet {
         request.setAttribute("genreList", list);
         
         // Forward the request to the JSP Page.
-        request.getRequestDispatcher("/genre.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/genre.jsp").forward(request, response);
     } 
 
     /** 

@@ -24,7 +24,7 @@ public class ReviewController extends HttpServlet {
         String movieIdStr = request.getParameter("movieId");
         
         if (account == null || movieIdStr == null) {
-            response.sendRedirect("Login.jsp");
+            response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
 

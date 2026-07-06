@@ -34,13 +34,13 @@ public class PromotionServlet extends HttpServlet {
     private static final int PAGE_SIZE = 5;
     private static final DateTimeFormatter FORM_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    private static final String LIST_JSP = "/WEB-INF/manager/promotions/list.jsp";
-    private static final String FORM_JSP = "/WEB-INF/manager/promotions/form.jsp";
+    private static final String LIST_JSP = "/view/manager/promotions/list.jsp";
+    private static final String FORM_JSP = "/view/manager/promotions/form.jsp";
     private static final String LIST_URL     = "/manager/promotions";
-    private static final String UPCOMING_JSP = "/WEB-INF/manager/promotions/upcoming.jsp";
-    private static final String ACTIVE_JSP   = "/WEB-INF/manager/promotions/active.jsp";
-    private static final String EXPIRED_JSP  = "/WEB-INF/manager/promotions/expired.jsp";
-    private static final String INACTIVE_JSP = "/WEB-INF/manager/promotions/inactive.jsp";
+    private static final String UPCOMING_JSP = "/view/manager/promotions/upcoming.jsp";
+    private static final String ACTIVE_JSP   = "/view/manager/promotions/active.jsp";
+    private static final String EXPIRED_JSP  = "/view/manager/promotions/expired.jsp";
+    private static final String INACTIVE_JSP = "/view/manager/promotions/inactive.jsp";
     private static final Pattern CODE_PATTERN = Pattern.compile("^[A-Z0-9\\-_]+$");
 
     // ========== INNER DTO CLASSES ==========

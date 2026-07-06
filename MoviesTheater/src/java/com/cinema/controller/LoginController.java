@@ -46,7 +46,7 @@ public class LoginController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/");
                 return;
             }
-            request.getRequestDispatcher("/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
 
         } else if ("POST".equalsIgnoreCase(method)) {
             request.setCharacterEncoding("UTF-8");
@@ -58,7 +58,7 @@ public class LoginController extends HttpServlet {
             if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
                 request.setAttribute("error", "Vui lòng nhập email và mật khẩu.");
                 request.setAttribute("email", email);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                 return;
             }
 
@@ -69,7 +69,7 @@ public class LoginController extends HttpServlet {
                         "Failed login attempt for email: " + email.trim(), request.getRemoteAddr());
                 request.setAttribute("error", "Email hoặc mật khẩu không đúng.");
                 request.setAttribute("email", email);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                 return;
             }
 
@@ -78,7 +78,7 @@ public class LoginController extends HttpServlet {
                         "Blocked account login attempt: " + email.trim(), request.getRemoteAddr());
                 request.setAttribute("error", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
                 request.setAttribute("email", email);
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                 return;
             }
 

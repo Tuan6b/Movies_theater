@@ -1,0 +1,1154 @@
+{
+  "name": "MoviesTheater",
+  "description": "MoviesTheater là một ứng dụng web đặt vé xem phim tại rạp, được xây dựng theo mô hình MVC bằng Jakarta Servlet, JSP và JSTL trên nền Apache Ant/NetBeans, dùng JDBC để kết nối cơ sở dữ liệu SQL Server. Mã nguồn được tổ chức thành các controller, DAO và model trong package com.cinema, cùng các trang JSP được phân chia theo vai trò người dùng (khách hàng, employee, manager, admin). Lưu ý: dự án này có hơn 100 tệp, nên cân nhắc giới hạn phạm vi phân tích vào một thư mục con để có kết quả nhanh hơn.",
+  "languages": [
+    "css",
+    "html",
+    "iml",
+    "java",
+    "jsp",
+    "mf",
+    "sql",
+    "xml"
+  ],
+  "frameworks": [
+    "Apache Ant",
+    "Gson",
+    "JDBC (SQL Server)",
+    "JSP",
+    "JSTL",
+    "Jakarta Servlet"
+  ],
+  "files": [
+    {
+      "path": "CheckMovieStatus.java",
+      "language": "java",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "MoviesTheater.iml",
+      "language": "iml",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "build.xml",
+      "language": "xml",
+      "sizeLines": 71,
+      "fileCategory": "config"
+    },
+    {
+      "path": "cinema_booking_database (1).sql",
+      "language": "sql",
+      "sizeLines": 552,
+      "fileCategory": "data"
+    },
+    {
+      "path": "src/conf/MANIFEST.MF",
+      "language": "mf",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/AdminServlet.java",
+      "language": "java",
+      "sizeLines": 303,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/BookingController.java",
+      "language": "java",
+      "sizeLines": 302,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ChangePasswordController.java",
+      "language": "java",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/EmployeeDashboardServlet.java",
+      "language": "java",
+      "sizeLines": 876,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/EmployeeServlet.java",
+      "language": "java",
+      "sizeLines": 308,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ForgotPasswordController.java",
+      "language": "java",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/GenreController.java",
+      "language": "java",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/HomeController.java",
+      "language": "java",
+      "sizeLines": 68,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/LoginController.java",
+      "language": "java",
+      "sizeLines": 183,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/LoginGoogleController.java",
+      "language": "java",
+      "sizeLines": 131,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/LogoutController.java",
+      "language": "java",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ManagerServlet.java",
+      "language": "java",
+      "sizeLines": 310,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/MovieController.java",
+      "language": "java",
+      "sizeLines": 169,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/MovieDetailController.java",
+      "language": "java",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/PromotionServlet.java",
+      "language": "java",
+      "sizeLines": 989,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/RegisterController.java",
+      "language": "java",
+      "sizeLines": 181,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ResetPasswordController.java",
+      "language": "java",
+      "sizeLines": 137,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ReviewController.java",
+      "language": "java",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/RoomServlet.java",
+      "language": "java",
+      "sizeLines": 345,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ScheduleController.java",
+      "language": "java",
+      "sizeLines": 445,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/SeatController.java",
+      "language": "java",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/ShowtimeServlet.java",
+      "language": "java",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/TMDBController.java",
+      "language": "java",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/controller/WorkShiftServlet.java",
+      "language": "java",
+      "sizeLines": 357,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/AccountDAO.java",
+      "language": "java",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/BookingScheduleDAO.java",
+      "language": "java",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/BookingSeatDAO.java",
+      "language": "java",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/EmployeeDAO.java",
+      "language": "java",
+      "sizeLines": 302,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/FoodDAO.java",
+      "language": "java",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/GenreDAO.java",
+      "language": "java",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/MovieReviewDAO.java",
+      "language": "java",
+      "sizeLines": 130,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/PromotionDAO.java",
+      "language": "java",
+      "sizeLines": 398,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/RoomDAO.java",
+      "language": "java",
+      "sizeLines": 189,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/ScheduleDAO.java",
+      "language": "java",
+      "sizeLines": 294,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/SeatDAO.java",
+      "language": "java",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/ShiftExchangeDAO.java",
+      "language": "java",
+      "sizeLines": 205,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/TicketDAO.java",
+      "language": "java",
+      "sizeLines": 243,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/WorkShiftDAO.java",
+      "language": "java",
+      "sizeLines": 358,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/tbMovie.java",
+      "language": "java",
+      "sizeLines": 409,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/dao/tbSchedule.java",
+      "language": "java",
+      "sizeLines": 239,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/exception/ConflictException.java",
+      "language": "java",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/exception/NotFoundException.java",
+      "language": "java",
+      "sizeLines": 17,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/exception/ValidationException.java",
+      "language": "java",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/filter/AuthFilter.java",
+      "language": "java",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/listener/PromotionStatusScheduler.java",
+      "language": "java",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Account.java",
+      "language": "java",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/BookingCart.java",
+      "language": "java",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/BookingScheduleView.java",
+      "language": "java",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Food.java",
+      "language": "java",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Genre.java",
+      "language": "java",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Invoice.java",
+      "language": "java",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Promotion.java",
+      "language": "java",
+      "sizeLines": 178,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Room.java",
+      "language": "java",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Schedule.java",
+      "language": "java",
+      "sizeLines": 142,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Seat.java",
+      "language": "java",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/SeatView.java",
+      "language": "java",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/ShiftExchangeRequest.java",
+      "language": "java",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/Ticket.java",
+      "language": "java",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/WorkShift.java",
+      "language": "java",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/clsMovie.java",
+      "language": "java",
+      "sizeLines": 203,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/clsMovieReview.java",
+      "language": "java",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/model/clsSchedule.java",
+      "language": "java",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/DBContext.java",
+      "language": "java",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/DBUtils.java",
+      "language": "java",
+      "sizeLines": 99,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/GoogleOAuthConfig.java",
+      "language": "java",
+      "sizeLines": 13,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/PasswordHash.java",
+      "language": "java",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/SystemLogService.java",
+      "language": "java",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/java/com/cinema/util/TMDBService.java",
+      "language": "java",
+      "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/Error.jsp",
+      "language": "jsp",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/META-INF/context.xml",
+      "language": "xml",
+      "sizeLines": 2,
+      "fileCategory": "config"
+    },
+    {
+      "path": "web/WEB-INF/admin/_sidebar.jsp",
+      "language": "jsp",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/admin/config/index.jsp",
+      "language": "jsp",
+      "sizeLines": 170,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/admin/dashboard.jsp",
+      "language": "jsp",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/admin/logs/index.jsp",
+      "language": "jsp",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/_sidebar.jsp",
+      "language": "jsp",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/book.jsp",
+      "language": "jsp",
+      "sizeLines": 373,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/checkin.jsp",
+      "language": "jsp",
+      "sizeLines": 177,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/dashboard.jsp",
+      "language": "jsp",
+      "sizeLines": 115,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/my-shifts.jsp",
+      "language": "jsp",
+      "sizeLines": 372,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/profile.jsp",
+      "language": "jsp",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/schedules.jsp",
+      "language": "jsp",
+      "sizeLines": 131,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/setup.jsp",
+      "language": "jsp",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/employee/tickets.jsp",
+      "language": "jsp",
+      "sizeLines": 206,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/_navbar.jsp",
+      "language": "jsp",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/_sidebar.jsp",
+      "language": "jsp",
+      "sizeLines": 116,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/dashboard.jsp",
+      "language": "jsp",
+      "sizeLines": 381,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/employees/form.jsp",
+      "language": "jsp",
+      "sizeLines": 152,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/employees/list.jsp",
+      "language": "jsp",
+      "sizeLines": 223,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/active.jsp",
+      "language": "jsp",
+      "sizeLines": 187,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/expired.jsp",
+      "language": "jsp",
+      "sizeLines": 221,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/form.jsp",
+      "language": "jsp",
+      "sizeLines": 215,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/inactive.jsp",
+      "language": "jsp",
+      "sizeLines": 193,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/list.jsp",
+      "language": "jsp",
+      "sizeLines": 198,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/promotions/upcoming.jsp",
+      "language": "jsp",
+      "sizeLines": 201,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/shifts/form.jsp",
+      "language": "jsp",
+      "sizeLines": 111,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/manager/shifts/list.jsp",
+      "language": "jsp",
+      "sizeLines": 634,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/WEB-INF/web.xml",
+      "language": "xml",
+      "sizeLines": 219,
+      "fileCategory": "config"
+    },
+    {
+      "path": "web/add_movie.jsp",
+      "language": "jsp",
+      "sizeLines": 239,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/change-password.jsp",
+      "language": "jsp",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/checkout.jsp",
+      "language": "jsp",
+      "sizeLines": 271,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/css/checkout.css",
+      "language": "css",
+      "sizeLines": 390,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/food-selection.css",
+      "language": "css",
+      "sizeLines": 397,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/login.css",
+      "language": "css",
+      "sizeLines": 512,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/main.css",
+      "language": "css",
+      "sizeLines": 528,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/manager.css",
+      "language": "css",
+      "sizeLines": 1573,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/register.css",
+      "language": "css",
+      "sizeLines": 380,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/seat-layout.css",
+      "language": "css",
+      "sizeLines": 87,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/seat-selection.css",
+      "language": "css",
+      "sizeLines": 514,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/css/showtimes.css",
+      "language": "css",
+      "sizeLines": 540,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/edit_movie.jsp",
+      "language": "jsp",
+      "sizeLines": 228,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/food_selection.jsp",
+      "language": "jsp",
+      "sizeLines": 224,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/forgot-password.jsp",
+      "language": "jsp",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/genre.jsp",
+      "language": "jsp",
+      "sizeLines": 146,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/home.jsp",
+      "language": "jsp",
+      "sizeLines": 240,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/index.html",
+      "language": "html",
+      "sizeLines": 15,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/index.jsp",
+      "language": "jsp",
+      "sizeLines": 238,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/login.jsp",
+      "language": "jsp",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/manage_movie.jsp",
+      "language": "jsp",
+      "sizeLines": 274,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/movie-detail.jsp",
+      "language": "jsp",
+      "sizeLines": 450,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/new-password.jsp",
+      "language": "jsp",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/register.jsp",
+      "language": "jsp",
+      "sizeLines": 248,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/room-add.jsp",
+      "language": "jsp",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/room-edit.jsp",
+      "language": "jsp",
+      "sizeLines": 130,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/room-list.jsp",
+      "language": "jsp",
+      "sizeLines": 155,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/schedule-add.jsp",
+      "language": "jsp",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/schedule-edit.jsp",
+      "language": "jsp",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/schedule-list.jsp",
+      "language": "jsp",
+      "sizeLines": 193,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/seat-layout.jsp",
+      "language": "jsp",
+      "sizeLines": 106,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/seat_selection.jsp",
+      "language": "jsp",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/showtimes.jsp",
+      "language": "jsp",
+      "sizeLines": 375,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 135,
+  "filteredByIgnore": 5,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    "CheckMovieStatus.java": [
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "MoviesTheater.iml": [],
+    "build.xml": [],
+    "cinema_booking_database (1).sql": [],
+    "src/conf/MANIFEST.MF": [],
+    "src/java/com/cinema/controller/AdminServlet.java": [
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/DBUtils.java",
+      "src/java/com/cinema/util/SystemLogService.java"
+    ],
+    "src/java/com/cinema/controller/BookingController.java": [
+      "src/java/com/cinema/dao/BookingScheduleDAO.java",
+      "src/java/com/cinema/dao/BookingSeatDAO.java",
+      "src/java/com/cinema/dao/FoodDAO.java",
+      "src/java/com/cinema/dao/PromotionDAO.java",
+      "src/java/com/cinema/model/BookingCart.java",
+      "src/java/com/cinema/model/BookingScheduleView.java",
+      "src/java/com/cinema/model/Food.java",
+      "src/java/com/cinema/model/Promotion.java",
+      "src/java/com/cinema/model/SeatView.java"
+    ],
+    "src/java/com/cinema/controller/ChangePasswordController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/PasswordHash.java"
+    ],
+    "src/java/com/cinema/controller/EmployeeDashboardServlet.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/dao/EmployeeDAO.java",
+      "src/java/com/cinema/dao/PromotionDAO.java",
+      "src/java/com/cinema/dao/RoomDAO.java",
+      "src/java/com/cinema/dao/SeatDAO.java",
+      "src/java/com/cinema/dao/ShiftExchangeDAO.java",
+      "src/java/com/cinema/dao/TicketDAO.java",
+      "src/java/com/cinema/dao/WorkShiftDAO.java",
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/dao/tbSchedule.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/model/Promotion.java",
+      "src/java/com/cinema/model/Room.java",
+      "src/java/com/cinema/model/Seat.java",
+      "src/java/com/cinema/model/ShiftExchangeRequest.java",
+      "src/java/com/cinema/model/Ticket.java",
+      "src/java/com/cinema/model/WorkShift.java",
+      "src/java/com/cinema/model/clsMovie.java",
+      "src/java/com/cinema/model/clsSchedule.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/controller/EmployeeServlet.java": [
+      "src/java/com/cinema/dao/EmployeeDAO.java",
+      "src/java/com/cinema/model/Account.java"
+    ],
+    "src/java/com/cinema/controller/ForgotPasswordController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java"
+    ],
+    "src/java/com/cinema/controller/GenreController.java": [
+      "src/java/com/cinema/dao/GenreDAO.java",
+      "src/java/com/cinema/model/Genre.java"
+    ],
+    "src/java/com/cinema/controller/HomeController.java": [
+      "src/java/com/cinema/dao/GenreDAO.java",
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/model/Genre.java",
+      "src/java/com/cinema/model/clsMovie.java"
+    ],
+    "src/java/com/cinema/controller/LoginController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/dao/WorkShiftDAO.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/SystemLogService.java"
+    ],
+    "src/java/com/cinema/controller/LoginGoogleController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/GoogleOAuthConfig.java"
+    ],
+    "src/java/com/cinema/controller/LogoutController.java": [],
+    "src/java/com/cinema/controller/ManagerServlet.java": [
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/controller/MovieController.java": [
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/model/clsMovie.java"
+    ],
+    "src/java/com/cinema/controller/MovieDetailController.java": [
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/dao/tbSchedule.java",
+      "src/java/com/cinema/model/clsMovie.java",
+      "src/java/com/cinema/model/clsSchedule.java"
+    ],
+    "src/java/com/cinema/controller/PromotionServlet.java": [
+      "src/java/com/cinema/dao/PromotionDAO.java",
+      "src/java/com/cinema/exception/ConflictException.java",
+      "src/java/com/cinema/exception/NotFoundException.java",
+      "src/java/com/cinema/exception/ValidationException.java",
+      "src/java/com/cinema/model/Promotion.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/controller/RegisterController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/model/Account.java"
+    ],
+    "src/java/com/cinema/controller/ResetPasswordController.java": [
+      "src/java/com/cinema/dao/AccountDAO.java",
+      "src/java/com/cinema/model/Account.java"
+    ],
+    "src/java/com/cinema/controller/ReviewController.java": [
+      "src/java/com/cinema/dao/MovieReviewDAO.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/model/clsMovieReview.java"
+    ],
+    "src/java/com/cinema/controller/RoomServlet.java": [
+      "src/java/com/cinema/dao/RoomDAO.java",
+      "src/java/com/cinema/dao/ScheduleDAO.java",
+      "src/java/com/cinema/dao/SeatDAO.java",
+      "src/java/com/cinema/model/Room.java"
+    ],
+    "src/java/com/cinema/controller/ScheduleController.java": [
+      "src/java/com/cinema/dao/RoomDAO.java",
+      "src/java/com/cinema/dao/ScheduleDAO.java",
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/model/Room.java",
+      "src/java/com/cinema/model/Schedule.java",
+      "src/java/com/cinema/model/clsMovie.java"
+    ],
+    "src/java/com/cinema/controller/SeatController.java": [
+      "src/java/com/cinema/dao/RoomDAO.java",
+      "src/java/com/cinema/dao/ScheduleDAO.java",
+      "src/java/com/cinema/dao/SeatDAO.java",
+      "src/java/com/cinema/model/Room.java",
+      "src/java/com/cinema/model/Seat.java"
+    ],
+    "src/java/com/cinema/controller/ShowtimeServlet.java": [
+      "src/java/com/cinema/dao/tbMovie.java",
+      "src/java/com/cinema/dao/tbSchedule.java",
+      "src/java/com/cinema/model/clsMovie.java",
+      "src/java/com/cinema/model/clsSchedule.java"
+    ],
+    "src/java/com/cinema/controller/TMDBController.java": [
+      "src/java/com/cinema/util/TMDBService.java"
+    ],
+    "src/java/com/cinema/controller/WorkShiftServlet.java": [
+      "src/java/com/cinema/dao/EmployeeDAO.java",
+      "src/java/com/cinema/dao/WorkShiftDAO.java",
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/model/WorkShift.java"
+    ],
+    "src/java/com/cinema/dao/AccountDAO.java": [
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/DBUtils.java",
+      "src/java/com/cinema/util/PasswordHash.java"
+    ],
+    "src/java/com/cinema/dao/BookingScheduleDAO.java": [
+      "src/java/com/cinema/model/BookingScheduleView.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/BookingSeatDAO.java": [
+      "src/java/com/cinema/model/SeatView.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/EmployeeDAO.java": [
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/util/DBUtils.java",
+      "src/java/com/cinema/util/PasswordHash.java"
+    ],
+    "src/java/com/cinema/dao/FoodDAO.java": [
+      "src/java/com/cinema/model/Food.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/GenreDAO.java": [
+      "src/java/com/cinema/model/Genre.java",
+      "src/java/com/cinema/util/DBContext.java"
+    ],
+    "src/java/com/cinema/dao/MovieReviewDAO.java": [
+      "src/java/com/cinema/model/clsMovieReview.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/PromotionDAO.java": [
+      "src/java/com/cinema/model/Promotion.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/RoomDAO.java": [
+      "src/java/com/cinema/model/Room.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/ScheduleDAO.java": [
+      "src/java/com/cinema/model/Schedule.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/SeatDAO.java": [
+      "src/java/com/cinema/model/Seat.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/ShiftExchangeDAO.java": [
+      "src/java/com/cinema/model/ShiftExchangeRequest.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/TicketDAO.java": [
+      "src/java/com/cinema/model/Account.java",
+      "src/java/com/cinema/model/Invoice.java",
+      "src/java/com/cinema/model/Seat.java",
+      "src/java/com/cinema/model/Ticket.java",
+      "src/java/com/cinema/model/clsSchedule.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/WorkShiftDAO.java": [
+      "src/java/com/cinema/model/WorkShift.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/tbMovie.java": [
+      "src/java/com/cinema/model/clsMovie.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/dao/tbSchedule.java": [
+      "src/java/com/cinema/model/Room.java",
+      "src/java/com/cinema/model/clsMovie.java",
+      "src/java/com/cinema/model/clsSchedule.java",
+      "src/java/com/cinema/util/DBUtils.java"
+    ],
+    "src/java/com/cinema/exception/ConflictException.java": [],
+    "src/java/com/cinema/exception/NotFoundException.java": [],
+    "src/java/com/cinema/exception/ValidationException.java": [],
+    "src/java/com/cinema/filter/AuthFilter.java": [
+      "src/java/com/cinema/model/Account.java"
+    ],
+    "src/java/com/cinema/listener/PromotionStatusScheduler.java": [
+      "src/java/com/cinema/dao/PromotionDAO.java"
+    ],
+    "src/java/com/cinema/model/Account.java": [],
+    "src/java/com/cinema/model/BookingCart.java": [],
+    "src/java/com/cinema/model/BookingScheduleView.java": [],
+    "src/java/com/cinema/model/Food.java": [],
+    "src/java/com/cinema/model/Genre.java": [],
+    "src/java/com/cinema/model/Invoice.java": [],
+    "src/java/com/cinema/model/Promotion.java": [],
+    "src/java/com/cinema/model/Room.java": [],
+    "src/java/com/cinema/model/Schedule.java": [],
+    "src/java/com/cinema/model/Seat.java": [],
+    "src/java/com/cinema/model/SeatView.java": [],
+    "src/java/com/cinema/model/ShiftExchangeRequest.java": [],
+    "src/java/com/cinema/model/Ticket.java": [],
+    "src/java/com/cinema/model/WorkShift.java": [],
+    "src/java/com/cinema/model/clsMovie.java": [],
+    "src/java/com/cinema/model/clsMovieReview.java": [],
+    "src/java/com/cinema/model/clsSchedule.java": [],
+    "src/java/com/cinema/util/DBContext.java": [],
+    "src/java/com/cinema/util/DBUtils.java": [],
+    "src/java/com/cinema/util/GoogleOAuthConfig.java": [],
+    "src/java/com/cinema/util/PasswordHash.java": [],
+    "src/java/com/cinema/util/SystemLogService.java": [],
+    "src/java/com/cinema/util/TMDBService.java": [],
+    "web/Error.jsp": [],
+    "web/META-INF/context.xml": [],
+    "web/WEB-INF/admin/_sidebar.jsp": [],
+    "web/WEB-INF/admin/config/index.jsp": [],
+    "web/WEB-INF/admin/dashboard.jsp": [],
+    "web/WEB-INF/admin/logs/index.jsp": [],
+    "web/WEB-INF/employee/_sidebar.jsp": [],
+    "web/WEB-INF/employee/book.jsp": [],
+    "web/WEB-INF/employee/checkin.jsp": [],
+    "web/WEB-INF/employee/dashboard.jsp": [],
+    "web/WEB-INF/employee/my-shifts.jsp": [],
+    "web/WEB-INF/employee/profile.jsp": [],
+    "web/WEB-INF/employee/schedules.jsp": [],
+    "web/WEB-INF/employee/setup.jsp": [],
+    "web/WEB-INF/employee/tickets.jsp": [],
+    "web/WEB-INF/manager/_navbar.jsp": [],
+    "web/WEB-INF/manager/_sidebar.jsp": [],
+    "web/WEB-INF/manager/dashboard.jsp": [],
+    "web/WEB-INF/manager/employees/form.jsp": [],
+    "web/WEB-INF/manager/employees/list.jsp": [],
+    "web/WEB-INF/manager/promotions/active.jsp": [],
+    "web/WEB-INF/manager/promotions/expired.jsp": [],
+    "web/WEB-INF/manager/promotions/form.jsp": [],
+    "web/WEB-INF/manager/promotions/inactive.jsp": [],
+    "web/WEB-INF/manager/promotions/list.jsp": [],
+    "web/WEB-INF/manager/promotions/upcoming.jsp": [],
+    "web/WEB-INF/manager/shifts/form.jsp": [],
+    "web/WEB-INF/manager/shifts/list.jsp": [],
+    "web/WEB-INF/web.xml": [],
+    "web/add_movie.jsp": [],
+    "web/change-password.jsp": [],
+    "web/checkout.jsp": [],
+    "web/css/checkout.css": [],
+    "web/css/food-selection.css": [],
+    "web/css/login.css": [],
+    "web/css/main.css": [],
+    "web/css/manager.css": [],
+    "web/css/register.css": [],
+    "web/css/seat-layout.css": [],
+    "web/css/seat-selection.css": [],
+    "web/css/showtimes.css": [],
+    "web/edit_movie.jsp": [],
+    "web/food_selection.jsp": [],
+    "web/forgot-password.jsp": [],
+    "web/genre.jsp": [],
+    "web/home.jsp": [],
+    "web/index.html": [],
+    "web/index.jsp": [],
+    "web/login.jsp": [],
+    "web/manage_movie.jsp": [],
+    "web/movie-detail.jsp": [],
+    "web/new-password.jsp": [],
+    "web/register.jsp": [],
+    "web/room-add.jsp": [],
+    "web/room-edit.jsp": [],
+    "web/room-list.jsp": [],
+    "web/schedule-add.jsp": [],
+    "web/schedule-edit.jsp": [],
+    "web/schedule-list.jsp": [],
+    "web/seat-layout.jsp": [],
+    "web/seat_selection.jsp": [],
+    "web/showtimes.jsp": []
+  }
+}

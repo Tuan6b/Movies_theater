@@ -1,0 +1,346 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/WEB-INF/employee/book.jsp",
+      "type": "file",
+      "name": "book.jsp",
+      "filePath": "web/WEB-INF/employee/book.jsp",
+      "summary": "Trang bán vé tại quầy (UC48) cho nhân viên trực ca — hiển thị sơ đồ ghế của suất chiếu, cho phép chọn nhiều ghế trống, nhập phương thức thanh toán/mã khuyến mãi và thông tin khách hàng (tuỳ chọn), rồi submit form POST tới EmployeeDashboardServlet để xuất vé ngay tại quầy.",
+      "tags": ["nhan-vien", "ban-ve", "seat-map", "form", "checkout"],
+      "complexity": "complex",
+      "languageNotes": "Dùng JSTL forEach lồng nhau để nhóm ghế theo hàng (rowChar), kết hợp JavaScript phía client tính tổng tiền theo loại ghế (Normal/VIP/Couple) trước khi submit."
+    },
+    {
+      "id": "file:web/WEB-INF/employee/checkin.jsp",
+      "type": "file",
+      "name": "checkin.jsp",
+      "filePath": "web/WEB-INF/employee/checkin.jsp",
+      "summary": "Trang soát vé (check-in) cho phép nhân viên tra cứu vé theo mã/QR, xem chi tiết vé tìm được và xác nhận check-in cho từng vé; đồng thời hiển thị bảng danh sách vé lọc theo hôm nay/chờ check-in/đã check-in.",
+      "tags": ["nhan-vien", "check-in", "tra-cuu-ve", "form", "table"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/employee/dashboard.jsp",
+      "type": "file",
+      "name": "dashboard.jsp",
+      "filePath": "web/WEB-INF/employee/dashboard.jsp",
+      "summary": "Trang tổng quan (dashboard) cho nhân viên, hiển thị số suất chiếu/check-in hôm nay, số phim đang chiếu, trạng thái ca làm việc hiện tại, cảnh báo khi không có ca đang hoạt động, và biểu đồ doughnut phân bổ ca làm trong tháng.",
+      "tags": ["nhan-vien", "dashboard", "thong-ke", "chart-js"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/employee/my-shifts.jsp",
+      "type": "file",
+      "name": "my-shifts.jsp",
+      "filePath": "web/WEB-INF/employee/my-shifts.jsp",
+      "summary": "Trang quản lý ca làm việc cá nhân của nhân viên: xem lịch ca theo tháng, gửi/nhận/từ chối/huỷ yêu cầu chuyển ca (handoff) cho đồng nghiệp, và theo dõi trạng thái các yêu cầu đã gửi hoặc đang chờ xử lý.",
+      "tags": ["nhan-vien", "ca-lam-viec", "chuyen-ca", "form", "workflow"],
+      "complexity": "complex",
+      "languageNotes": "Panel chuyển ca dùng JavaScript thuần (toggleHandoff) để hiện/ẩn form gửi yêu cầu ngay trong từng dòng ca, không cần AJAX; mỗi hành động (accept/reject/cancel/request) là một form POST riêng với tham số action khác nhau tới cùng một endpoint."
+    },
+    {
+      "id": "file:web/WEB-INF/employee/profile.jsp",
+      "type": "file",
+      "name": "profile.jsp",
+      "filePath": "web/WEB-INF/employee/profile.jsp",
+      "summary": "Trang hồ sơ cá nhân chỉ đọc của nhân viên, hiển thị thông tin tài khoản (email, họ tên, số điện thoại, ngày tham gia) lấy trực tiếp từ session, kèm lối tắt sang trang đổi mật khẩu.",
+      "tags": ["nhan-vien", "ho-so-ca-nhan", "read-only"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/employee/schedules.jsp",
+      "type": "file",
+      "name": "schedules.jsp",
+      "filePath": "web/WEB-INF/employee/schedules.jsp",
+      "summary": "Trang danh sách lịch chiếu dành cho nhân viên, hỗ trợ lọc theo ngày/phim/phòng chiếu, hiển thị số vé đã bán trên tổng sức chứa phòng, và cung cấp lối tắt sang bán vé tại quầy hoặc xem vé đã đặt cho từng suất chiếu.",
+      "tags": ["nhan-vien", "lich-chieu", "table", "filter"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/employee/setup.jsp",
+      "type": "file",
+      "name": "setup.jsp",
+      "filePath": "web/WEB-INF/employee/setup.jsp",
+      "summary": "Form thiết lập tài khoản bắt buộc trong lần đăng nhập đầu tiên của nhân viên — yêu cầu cập nhật họ tên, số điện thoại, ngày sinh, địa chỉ và tuỳ chọn đổi mật khẩu ngay trước khi được phép sử dụng các chức năng khác của hệ thống.",
+      "tags": ["nhan-vien", "first-login", "onboarding", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/employee/tickets.jsp",
+      "type": "file",
+      "name": "tickets.jsp",
+      "filePath": "web/WEB-INF/employee/tickets.jsp",
+      "summary": "Trang danh sách vé đã đặt cho một suất chiếu cụ thể (UC47), hiển thị thông tin phim/phòng/thời gian, chi tiết từng vé (ghế, giá, khách hàng, phương thức thanh toán, trạng thái check-in) và tổng doanh thu suất chiếu, cho phép check-in nhanh ngay trong bảng.",
+      "tags": ["nhan-vien", "danh-sach-ve", "table", "doanh-thu"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/_navbar.jsp",
+      "type": "file",
+      "name": "_navbar.jsp",
+      "filePath": "web/WEB-INF/manager/_navbar.jsp",
+      "summary": "Fragment thanh điều hướng trên cùng (top navbar) cho khu vực quản lý, chứa liên kết tới Dashboard, Khuyến mãi và Thể loại phim; có dấu hiệu là bản cũ/song song với _sidebar.jsp vì chứa hai liên kết 'Khuyến mãi' trùng nhau.",
+      "tags": ["quan-ly", "navigation", "fragment", "layout"],
+      "complexity": "simple",
+      "languageNotes": "Có bug rõ ràng: mọi mục menu đều so sánh activeNav với chuỗi 'promotions' nên trạng thái active hiển thị không đúng với trang hiện tại đang xem; nhiều khả năng đây là fragment không còn được include ở đâu trong batch này."
+    },
+    {
+      "id": "file:web/WEB-INF/manager/_sidebar.jsp",
+      "type": "file",
+      "name": "_sidebar.jsp",
+      "filePath": "web/WEB-INF/manager/_sidebar.jsp",
+      "summary": "Fragment sidebar điều hướng chính cho toàn bộ khu vực quản lý, hiển thị các mục menu (Dashboard, Movies, Genres, Schedules, Promotions, Employees, Rooms, Logout) có phân quyền hiển thị theo roleId của tài khoản trong session.",
+      "tags": ["quan-ly", "navigation", "sidebar", "phan-quyen", "fragment"],
+      "complexity": "moderate",
+      "languageNotes": "Dùng JSTL c:if với điều kiện roleId (r ge 3 / r ge 4) để ẩn/hiện từng nhóm chức năng theo cấp bậc, mô phỏng kiểm soát truy cập theo vai trò (RBAC) ngay trên view thay vì chỉ ở tầng servlet."
+    },
+    {
+      "id": "file:web/WEB-INF/manager/dashboard.jsp",
+      "type": "file",
+      "name": "dashboard.jsp",
+      "filePath": "web/WEB-INF/manager/dashboard.jsp",
+      "summary": "Trang dashboard tổng quan cho quản lý (UC49): KPI doanh thu/vé/suất chiếu/khuyến mãi hôm nay, biểu đồ cột doanh thu 7 ngày gần nhất, bảng top 5 phim theo doanh thu, doanh thu theo phương thức thanh toán, và bảng doanh thu theo tháng có thể lọc theo năm và sắp xếp theo cột.",
+      "tags": ["quan-ly", "dashboard", "doanh-thu", "chart-js", "analytics"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/employees/form.jsp",
+      "type": "file",
+      "name": "form.jsp",
+      "filePath": "web/WEB-INF/manager/employees/form.jsp",
+      "summary": "Form thêm/sửa thông tin nhân viên (UC44/UC45) dùng chung cho tạo mới và cập nhật — mật khẩu tạm được tự sinh khi tạo mới nhân viên; hiển thị thêm khối tổng quan số ngày làm việc và lối tắt sang trang phân ca khi ở chế độ chỉnh sửa.",
+      "tags": ["quan-ly", "nhan-su", "crud", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/employees/list.jsp",
+      "type": "file",
+      "name": "list.jsp",
+      "filePath": "web/WEB-INF/manager/employees/list.jsp",
+      "summary": "Trang danh sách nhân viên (UC44) hỗ trợ tìm kiếm theo tên/email, sắp xếp, phân trang, kích hoạt/vô hiệu hoá tài khoản, và các lối tắt sang chỉnh sửa hồ sơ hoặc xem/phân ca làm việc của từng nhân viên.",
+      "tags": ["quan-ly", "nhan-su", "table", "search", "pagination"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/active.jsp",
+      "type": "file",
+      "name": "active.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/active.jsp",
+      "summary": "Trang danh sách khuyến mãi đang hoạt động (view=active) trong vòng đời quản lý khuyến mãi, hỗ trợ tìm kiếm/lọc theo loại giảm giá, sắp xếp theo nhiều cột, và cho phép vô hiệu hoá (deactivate) hoặc chỉnh sửa từng khuyến mãi.",
+      "tags": ["quan-ly", "khuyen-mai", "table", "lifecycle", "sort"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/expired.jsp",
+      "type": "file",
+      "name": "expired.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/expired.jsp",
+      "summary": "Trang danh sách khuyến mãi đã hết hạn, cho phép gia hạn (Extend — đặt lại ngày kết thúc và kích hoạt lại) thông qua modal overlay, hoặc xoá vĩnh viễn (hardDelete) những khuyến mãi không còn cần dùng.",
+      "tags": ["quan-ly", "khuyen-mai", "table", "lifecycle", "modal"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/form.jsp",
+      "type": "file",
+      "name": "form.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/form.jsp",
+      "summary": "Form tạo/sửa khuyến mãi dùng chung cho toàn bộ vòng đời — mã khuyến mãi tự sinh khi tạo mới và bị khoá vĩnh viễn khi sửa; loại và giá trị giảm giá bị khoá nếu khuyến mãi đã được sử dụng; có toggle JavaScript ẩn/hiện trường 'giảm tối đa' chỉ khi loại giảm giá là phần trăm.",
+      "tags": ["quan-ly", "khuyen-mai", "form", "validation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/inactive.jsp",
+      "type": "file",
+      "name": "inactive.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/inactive.jsp",
+      "summary": "Trang danh sách khuyến mãi bị vô hiệu hoá thủ công, cho phép kích hoạt lại (Reactivate, chỉ khi chưa hết hạn) hoặc xoá vĩnh viễn (hardDelete) khuyến mãi không còn cần dùng.",
+      "tags": ["quan-ly", "khuyen-mai", "table", "lifecycle"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/list.jsp",
+      "type": "file",
+      "name": "list.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/list.jsp",
+      "summary": "Trang danh sách tổng hợp tất cả khuyến mãi (mọi trạng thái) với bộ lọc theo mã/tên và loại giảm giá, phân trang, và các pill điều hướng sang view con Upcoming/Active/Expired/Inactive.",
+      "tags": ["quan-ly", "khuyen-mai", "table", "pagination", "overview"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/promotions/upcoming.jsp",
+      "type": "file",
+      "name": "upcoming.jsp",
+      "filePath": "web/WEB-INF/manager/promotions/upcoming.jsp",
+      "summary": "Trang danh sách khuyến mãi sắp diễn ra (view=upcoming), cho phép kích hoạt sớm (activateEarly) trước ngày bắt đầu dự kiến hoặc xoá vĩnh viễn khuyến mãi chưa từng được sử dụng.",
+      "tags": ["quan-ly", "khuyen-mai", "table", "lifecycle"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/shifts/form.jsp",
+      "type": "file",
+      "name": "form.jsp",
+      "filePath": "web/WEB-INF/manager/shifts/form.jsp",
+      "summary": "Form chỉnh sửa một ca làm việc cụ thể của nhân viên — hiển thị thông tin ca chỉ đọc (nhân viên, ngày, giờ vào/ra) và cho phép quản lý cập nhật trạng thái (Scheduled/Completed/Absent) cùng ghi chú.",
+      "tags": ["quan-ly", "ca-lam-viec", "form", "crud"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/WEB-INF/manager/shifts/list.jsp",
+      "type": "file",
+      "name": "list.jsp",
+      "filePath": "web/WEB-INF/manager/shifts/list.jsp",
+      "summary": "Trang lịch phân ca dạng calendar tương tác cho quản lý: chọn nhân viên → chọn loại ca (5 khung giờ cố định) → click vào ngày trên lịch tháng để phân ca ngay; hỗ trợ xoá ca, phân ca hàng loạt cho cả tháng còn lại, và thống kê tổng ca/đã hoàn thành/vắng.",
+      "tags": ["quan-ly", "ca-lam-viec", "calendar", "javascript", "bulk-action"],
+      "complexity": "complex",
+      "languageNotes": "Toàn bộ lưới lịch (calendar grid) được dựng động hoàn toàn bằng JavaScript thuần từ mảng dữ liệu ca (SHIFTS) và bảng tra tên nhân viên (EMPLOYEES) được JSTL forEach nhúng sẵn thành biến JS ngay khi render trang, thay vì gọi AJAX runtime."
+    },
+    {
+      "id": "file:web/add_movie.jsp",
+      "type": "file",
+      "name": "add_movie.jsp",
+      "filePath": "web/add_movie.jsp",
+      "summary": "Form thêm phim mới cho quản lý — nhập đầy đủ thông tin phim (tên, thời lượng, thể loại đa chọn, đạo diễn, diễn viên, poster, trailer...), có nút gọi AJAX tới TMDBController để tự động điền kinh phí/doanh thu toàn cầu từ TMDB, rồi submit POST tới MovieController.",
+      "tags": ["quan-ly", "phim", "form", "ajax", "tmdb"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/change-password.jsp",
+      "type": "file",
+      "name": "change-password.jsp",
+      "filePath": "web/change-password.jsp",
+      "summary": "Trang đổi mật khẩu dùng chung cho mọi vai trò tài khoản (khách hàng, nhân viên, quản lý), gồm 3 trường mật khẩu cũ/mới/xác nhận, hiển thị thông báo lỗi/thành công từ request attribute và toggle hiện/ẩn mật khẩu bằng JavaScript.",
+      "tags": ["auth", "doi-mat-khau", "form", "shared"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/checkout.jsp",
+      "type": "file",
+      "name": "checkout.jsp",
+      "filePath": "web/checkout.jsp",
+      "summary": "Bước 3 trong luồng đặt vé của khách hàng (chọn ghế → chọn đồ ăn → thanh toán → nhận vé): tổng hợp thông tin suất chiếu, vé và bắp nước đã chọn từ session cart, cho áp mã khuyến mãi và tính giảm giá bằng JavaScript client-side, rồi submit xác nhận thanh toán tới BookingController.",
+      "tags": ["khach-hang", "checkout", "booking-flow", "khuyen-mai", "scriptlet"],
+      "complexity": "complex",
+      "languageNotes": "Dùng scriptlet Java (<% %>) thay vì JSTL để đọc BookingCart/BookingScheduleView từ session và tự build chuỗi JSON danh sách khuyến mãi bằng StringBuilder ngay trên server rồi nhúng thẳng vào script phía client để tính giảm giá không cần gọi lại server."
+    },
+    {
+      "id": "file:web/edit_movie.jsp",
+      "type": "file",
+      "name": "edit_movie.jsp",
+      "filePath": "web/edit_movie.jsp",
+      "summary": "Form chỉnh sửa thông tin phim đã tồn tại cho quản lý — khoá các trường không thể đổi sau khi tạo (tên phim, thời lượng, poster), cho phép cập nhật các trường còn lại và có nút TMDB để refresh số liệu kinh phí/doanh thu, submit POST tới MovieController.",
+      "tags": ["quan-ly", "phim", "form", "ajax", "tmdb"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/food_selection.jsp",
+      "type": "file",
+      "name": "food_selection.jsp",
+      "filePath": "web/food_selection.jsp",
+      "summary": "Bước 2 trong luồng đặt vé của khách hàng: hiển thị lưới các món bắp nước/combo với bộ đếm số lượng, tính tổng tiền tạm thời bằng JavaScript, rồi submit sang bước thanh toán (BookingController, action=selectFood).",
+      "tags": ["khach-hang", "booking-flow", "food-selection", "scriptlet"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/forgot-password.jsp",
+      "type": "file",
+      "name": "forgot-password.jsp",
+      "filePath": "web/forgot-password.jsp",
+      "summary": "Trang quên mật khẩu — form nhập email gửi yêu cầu đặt lại mật khẩu; sau khi gửi thành công hiển thị đồng hồ đếm ngược thời gian hết hạn của link reset bằng JavaScript thay vì hiển thị lại form.",
+      "tags": ["auth", "quen-mat-khau", "form", "countdown"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    { "source": "file:web/WEB-INF/employee/book.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/checkin.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/dashboard.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/my-shifts.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/profile.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/schedules.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/employee/tickets.jsp", "target": "file:web/WEB-INF/employee/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/dashboard.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/employees/form.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/employees/list.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/active.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/expired.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/form.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/inactive.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/list.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/promotions/upcoming.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/shifts/form.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/WEB-INF/manager/shifts/list.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/add_movie.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+    { "source": "file:web/edit_movie.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "contains", "direction": "forward", "weight": 1.0 },
+
+    { "source": "file:web/WEB-INF/employee/book.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/checkin.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/dashboard.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/my-shifts.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/profile.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/schedules.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/setup.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/tickets.jsp", "target": "file:src/java/com/cinema/controller/EmployeeDashboardServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/dashboard.jsp", "target": "file:src/java/com/cinema/controller/ManagerServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_navbar.jsp", "target": "file:src/java/com/cinema/controller/ManagerServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/ManagerServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/employees/form.jsp", "target": "file:src/java/com/cinema/controller/EmployeeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/employees/list.jsp", "target": "file:src/java/com/cinema/controller/EmployeeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/EmployeeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/shifts/list.jsp", "target": "file:src/java/com/cinema/controller/EmployeeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/promotions/active.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/promotions/expired.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/promotions/form.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/promotions/inactive.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/promotions/list.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/promotions/upcoming.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_navbar.jsp", "target": "file:src/java/com/cinema/controller/PromotionServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/shifts/form.jsp", "target": "file:src/java/com/cinema/controller/WorkShiftServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/shifts/list.jsp", "target": "file:src/java/com/cinema/controller/WorkShiftServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/employees/form.jsp", "target": "file:src/java/com/cinema/controller/WorkShiftServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/employees/list.jsp", "target": "file:src/java/com/cinema/controller/WorkShiftServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/ScheduleController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/MovieController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/add_movie.jsp", "target": "file:src/java/com/cinema/controller/MovieController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/edit_movie.jsp", "target": "file:src/java/com/cinema/controller/MovieController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/GenreController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/manager/_navbar.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_navbar.jsp", "target": "file:src/java/com/cinema/controller/HomeController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_sidebar.jsp", "target": "file:src/java/com/cinema/controller/LogoutController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/setup.jsp", "target": "file:src/java/com/cinema/controller/LogoutController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/forgot-password.jsp", "target": "file:src/java/com/cinema/controller/LoginController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/change-password.jsp", "target": "file:src/java/com/cinema/controller/ChangePasswordController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/dashboard.jsp", "target": "file:src/java/com/cinema/controller/ChangePasswordController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/WEB-INF/employee/profile.jsp", "target": "file:src/java/com/cinema/controller/ChangePasswordController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/forgot-password.jsp", "target": "file:src/java/com/cinema/controller/ForgotPasswordController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/add_movie.jsp", "target": "file:src/java/com/cinema/controller/TMDBController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/edit_movie.jsp", "target": "file:src/java/com/cinema/controller/TMDBController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/checkout.jsp", "target": "file:src/java/com/cinema/controller/BookingController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/food_selection.jsp", "target": "file:src/java/com/cinema/controller/BookingController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/checkout.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/food_selection.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+
+    { "source": "file:web/WEB-INF/manager/_navbar.jsp", "target": "file:web/index.jsp", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/checkout.jsp", "target": "file:web/index.jsp", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/food_selection.jsp", "target": "file:web/index.jsp", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/change-password.jsp", "target": "file:web/index.jsp", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/forgot-password.jsp", "target": "file:web/index.jsp", "type": "calls", "direction": "forward", "weight": 0.8 }
+  ]
+}

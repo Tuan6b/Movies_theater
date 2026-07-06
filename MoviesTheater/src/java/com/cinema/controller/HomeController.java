@@ -63,6 +63,6 @@ public class HomeController extends HttpServlet {
         request.setAttribute("genreUpcoming", genreUpcoming);
         request.setAttribute("searchKeyword", searchKeyword);
         
-        request.getRequestDispatcher("/home.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/customer/home.jsp").forward(request, response);
     }
 }

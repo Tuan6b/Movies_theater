@@ -14,9 +14,9 @@ import java.util.*;
 
 public class AdminServlet extends HttpServlet {
 
-    private static final String DASHBOARD_JSP = "/WEB-INF/admin/dashboard.jsp";
-    private static final String LOGS_JSP      = "/WEB-INF/admin/logs/index.jsp";
-    private static final String CONFIG_JSP    = "/WEB-INF/admin/config/index.jsp";
+    private static final String DASHBOARD_JSP = "/view/admin/dashboard.jsp";
+    private static final String LOGS_JSP      = "/view/admin/logs/index.jsp";
+    private static final String CONFIG_JSP    = "/view/admin/config/index.jsp";
 
     private static final int PAGE_SIZE = 50;
 

@@ -1,0 +1,310 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/genre.jsp",
+      "type": "file",
+      "name": "genre.jsp",
+      "filePath": "web/genre.jsp",
+      "summary": "Trang quản lý (manager) danh sách thể loại phim, cho phép thêm, sửa, xóa thể loại thông qua các form POST gửi tới GenreController; bao gồm sidebar điều hướng dùng chung.",
+      "tags": ["manager", "crud", "form", "genre-management", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/home.jsp",
+      "type": "file",
+      "name": "home.jsp",
+      "filePath": "web/home.jsp",
+      "summary": "Trang chủ động hiển thị danh sách phim đang chiếu và sắp chiếu, hỗ trợ lọc theo thể loại và phân trang; toàn bộ dữ liệu do HomeController đổ vào qua request attribute và biểu thức EL.",
+      "tags": ["landing-page", "movie-listing", "pagination", "filter", "customer-facing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/index.jsp",
+      "type": "file",
+      "name": "index.jsp",
+      "filePath": "web/index.jsp",
+      "summary": "Trang chủ tĩnh thay thế, tự truy vấn danh sách phim đang chiếu trực tiếp qua DAO tbMovie bằng scriptlet thay vì đi qua servlet, rồi dẫn người dùng tới trang lịch chiếu để đặt vé.",
+      "tags": ["landing-page", "scriptlet", "dao-access", "legacy-pattern", "customer-facing"],
+      "complexity": "complex",
+      "languageNotes": "Truy cập DAO trực tiếp trong JSP bằng scriptlet là một anti-pattern so với kiến trúc MVC servlet-forward được dùng ở home.jsp — có thể là bản landing page cũ song song, chưa được refactor về HomeController."
+    },
+    {
+      "id": "file:web/login.jsp",
+      "type": "file",
+      "name": "login.jsp",
+      "filePath": "web/login.jsp",
+      "summary": "Trang đăng nhập khách hàng với form gửi tới LoginController, có tùy chọn đăng nhập bằng Google và liên kết sang quên mật khẩu/đăng ký.",
+      "tags": ["authentication", "login-form", "customer-facing", "auth-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/manage_movie.jsp",
+      "type": "file",
+      "name": "manage_movie.jsp",
+      "filePath": "web/manage_movie.jsp",
+      "summary": "Trang quản lý (manager) danh sách phim, hiển thị bảng phim kèm tìm kiếm/lọc, thao tác ẩn khẩn cấp và liên kết sang quản lý lịch chiếu; các hành động CRUD được gửi về MovieController.",
+      "tags": ["manager", "movie-management", "crud", "admin-page", "form"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/movie-detail.jsp",
+      "type": "file",
+      "name": "movie-detail.jsp",
+      "filePath": "web/movie-detail.jsp",
+      "summary": "Trang chi tiết phim hiển thị thông tin phim và đánh giá của người dùng; cho phép gửi/sửa/xóa đánh giá qua ReviewController và điều hướng sang trang lịch chiếu để mua vé.",
+      "tags": ["movie-detail", "reviews", "customer-facing", "booking-flow"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/new-password.jsp",
+      "type": "file",
+      "name": "new-password.jsp",
+      "filePath": "web/new-password.jsp",
+      "summary": "Trang đặt lại mật khẩu mới bằng token đính kèm trong link email, gửi mật khẩu mới tới ResetPasswordController và tái sử dụng giao diện login.css.",
+      "tags": ["authentication", "password-reset", "auth-page", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/register.jsp",
+      "type": "file",
+      "name": "register.jsp",
+      "filePath": "web/register.jsp",
+      "summary": "Trang đăng ký tài khoản khách hàng với thông báo lỗi theo từng trường (fieldErrors) do RegisterController trả về, gửi form đăng ký tới cùng controller đó.",
+      "tags": ["registration", "auth-page", "form-validation", "customer-facing"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/room-add.jsp",
+      "type": "file",
+      "name": "room-add.jsp",
+      "filePath": "web/room-add.jsp",
+      "summary": "Trang manager thêm phòng chiếu mới, gửi form POST tới RoomServlet để tạo phòng.",
+      "tags": ["manager", "room-management", "form", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/room-edit.jsp",
+      "type": "file",
+      "name": "room-edit.jsp",
+      "filePath": "web/room-edit.jsp",
+      "summary": "Trang manager chỉnh sửa thông tin phòng chiếu đã có, giữ lại tham số phân trang/lọc gốc khi submit về RoomServlet.",
+      "tags": ["manager", "room-management", "form", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/room-list.jsp",
+      "type": "file",
+      "name": "room-list.jsp",
+      "filePath": "web/room-list.jsp",
+      "summary": "Trang manager danh sách phòng chiếu với bộ lọc theo trạng thái hoạt động, liên kết sửa/xóa phòng và mở màn hình bố trí ghế qua SeatController.",
+      "tags": ["manager", "room-management", "list-page", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/schedule-add.jsp",
+      "type": "file",
+      "name": "schedule-add.jsp",
+      "filePath": "web/schedule-add.jsp",
+      "summary": "Trang manager tạo lịch chiếu mới cho một phim cụ thể, gửi form POST tới ScheduleController.",
+      "tags": ["manager", "schedule-management", "form", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/schedule-edit.jsp",
+      "type": "file",
+      "name": "schedule-edit.jsp",
+      "filePath": "web/schedule-edit.jsp",
+      "summary": "Trang manager chỉnh sửa lịch chiếu đã có, giữ tham số phân trang khi submit về ScheduleController.",
+      "tags": ["manager", "schedule-management", "form", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/schedule-list.jsp",
+      "type": "file",
+      "name": "schedule-list.jsp",
+      "filePath": "web/schedule-list.jsp",
+      "summary": "Trang manager danh sách lịch chiếu, đọc thông báo flash (flashSuccess/flashError) từ session và cung cấp liên kết thêm/sửa/xóa lịch chiếu qua ScheduleController.",
+      "tags": ["manager", "schedule-management", "list-page", "admin-page"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/seat-layout.jsp",
+      "type": "file",
+      "name": "seat-layout.jsp",
+      "filePath": "web/seat-layout.jsp",
+      "summary": "Trang manager thiết kế bố trí ghế (hàng/số ghế) cho một phòng chiếu cụ thể, gửi thay đổi từng hàng ghế tới SeatController.",
+      "tags": ["manager", "seat-layout-design", "admin-page", "form"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/seat_selection.jsp",
+      "type": "file",
+      "name": "seat_selection.jsp",
+      "filePath": "web/seat_selection.jsp",
+      "summary": "Trang khách hàng chọn ghế cho một suất chiếu trong luồng đặt vé; tự chặn và chuyển hướng về /showtimes nếu truy cập trực tiếp mà thiếu thuộc tính request do controller cung cấp, sau đó gửi ghế đã chọn tới BookingController.",
+      "tags": ["seat-selection", "booking-flow", "customer-facing", "guard-clause"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/showtimes.jsp",
+      "type": "file",
+      "name": "showtimes.jsp",
+      "filePath": "web/showtimes.jsp",
+      "summary": "Trang khách hàng xem lịch chiếu theo ngày của một phim; cho phép chuyển ngày (tự điều hướng lại qua ShowtimeServlet) và chọn suất chiếu để chuyển sang bước chọn ghế thông qua BookingController.",
+      "tags": ["showtimes", "booking-flow", "customer-facing", "date-filter"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "web/index.html",
+      "summary": "File HTML mẫu trống do NetBeans tự sinh (template license mặc định), chưa được điền nội dung và không tham gia vào luồng nghiệp vụ nào.",
+      "tags": ["placeholder", "unused", "boilerplate", "netbeans-template"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/css/checkout.css",
+      "type": "file",
+      "name": "checkout.css",
+      "filePath": "web/css/checkout.css",
+      "summary": "Stylesheet định dạng giao diện trang thanh toán (checkout.jsp), bao gồm bố cục tóm tắt đơn hàng, danh sách vé/combo và các trạng thái thanh toán.",
+      "tags": ["stylesheet", "checkout-ui", "css"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/food-selection.css",
+      "type": "file",
+      "name": "food-selection.css",
+      "filePath": "web/css/food-selection.css",
+      "summary": "Stylesheet định dạng giao diện chọn combo bắp nước (food_selection.jsp) trong luồng đặt vé.",
+      "tags": ["stylesheet", "food-selection-ui", "css"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/login.css",
+      "type": "file",
+      "name": "login.css",
+      "filePath": "web/css/login.css",
+      "summary": "Stylesheet dùng chung cho các trang xác thực (đăng nhập, đặt lại mật khẩu, quên mật khẩu, đổi mật khẩu) với bố cục thẻ (card) căn giữa và hiệu ứng lỗi/thành công.",
+      "tags": ["stylesheet", "auth-ui", "css", "shared-styles"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/main.css",
+      "type": "file",
+      "name": "main.css",
+      "filePath": "web/css/main.css",
+      "summary": "Stylesheet chính dùng cho các trang khách hàng công khai như trang chủ, chi tiết phim, lịch chiếu và thanh toán, định nghĩa biến màu thương hiệu CGV và bố cục section dùng chung.",
+      "tags": ["stylesheet", "design-system", "customer-facing", "css"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/manager.css",
+      "type": "file",
+      "name": "manager.css",
+      "filePath": "web/css/manager.css",
+      "summary": "Stylesheet lớn nhất dự án, cung cấp toàn bộ hệ thống giao diện cho khu vực quản trị (manager/admin/employee) gồm sidebar, bảng dữ liệu, form, badge trạng thái và các thành phần dùng chung.",
+      "tags": ["stylesheet", "admin-ui", "design-system", "css"],
+      "complexity": "complex",
+      "languageNotes": "Với hơn 1500 dòng, đây là stylesheet trung tâm được rất nhiều trang quản trị dùng chung — thay đổi ở đây có phạm vi ảnh hưởng rất rộng trên toàn bộ khu vực manager/admin/employee."
+    },
+    {
+      "id": "file:web/css/register.css",
+      "type": "file",
+      "name": "register.css",
+      "filePath": "web/css/register.css",
+      "summary": "Stylesheet riêng cho trang đăng ký tài khoản (register.jsp), định dạng form nhiều trường và các trạng thái lỗi validate theo từng trường.",
+      "tags": ["stylesheet", "auth-ui", "css"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/seat-layout.css",
+      "type": "file",
+      "name": "seat-layout.css",
+      "filePath": "web/css/seat-layout.css",
+      "summary": "Stylesheet nhỏ định dạng lưới bố trí ghế cho màn hình thiết kế phòng chiếu của manager (seat-layout.jsp).",
+      "tags": ["stylesheet", "seat-layout-ui", "css"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/css/seat-selection.css",
+      "type": "file",
+      "name": "seat-selection.css",
+      "filePath": "web/css/seat-selection.css",
+      "summary": "Stylesheet định dạng sơ đồ ghế và trạng thái tương tác (trống/đã chọn/đã đặt) cho trang khách hàng chọn ghế (seat_selection.jsp).",
+      "tags": ["stylesheet", "seat-selection-ui", "css"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/css/showtimes.css",
+      "type": "file",
+      "name": "showtimes.css",
+      "filePath": "web/css/showtimes.css",
+      "summary": "Stylesheet định dạng giao diện xem lịch chiếu theo ngày và danh sách suất chiếu (showtimes.jsp).",
+      "tags": ["stylesheet", "showtimes-ui", "css"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    { "source": "file:web/genre.jsp", "target": "file:src/java/com/cinema/controller/GenreController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/home.jsp", "target": "file:src/java/com/cinema/controller/HomeController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/home.jsp", "target": "file:src/java/com/cinema/controller/MovieDetailController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/index.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/index.jsp", "target": "file:src/java/com/cinema/dao/tbMovie.java", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/login.jsp", "target": "file:src/java/com/cinema/controller/LoginController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/login.jsp", "target": "file:src/java/com/cinema/controller/RegisterController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/manage_movie.jsp", "target": "file:src/java/com/cinema/controller/MovieController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/manage_movie.jsp", "target": "file:src/java/com/cinema/controller/ScheduleController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/movie-detail.jsp", "target": "file:src/java/com/cinema/controller/ReviewController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/movie-detail.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/new-password.jsp", "target": "file:src/java/com/cinema/controller/ResetPasswordController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/register.jsp", "target": "file:src/java/com/cinema/controller/RegisterController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/room-add.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/room-edit.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/room-list.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/room-list.jsp", "target": "file:src/java/com/cinema/controller/SeatController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/schedule-add.jsp", "target": "file:src/java/com/cinema/controller/ScheduleController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/schedule-edit.jsp", "target": "file:src/java/com/cinema/controller/ScheduleController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/schedule-list.jsp", "target": "file:src/java/com/cinema/controller/ScheduleController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/seat-layout.jsp", "target": "file:src/java/com/cinema/controller/SeatController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/seat-layout.jsp", "target": "file:src/java/com/cinema/controller/RoomServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/seat_selection.jsp", "target": "file:src/java/com/cinema/controller/BookingController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/seat_selection.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/showtimes.jsp", "target": "file:src/java/com/cinema/controller/BookingController.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/showtimes.jsp", "target": "file:src/java/com/cinema/controller/ShowtimeServlet.java", "type": "calls", "direction": "forward", "weight": 0.8 },
+    { "source": "file:web/genre.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/manage_movie.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/room-add.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/room-edit.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/room-list.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/schedule-add.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/schedule-edit.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/schedule-list.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/seat-layout.jsp", "target": "file:web/WEB-INF/manager/_sidebar.jsp", "type": "depends_on", "direction": "forward", "weight": 0.6 },
+    { "source": "file:web/css/checkout.css", "target": "file:web/checkout.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/food-selection.css", "target": "file:web/food_selection.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/login.css", "target": "file:web/login.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/login.css", "target": "file:web/new-password.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/login.css", "target": "file:web/change-password.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/login.css", "target": "file:web/forgot-password.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/main.css", "target": "file:web/home.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/main.css", "target": "file:web/index.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/main.css", "target": "file:web/movie-detail.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/main.css", "target": "file:web/showtimes.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/main.css", "target": "file:web/checkout.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/genre.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/manage_movie.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/room-add.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/room-edit.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/room-list.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/schedule-add.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/schedule-edit.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/schedule-list.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/manager.css", "target": "file:web/seat-layout.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/register.css", "target": "file:web/register.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/seat-layout.css", "target": "file:web/seat-layout.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/seat-selection.css", "target": "file:web/seat_selection.jsp", "type": "related", "direction": "forward", "weight": 0.5 },
+    { "source": "file:web/css/showtimes.css", "target": "file:web/showtimes.jsp", "type": "related", "direction": "forward", "weight": 0.5 }
+  ]
+}

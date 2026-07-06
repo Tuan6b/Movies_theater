@@ -87,7 +87,7 @@ public class MovieDetailController extends HttpServlet {
                 request.setAttribute("userReview", userReview);
             }
 
-            request.getRequestDispatcher("/movie-detail.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/customer/movie-detail.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -29,8 +29,8 @@ public class WorkShiftServlet extends HttpServlet {
     private final WorkShiftDAO shiftDAO    = new WorkShiftDAO();
     private final EmployeeDAO  employeeDAO = new EmployeeDAO();
 
-    private static final String LIST_JSP = "/WEB-INF/manager/shifts/list.jsp";
-    private static final String FORM_JSP = "/WEB-INF/manager/shifts/form.jsp";
+    private static final String LIST_JSP = "/view/manager/shifts/list.jsp";
+    private static final String FORM_JSP = "/view/manager/shifts/form.jsp";
     private static final String LIST_URL = "/manager/shifts";
 
     // Fixed CGV shift types: key -> [startTime HH:MM, endTime HH:MM]

@@ -90,7 +90,7 @@ public class SeatController extends HttpServlet {
         request.setAttribute("room", room);
         request.setAttribute("hasSchedules", scheduleDAO.hasSchedulesForRoom(roomId));
 
-        request.getRequestDispatcher("seat-layout.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/seat-layout.jsp").forward(request, response);
     }
 
     private void updateRow(HttpServletRequest request,

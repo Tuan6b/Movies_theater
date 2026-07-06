@@ -49,7 +49,7 @@ public class ResetPasswordController extends HttpServlet {
                 request.setAttribute("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
             }
             request.setAttribute("token", token);
-            request.getRequestDispatcher("/new-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/new-password.jsp").forward(request, response);
 
         } else if ("POST".equalsIgnoreCase(method)) {
             request.setCharacterEncoding("UTF-8");
@@ -66,21 +66,21 @@ public class ResetPasswordController extends HttpServlet {
             if (password == null || password.length() < 6) {
                 request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
                 request.setAttribute("token", token);
-                request.getRequestDispatcher("/new-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/new-password.jsp").forward(request, response);
                 return;
             }
 
             if (!password.equals(confirmPassword)) {
                 request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
                 request.setAttribute("token", token);
-                request.getRequestDispatcher("/new-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/new-password.jsp").forward(request, response);
                 return;
             }
 
             Account account = accountDAO.getAccountByResetToken(token);
             if (account == null) {
                 request.setAttribute("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
-                request.getRequestDispatcher("/new-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/new-password.jsp").forward(request, response);
                 return;
             }
 
@@ -91,7 +91,7 @@ public class ResetPasswordController extends HttpServlet {
             } else {
                 request.setAttribute("error", "Có lỗi xảy ra, vui lòng thử lại.");
             }
-            request.getRequestDispatcher("/new-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/new-password.jsp").forward(request, response);
         }
     }
 
