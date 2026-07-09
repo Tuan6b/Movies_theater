@@ -20,16 +20,15 @@
                         <header class="cgv-header">
                             <h1 class="cgv-header-title">Quản lý Phim</h1>
                             <div class="cgv-header-right">
-                                <div class="cgv-search-wrap">
-                                    <i class="fa-solid fa-magnifying-glass cgv-search-icon"></i>
-                                    <input type="text" class="cgv-search" placeholder="Tìm tên phim...">
-                                </div>
                                 <div class="cgv-header-actions">
-                                    <button class="cgv-bell-btn"><i class="fa-regular fa-bell"></i></button>
-                                    <div class="cgv-header-divider"></div>
                                     <div class="cgv-user-wrap">
                                         <div class="cgv-avatar">M</div>
-                                        <span class="cgv-user-name">Manager</span>
+                                        <span class="cgv-user-name">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
+                                                <c:otherwise>Manager</c:otherwise>
+                                            </c:choose>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

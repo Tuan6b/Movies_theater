@@ -21,6 +21,7 @@ public class AuthFilter extends HttpFilter implements Filter {
     // Public pages
     private static final List<String> EXACT_PUBLIC_PATHS = Arrays.asList(
             "/",
+            "/index.jsp",
             "/view/customer/index.jsp",
             "/view/customer/home.jsp",
             "/view/customer/movie-detail.jsp",

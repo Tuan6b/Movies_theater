@@ -5,7 +5,8 @@
 <%@ page import="java.util.List" %>
 <%
     tbMovie movieDAO = new tbMovie();
-    List<clsMovie> activeMovies = movieDAO.getAllActiveMovies();
+    List<clsMovie> activeMovies = movieDAO.getMoviesByFilter("showing");
+    List<clsMovie> upcomingMovies = movieDAO.getMoviesByFilter("upcoming");
     int firstMovieId = (activeMovies != null && !activeMovies.isEmpty()) ? activeMovies.get(0).getMovieId() : 1;
 %>
 <!DOCTYPE html>
@@ -100,7 +101,7 @@
                 if (activeMovies != null && !activeMovies.isEmpty()) {
                     for (clsMovie movie : activeMovies) {
             %>
-            <a href="${pageContext.request.contextPath}/showtimes?movieId=<%= movie.getMovieId() %>" class="movie-card">
+            <a href="${pageContext.request.contextPath}/MovieDetailController?id=<%= movie.getMovieId() %>" class="movie-card">
                 <div class="movie-poster">
                     <% if (movie.getPoster() != null && !movie.getPoster().trim().isEmpty()) { %>
                         <img src="<%= movie.getPoster() %>" alt="<%= movie.getMovieName() %>">
@@ -138,36 +139,35 @@
             <a href="#" class="section-link">Xem tất cả →</a>
         </div>
         <div class="movie-grid">
-            <a href="#" class="movie-card">
+            <%
+                if (upcomingMovies != null && !upcomingMovies.isEmpty()) {
+                    for (clsMovie movie : upcomingMovies) {
+            %>
+            <a href="${pageContext.request.contextPath}/MovieDetailController?id=<%= movie.getMovieId() %>" class="movie-card">
                 <div class="movie-poster">
-                    <div class="movie-overlay"><span class="movie-overlay-text">Nhắc tôi</span></div>
+                    <% if (movie.getPoster() != null && !movie.getPoster().trim().isEmpty()) { %>
+                        <img src="<%= movie.getPoster() %>" alt="<%= movie.getMovieName() %>">
+                    <% } else { %>
+                        <span><%= movie.getMovieName() %></span>
+                    <% } %>
+                    <div class="movie-overlay">
+                        <span class="movie-overlay-text">Nhắc tôi</span>
+                    </div>
                 </div>
                 <div class="movie-info">
-                    <div class="movie-title">Tên phim 6</div>
-                    <div class="movie-meta">Khởi chiếu 01/06/2026</div>
-                    <span class="movie-badge">IMAX</span>
+                    <div class="movie-title"><%= movie.getMovieName() %></div>
+                    <div class="movie-meta">Khởi chiếu sắp tới</div>
+                    <span class="movie-badge"><%= movie.getAgeRestriction() > 0 ? "C" + movie.getAgeRestriction() : "P" %></span>
                 </div>
             </a>
-            <a href="#" class="movie-card">
-                <div class="movie-poster">
-                    <div class="movie-overlay"><span class="movie-overlay-text">Nhắc tôi</span></div>
-                </div>
-                <div class="movie-info">
-                    <div class="movie-title">Tên phim 7</div>
-                    <div class="movie-meta">Khởi chiếu 15/06/2026</div>
-                    <span class="movie-badge">4DX</span>
-                </div>
-            </a>
-            <a href="#" class="movie-card">
-                <div class="movie-poster">
-                    <div class="movie-overlay"><span class="movie-overlay-text">Nhắc tôi</span></div>
-                </div>
-                <div class="movie-info">
-                    <div class="movie-title">Tên phim 8</div>
-                    <div class="movie-meta">Khởi chiếu 20/06/2026</div>
-                    <span class="movie-badge">3D</span>
-                </div>
-            </a>
+            <%
+                    }
+                } else {
+            %>
+            <p style="color:var(--cgv-text-dim);padding:40px 0;">Không có phim nào sắp chiếu.</p>
+            <%
+                }
+            %>
         </div>
     </div>
 </section>

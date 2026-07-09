@@ -18,7 +18,12 @@
                class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Thể loai phim</a>
         </div>
         <div class="navbar-end">
-            <span class="navbar-role">Manager</span>
+            <span class="navbar-role">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
+                    <c:otherwise>Manager</c:otherwise>
+                </c:choose>
+            </span>
             <div class="topbar-avatar">MG</div>
         </div>
     </div>

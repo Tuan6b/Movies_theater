@@ -10,6 +10,7 @@
         <title>${movie.movieName} - CGV Cinemas</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <style>
             .md-wrap {
@@ -155,6 +156,32 @@
             .cast-role {
                 font-size: 12px;
                 color: var(--cgv-text-dim);
+            }
+
+            /* STAR RATING CSS */
+            .star-rating {
+                display: inline-flex;
+                flex-direction: row-reverse;
+                justify-content: flex-end;
+                margin-bottom: 15px;
+            }
+            .star-rating input[type="radio"] {
+                display: none;
+            }
+            .star-rating label {
+                color: #ddd;
+                font-size: 30px;
+                padding: 0 4px;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+            }
+            .star-rating label:hover,
+            .star-rating label:hover ~ label {
+                color: #ffb400;
+                transform: scale(1.1);
+            }
+            .star-rating input[type="radio"]:checked ~ label {
+                color: #ffb400;
             }
         </style>
     </head>
@@ -325,6 +352,8 @@
                         </div>
                     </div>
 
+                </c:if>
+
                     <!-- Form Đánh giá (UC19 & UC20) -->
                         <div class="review-form-container" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative;">
                             
@@ -354,15 +383,34 @@
                                         <input type="hidden" name="movieId" value="${movie.movieId}">
 
                                         <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
-                                        <select name="rating" required style="padding: 5px; margin-bottom: 15px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                                            <option value="5">5 - Tuyệt vời</option>
-                                            <option value="4">4 - Rất hay</option>
-                                            <option value="3">3 - Bình thường</option>
-                                            <option value="2">2 - Tệ</option>
-                                            <option value="1">1 - Rất tệ</option>
-                                        </select>
+                                        <div class="star-rating">
+                                            <input type="radio" id="star5" name="rating" value="5" required />
+                                            <label for="star5" title="Tuyệt vời">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="star4" name="rating" value="4" />
+                                            <label for="star4" title="Hay">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="star3" name="rating" value="3" />
+                                            <label for="star3" title="Bình thường">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="star2" name="rating" value="2" />
+                                            <label for="star2" title="Tệ">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="star1" name="rating" value="1" />
+                                            <label for="star1" title="Rất tệ">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                        </div>
 
-                                        <textarea name="comment" rows="3" placeholder="Nhập cảm nhận của bạn về bộ phim..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px;"></textarea>
+                                        <textarea name="comment" rows="3" placeholder="Nhập cảm nhận của bạn về bộ phim..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;"></textarea>
                                         <button type="submit" style="background: var(--cgv-red); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Gửi Đánh Giá</button>
                                     </form>
                                 </c:when>
@@ -382,15 +430,35 @@
                                         <input type="hidden" name="movieId" value="${movie.movieId}">
                                         <input type="hidden" name="reviewId" value="${userReview.reviewId}">
 
-                                        <select name="rating" required style="padding: 5px; margin-bottom: 15px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                                            <option value="5" ${userReview.ratingValue == 5 ? 'selected' : ''}>5 - Tuyệt vời</option>
-                                            <option value="4" ${userReview.ratingValue == 4 ? 'selected' : ''}>4 - Rất hay</option>
-                                            <option value="3" ${userReview.ratingValue == 3 ? 'selected' : ''}>3 - Bình thường</option>
-                                            <option value="2" ${userReview.ratingValue == 2 ? 'selected' : ''}>2 - Tệ</option>
-                                            <option value="1" ${userReview.ratingValue == 1 ? 'selected' : ''}>1 - Rất tệ</option>
-                                        </select>
+                                        <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
+                                        <div class="star-rating">
+                                            <input type="radio" id="edit_star5" name="rating" value="5" ${userReview.ratingValue == 5 ? 'checked' : ''} required />
+                                            <label for="edit_star5" title="Tuyệt vời">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="edit_star4" name="rating" value="4" ${userReview.ratingValue == 4 ? 'checked' : ''} />
+                                            <label for="edit_star4" title="Hay">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="edit_star3" name="rating" value="3" ${userReview.ratingValue == 3 ? 'checked' : ''} />
+                                            <label for="edit_star3" title="Bình thường">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="edit_star2" name="rating" value="2" ${userReview.ratingValue == 2 ? 'checked' : ''} />
+                                            <label for="edit_star2" title="Tệ">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                            
+                                            <input type="radio" id="edit_star1" name="rating" value="1" ${userReview.ratingValue == 1 ? 'checked' : ''} />
+                                            <label for="edit_star1" title="Rất tệ">
+                                                <i class="fa-solid fa-star"></i>
+                                            </label>
+                                        </div>
 
-                                        <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px;">${userReview.comment}</textarea>
+                                        <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;">${userReview.comment}</textarea>
                                         <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Lưu Thay Đổi</button>
                                     </form>
 
@@ -404,6 +472,7 @@
                             </c:choose>
                         </div>
 
+                <c:if test="${totalReviews > 0}">
                     <!-- UC18: Danh Sách Review -->
                     <div style="display: flex; flex-direction: column; gap: 20px;">
                         <c:forEach var="r" items="${reviews}">
