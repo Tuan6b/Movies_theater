@@ -87,7 +87,7 @@
                     <form action="${pageContext.request.contextPath}/HomeController" method="GET" style="display: flex; gap: 8px;">
                         <input type="hidden" name="genreShowing" value="${genreShowing}">
                         <input type="hidden" name="genreUpcoming" value="${genreUpcoming}">
-                        <input type="text" name="search" value="${searchKeyword}" placeholder="Tìm tên phim..." 
+                        <input type="text" name="search" value="${searchKeyword}" placeholder="Tìm tên phim..."
                                style="padding: 8px 16px; border: 1px solid var(--cgv-border); border-radius: 99px; outline: none; font-family: var(--font-body);">
                         <button type="submit" class="btn btn-primary" style="border-radius: 99px; padding: 0 16px;">
                             <i class="fa-solid fa-magnifying-glass"></i>
@@ -140,7 +140,7 @@
                                 </a>
                             </c:forEach>
                         </div>
-                        
+
                         <c:if test="${empty showingList}">
                             <div style="text-align: center; padding: 40px 0; color: var(--cgv-text-muted);">
                                 <i class="fa-solid fa-film" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
@@ -204,7 +204,7 @@
                                 </a>
                             </c:forEach>
                         </div>
-                        
+
                         <c:if test="${empty upcomingList}">
                             <div style="text-align: center; padding: 40px 0; color: var(--cgv-text-muted);">
                                 <i class="fa-solid fa-film" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
@@ -243,6 +243,63 @@
                 </div>
             </div>
         </footer>
+
+        <script>
+            const searchInput = document.getElementById('liveSearchInput');
+            const searchResults = document.getElementById('liveSearchResults');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                const keyword = this.value.trim();
+
+                if (keyword.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                // Kỹ thuật Debounce (Đợi người dùng ngừng gõ 300ms mới gọi DB)
+                debounceTimer = setTimeout(() => {
+   
+                    const allMovies = document.querySelectorAll('.movie-title');
+                    let matches = [];
+
+                    allMovies.forEach(movie => {
+                        const title = movie.getAttribute('title');
+                        if (title && title.toLowerCase().includes(keyword.toLowerCase())) {
+                            matches.push({
+                                title: title,
+                                url: movie.closest('a').getAttribute('href')
+                            });
+                        }
+                    });
+
+                    if (matches.length > 0) {
+                        let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                        matches.forEach(m => {
+                            html += `<li style="border-bottom: 1px solid #f0f0f0;">
+                                        <a href="` + m.url + `" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">
+                                            <i class="fa-solid fa-film" style="margin-right: 8px; color: #888;"></i> ` + m.title + `
+                                        </a>
+                                     </li>`;
+                        });
+                        html += '</ul>';
+                        searchResults.innerHTML = html;
+                        searchResults.style.display = 'block';
+                    } else {
+                        searchResults.innerHTML = '<div style="padding: 10px 15px; color: #888;">Không tìm thấy phim phù hợp</div>';
+                        searchResults.style.display = 'block';
+                    }
+                }, 300);
+            });
+
+            // Ẩn box tìm kiếm khi click ra ngoài
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        </script>
 
     </body>
 </html>
