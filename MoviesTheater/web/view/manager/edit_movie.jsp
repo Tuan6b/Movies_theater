@@ -57,7 +57,12 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
                                 <div style="display: flex; gap: 8px;">
-                                    <input type="text" name="movieName" class="cgv-input" value="${movie.movieName}" readonly style="background-color: #f5f5f5; flex: 1;" required>
+                                    <div style="position: relative;">
+                                        <input type="text" name="movieName" value="${movie.movieName}" class="cgv-input" readonly 
+                                               style="background-color: #f0f0f0; color: #888; cursor: not-allowed; padding-right: 35px;" 
+                                               title="Không thể đổi tên phim.">
+                                        <i class="fa-solid fa-lock" style="position: absolute; right: 12px; top: 12px; color: #aaa;"></i>
+                                    </div>
                                     <button type="button" id="btnFetchTMDB" style="background: #e50914; color: white; border: none; padding: 0 12px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap;">
                                         <i class="fa-solid fa-cloud-arrow-down"></i> Dữ liệu TMDB
                                     </button>
@@ -78,7 +83,12 @@
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
-                                <input type="number" name="duration" class="cgv-input" min="40" max="300" value="${movie.duration}" readonly style="background-color: #f5f5f5;" required>
+                                <div style="position: relative;">
+                                    <input type="number" name="duration" value="${movie.duration}" class="cgv-input" readonly 
+                                           style="background-color: #f0f0f0; color: #888; cursor: not-allowed; padding-right: 35px;" 
+                                           title="Không thể đổi thời lượng vì sẽ ảnh hưởng tới các lịch chiếu đã tạo.">
+                                    <i class="fa-solid fa-lock" style="position: absolute; right: 12px; top: 12px; color: #aaa;"></i>
+                                </div>
                             </div>
 
                             <div class="cgv-field">
@@ -132,7 +142,12 @@
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Ảnh Poster</label>
-                                <input type="url" name="poster" class="cgv-input" value="${movie.poster}" readonly style="background-color: #f5f5f5;">
+                                <div style="position: relative;">
+                                    <input type="url" name="poster" value="${movie.poster}" class="cgv-input" readonly 
+                                           style="background-color: #f0f0f0; color: #888; cursor: not-allowed; padding-right: 35px;" 
+                                           title="Không thể đổi poster.">
+                                    <i class="fa-solid fa-lock" style="position: absolute; right: 12px; top: 12px; color: #aaa;"></i>
+                                </div>
                             </div>
 
                             <div class="cgv-field cgv-form-full">

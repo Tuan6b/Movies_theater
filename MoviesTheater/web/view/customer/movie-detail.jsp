@@ -183,6 +183,17 @@
             .star-rating input[type="radio"]:checked ~ label {
                 color: #ffb400;
             }
+            @keyframes fillBar {
+                from {
+                    width: 0;
+                }
+            }
+            .rating-bar-fill {
+                height: 100%;
+                background: #ffb400;
+                border-radius: 4px;
+                animation: fillBar 1.5s ease-out forwards;
+            }
         </style>
     </head>
     <body>
@@ -324,7 +335,7 @@
 
                 <c:if test="${totalReviews > 0}">
                     <!-- UC21: Thống Kê Rating -->
-                    <div style="display: flex; gap: 40px; margin-bottom: 40px; background: #111; padding: 20px; border-radius: 8px;">
+                    <div style="display: flex; gap: 40px; margin-bottom: 40px; background: #fdfdfd; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); padding: 20px; border-radius: 8px;">
                         <div style="text-align: center; min-width: 150px;">
                             <div style="font-size: 48px; font-weight: bold; color: #ffb400;">${avgRating}</div>
                             <div style="color: #ffb400; font-size: 20px; letter-spacing: 2px;">
@@ -341,12 +352,12 @@
 
                         <div style="flex-grow: 1; display: flex; flex-direction: column-reverse; justify-content: center; gap: 8px;">
                             <c:forEach begin="1" end="5" var="i">
-                                <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc;">
+                                <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; font-weight: 500;">
                                     <span>${i} <i class="fa-solid fa-star" style="color: #ffb400; font-size: 10px;"></i></span>
                                     <div style="flex-grow: 1; background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
-                                        <div style="background: #ffb400; height: 100%; width: ${(starCounts[i] / totalReviews) * 100}%;"></div>
+                                        <div class="rating-bar-fill" data-width="${(starCounts[i] / totalReviews) * 100}%" style="width: 0%; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);"></div>
                                     </div>
-                                    <span style="min-width: 30px; text-align: right; color: var(--cgv-dark);">${starCounts[i]}</span>
+                                    <span style="min-width: 30px; text-align: right; color: #666;">${starCounts[i]}</span>
                                 </div>
                             </c:forEach>
                         </div>
@@ -354,123 +365,123 @@
 
                 </c:if>
 
-                    <!-- Form Đánh giá (UC19 & UC20) -->
-                        <div class="review-form-container" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative;">
-                            
-                            <%-- Màn che (Overlay) nếu chưa đăng nhập hoặc chưa mua vé xem phim --%>
-                            <c:if test="${empty sessionScope.account or not canReview}">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); border-radius: 8px; z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                                    <i class="fas fa-lock" style="font-size: 24px; color: #888; margin-bottom: 10px;"></i>
-                                    <p style="color: white; font-weight: bold; text-align: center; margin: 0 20px;">
-                                        <c:choose>
-                                            <c:when test="${empty sessionScope.account}">
-                                                Vui lòng <a href="${pageContext.request.contextPath}/Login" style="color: var(--cgv-red); text-decoration: underline;">Đăng nhập</a> và mua vé để đánh giá!
-                                            </c:when>
-                                            <c:otherwise>
-                                                Bạn cần mua vé và quét mã Check-in xem phim này để có thể đánh giá!
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
+                <!-- Form Đánh giá (UC19 & UC20) -->
+                <div class="review-form-container" style="background: #fdfdfd; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative;">
+
+                    <%-- Màn che (Overlay) nếu chưa đăng nhập hoặc chưa mua vé xem phim --%>
+                    <c:if test="${empty sessionScope.account or (empty userReview and not canReview)}">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); border-radius: 8px; z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                            <i class="fas fa-lock" style="font-size: 24px; color: #888; margin-bottom: 10px;"></i>
+                            <p style="color: white; font-weight: bold; text-align: center; margin: 0 20px;">
+                                <c:choose>
+                                    <c:when test="${empty sessionScope.account}">
+                                        Vui lòng <a href="${pageContext.request.contextPath}/Login" style="color: var(--cgv-red); text-decoration: underline;">Đăng nhập</a> và mua vé để đánh giá!
+                                    </c:when>
+                                    <c:otherwise>
+                                        Bạn cần mua vé và quét mã Check-in xem phim này để có thể đánh giá!
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
+                        </div>
+                    </c:if>
+
+                    <c:choose>
+                        <%-- CHƯA CÓ ĐÁNH GIÁ -> FORM THÊM MỚI --%>
+                        <c:when test="${empty userReview}">
+                            <h3 style="margin-bottom: 15px;">Viết đánh giá của bạn</h3>
+                            <form action="ReviewController" method="POST">
+                                <input type="hidden" name="action" value="add">
+                                <input type="hidden" name="movieId" value="${movie.movieId}">
+
+                                <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
+                                <div class="star-rating">
+                                    <input type="radio" id="star5" name="rating" value="5" required />
+                                    <label for="star5" title="Tuyệt vời">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
+
+                                    <input type="radio" id="star4" name="rating" value="4" />
+                                    <label for="star4" title="Hay">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
+
+                                    <input type="radio" id="star3" name="rating" value="3" />
+                                    <label for="star3" title="Bình thường">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
+
+                                    <input type="radio" id="star2" name="rating" value="2" />
+                                    <label for="star2" title="Tệ">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
+
+                                    <input type="radio" id="star1" name="rating" value="1" />
+                                    <label for="star1" title="Rất tệ">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
                                 </div>
+
+                                <textarea name="comment" rows="3" placeholder="Nhập cảm nhận của bạn về bộ phim..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;"></textarea>
+                                <button type="submit" style="background: var(--cgv-red); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Gửi Đánh Giá</button>
+                            </form>
+                        </c:when>
+
+                        <%-- ĐÃ CÓ ĐÁNH GIÁ -> FORM SỬA / XÓA --%>
+                        <c:otherwise>
+                            <h3 style="margin-bottom: 15px;">Đánh giá của bạn</h3>
+
+                            <%-- Báo lỗi nếu quá 30 ngày --%>
+                            <c:if test="${not empty sessionScope.flashError}">
+                                <div style="color: #ff4d4f; margin-bottom: 15px; padding: 10px; background: rgba(255,77,79,0.1); border-radius: 4px;">${sessionScope.flashError}</div>
+                                <c:remove var="flashError" scope="session" />
                             </c:if>
 
-                            <c:choose>
-                                <%-- CHƯA CÓ ĐÁNH GIÁ -> FORM THÊM MỚI --%>
-                                <c:when test="${empty userReview}">
-                                    <h3 style="margin-bottom: 15px;">Viết đánh giá của bạn</h3>
-                                    <form action="ReviewController" method="POST">
-                                        <input type="hidden" name="action" value="add">
-                                        <input type="hidden" name="movieId" value="${movie.movieId}">
+                            <form action="ReviewController" method="POST" style="margin-bottom: 10px;">
+                                <input type="hidden" name="action" value="update">
+                                <input type="hidden" name="movieId" value="${movie.movieId}">
+                                <input type="hidden" name="reviewId" value="${userReview.reviewId}">
 
-                                        <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
-                                        <div class="star-rating">
-                                            <input type="radio" id="star5" name="rating" value="5" required />
-                                            <label for="star5" title="Tuyệt vời">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="star4" name="rating" value="4" />
-                                            <label for="star4" title="Hay">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="star3" name="rating" value="3" />
-                                            <label for="star3" title="Bình thường">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="star2" name="rating" value="2" />
-                                            <label for="star2" title="Tệ">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="star1" name="rating" value="1" />
-                                            <label for="star1" title="Rất tệ">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                        </div>
+                                <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
+                                <div class="star-rating">
+                                    <input type="radio" id="edit_star5" name="rating" value="5" ${userReview.ratingValue == 5 ? 'checked' : ''} required />
+                                    <label for="edit_star5" title="Tuyệt vời">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
 
-                                        <textarea name="comment" rows="3" placeholder="Nhập cảm nhận của bạn về bộ phim..." style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;"></textarea>
-                                        <button type="submit" style="background: var(--cgv-red); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Gửi Đánh Giá</button>
-                                    </form>
-                                </c:when>
+                                    <input type="radio" id="edit_star4" name="rating" value="4" ${userReview.ratingValue == 4 ? 'checked' : ''} />
+                                    <label for="edit_star4" title="Hay">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
 
-                                <%-- ĐÃ CÓ ĐÁNH GIÁ -> FORM SỬA / XÓA --%>
-                                <c:otherwise>
-                                    <h3 style="margin-bottom: 15px;">Đánh giá của bạn</h3>
+                                    <input type="radio" id="edit_star3" name="rating" value="3" ${userReview.ratingValue == 3 ? 'checked' : ''} />
+                                    <label for="edit_star3" title="Bình thường">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
 
-                                    <%-- Báo lỗi nếu quá 30 ngày --%>
-                                    <c:if test="${not empty sessionScope.flashError}">
-                                        <div style="color: #ff4d4f; margin-bottom: 15px; padding: 10px; background: rgba(255,77,79,0.1); border-radius: 4px;">${sessionScope.flashError}</div>
-                                        <c:remove var="flashError" scope="session" />
-                                    </c:if>
+                                    <input type="radio" id="edit_star2" name="rating" value="2" ${userReview.ratingValue == 2 ? 'checked' : ''} />
+                                    <label for="edit_star2" title="Tệ">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
 
-                                    <form action="ReviewController" method="POST" style="margin-bottom: 10px;">
-                                        <input type="hidden" name="action" value="update">
-                                        <input type="hidden" name="movieId" value="${movie.movieId}">
-                                        <input type="hidden" name="reviewId" value="${userReview.reviewId}">
+                                    <input type="radio" id="edit_star1" name="rating" value="1" ${userReview.ratingValue == 1 ? 'checked' : ''} />
+                                    <label for="edit_star1" title="Rất tệ">
+                                        <i class="fa-solid fa-star"></i>
+                                    </label>
+                                </div>
 
-                                        <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
-                                        <div class="star-rating">
-                                            <input type="radio" id="edit_star5" name="rating" value="5" ${userReview.ratingValue == 5 ? 'checked' : ''} required />
-                                            <label for="edit_star5" title="Tuyệt vời">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="edit_star4" name="rating" value="4" ${userReview.ratingValue == 4 ? 'checked' : ''} />
-                                            <label for="edit_star4" title="Hay">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="edit_star3" name="rating" value="3" ${userReview.ratingValue == 3 ? 'checked' : ''} />
-                                            <label for="edit_star3" title="Bình thường">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="edit_star2" name="rating" value="2" ${userReview.ratingValue == 2 ? 'checked' : ''} />
-                                            <label for="edit_star2" title="Tệ">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                            
-                                            <input type="radio" id="edit_star1" name="rating" value="1" ${userReview.ratingValue == 1 ? 'checked' : ''} />
-                                            <label for="edit_star1" title="Rất tệ">
-                                                <i class="fa-solid fa-star"></i>
-                                            </label>
-                                        </div>
+                                <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;">${userReview.comment}</textarea>
+                                <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Lưu Thay Đổi</button>
+                            </form>
 
-                                        <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;">${userReview.comment}</textarea>
-                                        <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Lưu Thay Đổi</button>
-                                    </form>
-
-                                    <form action="ReviewController" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="movieId" value="${movie.movieId}">
-                                        <input type="hidden" name="reviewId" value="${userReview.reviewId}">
-                                        <button type="submit" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Xóa Đánh Giá</button>
-                                    </form>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+                            <form id="delete-review-form" action="ReviewController" method="POST" onsubmit="confirmDeleteReview(event, this);">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="movieId" value="${movie.movieId}">
+                                <input type="hidden" name="reviewId" value="${userReview.reviewId}">
+                                <button type="submit" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Xóa Đánh Giá</button>
+                            </form>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
 
                 <c:if test="${totalReviews > 0}">
                     <!-- UC18: Danh Sách Review -->
@@ -515,5 +526,63 @@
             </div>
             <!-- ================= END RATING & REVIEW ================= -->
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            // Xử lý xác nhận xóa đánh giá
+            function confirmDeleteReview(event, formElement) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Chắc chắn xóa?',
+                    text: 'Bài đánh giá của bạn sẽ bị xóa vĩnh viễn khỏi phim này!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e50914',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Giữ lại'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        formElement.submit();
+                    }
+                });
+            }
+
+            // Xử lý bộ lọc từ ngữ không phù hợp cho form gửi Review
+            document.addEventListener("DOMContentLoaded", function() {
+                // Hiệu ứng thanh tiến trình đánh giá (UC21 - CSS Animation "WOW" effect)
+                const ratingBars = document.querySelectorAll('.rating-bar-fill');
+                setTimeout(() => {
+                    ratingBars.forEach(bar => {
+                        bar.style.width = bar.getAttribute('data-width');
+                    });
+                }, 100);
+
+                const reviewForms = document.querySelectorAll('form[action="ReviewController"]');
+                const badWords = ["ngu", "dm", "vl", "rac", "rác"]; 
+
+                reviewForms.forEach(form => {
+                    if (form.id !== 'delete-review-form') {
+                        form.addEventListener('submit', function (e) {
+                            const commentBox = this.querySelector('textarea[name="comment"]');
+                            if (commentBox) {
+                                const commentText = commentBox.value.toLowerCase();
+                                const containsBadWord = badWords.some(word => commentText.includes(word));
+
+                                if (containsBadWord) {
+                                    e.preventDefault();
+                                    Swal.fire({
+                                        title: 'Ngôn từ không phù hợp!',
+                                        text: 'Bình luận của bạn chứa từ ngữ vi phạm tiêu chuẩn cộng đồng. Vui lòng sửa lại.',
+                                        icon: 'error',
+                                        confirmButtonColor: '#e50914'
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
     </body>
 </html>

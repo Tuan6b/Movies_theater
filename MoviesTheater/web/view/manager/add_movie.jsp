@@ -143,7 +143,13 @@
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">URL Ảnh Poster</label>
-                                <input type="url" name="poster" class="cgv-input" placeholder="https://...">
+                                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                                    <input type="url" name="poster" id="posterInput" class="cgv-input" placeholder="https://..." style="flex: 1"
+                                           oninput="document.getElementById('posterPreview').src = this.value || 'https://via.placeholder.com/150x220?text=No+Image'">
+                                    <div style="width: 150px; height: 220px; border-radius: 8px; border: 1px dashed #ccc; overflow: hidden; background: #f9f9f9; display: flex; align-items: center; justify-content: center;">
+                                        <img id="posterPreview" src="https://via.placeholder.com/150x220?text=No+Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="cgv-field cgv-form-full">
@@ -174,65 +180,84 @@
             </div>
         </main>
 
-
-
         <script>
-            document.getElementById('btnFetchTMDB').addEventListener('click', function () {
-                // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
-                var movieName = document.querySelector('input[name="movieName"]').value;
-                if (!movieName) {
-                    alert("Vui lòng nhập Tên phim trước để hệ thống biết cần tra cứu số liệu của phim nào!");
-                    return;
+            document.addEventListener("DOMContentLoaded", function() {
+                var btnFetch = document.getElementById('btnFetchTMDB');
+                if (btnFetch) {
+                    btnFetch.addEventListener('click', function () {
+                        // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
+                        var movieName = document.querySelector('input[name="movieName"]').value;
+                        if (!movieName) {
+                            alert("Vui lòng nhập tên phim trước.");
+                            return;
+                        }
+
+                        var btn = this;
+                        btn.innerText = "Đang tra cứu số liệu...";
+                        btn.disabled = true;
+
+                        fetch('TMDBController?query=' + encodeURIComponent(movieName))
+                                .then(response => response.json())
+                                .then(data => {
+                                    btn.innerText = "Cập nhật số liệu từ TMDB";
+                                    btn.disabled = false;
+
+                                    if (data.error) {
+                                        alert("Không tìm thấy dữ liệu của phim này trên TMDB!");
+                                        return;
+                                    }
+
+                                    // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
+                                    let hasUpdate = false;
+
+                                    if (data.Budget && data.Budget !== "0") {
+                                        let budgetInput = document.querySelector('input[name="budget"]');
+                                        if (budgetInput) {
+                                            budgetInput.value = data.Budget;
+                                            hasUpdate = true;
+                                        }
+                                    }
+
+                                    if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
+                                        let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
+                                        if (boxOfficeInput) {
+                                            boxOfficeInput.value = data.GlobalBoxOffice;
+                                            hasUpdate = true;
+                                        }
+                                    }
+
+                                    if (hasUpdate) {
+                                        alert("Đã tải xong số liệu từ TMDB.");
+                                    } else {
+                                        alert("TMDB không có sẵn số liệu của phim này.");
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    btn.innerText = "Cập nhật số liệu từ TMDB";
+                                    btn.disabled = false;
+                                    alert("Có lỗi mạng xảy ra khi tra cứu!");
+                                });
+                    });
                 }
 
-                var btn = this;
-                btn.innerText = "Đang tra cứu số liệu...";
-                btn.disabled = true;
+                var form = document.querySelector('form');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        // Lấy thời lượng phim do Manager nhập
+                        var durationInput = document.querySelector('input[name="duration"]');
+                        if (durationInput) {
+                            var duration = parseInt(durationInput.value);
 
-                fetch('TMDBController?query=' + encodeURIComponent(movieName))
-                        .then(response => response.json())
-                        .then(data => {
-                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
-                            btn.disabled = false;
-
-                            if (data.error) {
-                                alert("Không tìm thấy dữ liệu số của phim này trên TMDB!");
+                            // Validation: Phim chiếu rạp thực tế hiếm khi ngắn hơn 40 phút hoặc dài hơn 300 phút
+                            if (duration < 40 || duration > 300) {
+                                alert("Lỗi: Thời lượng phim chiếu rạp phải hợp lý (nằm trong khoảng từ 40 đến 300 phút)!");
+                                e.preventDefault(); // Chặn không cho lưu vào Database
                                 return;
                             }
-
-                            // [SỰ KHÁC BIỆT]: Bỏ qua toàn bộ Tên phim, Poster, Trailer, Mô tả...
-                            // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
-
-                            let hasUpdate = false;
-
-                            if (data.Budget && data.Budget !== "0") {
-                                let budgetInput = document.querySelector('input[name="budget"]');
-                                if (budgetInput) {
-                                    budgetInput.value = data.Budget;
-                                    hasUpdate = true;
-                                }
-                            }
-
-                            if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
-                                let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
-                                if (boxOfficeInput) {
-                                    boxOfficeInput.value = data.GlobalBoxOffice;
-                                    hasUpdate = true;
-                                }
-                            }
-
-                            if (hasUpdate) {
-                                alert("Đã tải xong số liệu Kinh phí & Doanh thu thành công!");
-                            } else {
-                                alert("TMDB không có sẵn số liệu kinh tế của phim này.");
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
-                            btn.disabled = false;
-                            alert("Có lỗi mạng xảy ra khi tra cứu!");
-                        });
+                        }
+                    });
+                }
             });
         </script>
     </body>

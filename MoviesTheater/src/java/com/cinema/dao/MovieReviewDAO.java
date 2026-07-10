@@ -14,7 +14,7 @@ public class MovieReviewDAO {
         List<clsMovieReview> list = new ArrayList<>();
         String sql = "SELECT r.*, u.FullName, u.AvatarURL "
                 + "FROM MovieReview r "
-                + "JOIN UserProfile u ON r.AccountID = u.AccountID "
+                + "LEFT JOIN UserProfile u ON r.AccountID = u.AccountID "
                 + "WHERE r.MovieID = ? "
                 + "ORDER BY r.CreatedAt DESC";
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -45,7 +45,9 @@ public class MovieReviewDAO {
         String sql = "SELECT TOP 1 t.TicketID FROM Ticket t "
                 + "JOIN Invoice i ON t.InvoiceID = i.InvoiceID "
                 + "JOIN Schedule s ON t.ScheduleID = s.ScheduleID "
-                + "WHERE i.AccountID = ? AND s.MovieID = ? AND t.IsCheckedIn = 1";
+                + "LEFT JOIN MovieReview mr ON t.TicketID = mr.TicketID "
+                + "WHERE i.AccountID = ? AND s.MovieID = ? AND t.IsCheckedIn = 1 "
+                + "AND mr.ReviewID IS NULL";
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, accountId);
             ps.setInt(2, movieId);
