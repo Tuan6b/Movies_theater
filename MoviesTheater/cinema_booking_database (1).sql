@@ -242,6 +242,21 @@ CREATE TABLE SystemLog (
     CONSTRAINT FK_Log_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
 );
 
+CREATE TABLE Notification (
+    NotificationID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountID   INT           NOT NULL,
+    Type        VARCHAR(50)   NOT NULL,
+    Title       NVARCHAR(200) NOT NULL,
+    Message     NVARCHAR(500) NOT NULL,
+    ReferenceID INT           NULL,
+    IsRead      BIT           NOT NULL DEFAULT 0,
+    CreatedAt   DATETIME      NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_Notification_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+);
+
+CREATE INDEX IDX_Notification_AccountID ON Notification(AccountID);
+CREATE INDEX IDX_Notification_AccountID_IsRead ON Notification(AccountID, IsRead);
+
 CREATE TABLE SystemConfig (
     ConfigKey   VARCHAR(100)   NOT NULL PRIMARY KEY,
     ConfigValue NVARCHAR(MAX)  NULL,

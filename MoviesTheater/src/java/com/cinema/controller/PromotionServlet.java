@@ -443,7 +443,8 @@ public class PromotionServlet extends HttpServlet {
         if (id > 0) {
             try {
                 Promotion p = promotionDAO.findById(id);
-                if (p != null && "expired".equals(p.getStatus())) {
+                String status = (p != null) ? p.getStatus() : null;
+                if (ERROR_REACTIVATE_EXPIRED.equals(decidePromotionAction("reactivate", status, false, 0, null))) {
                     request.getSession().setAttribute("flashError",
                             "Cannot reactivate an expired promotion. Use Extend instead.");
                 } else {
@@ -456,6 +457,37 @@ public class PromotionServlet extends HttpServlet {
             }
         }
         response.sendRedirect(request.getContextPath() + LIST_URL + "?view=inactive");
+    }
+
+    static final String ERROR_REACTIVATE_EXPIRED = "ERROR_REACTIVATE_EXPIRED";
+    static final String SUCCESS_REACTIVATED = "SUCCESS_REACTIVATED";
+    static final String ERROR_DELETE_PAID_INVOICE = "ERROR_DELETE_PAID_INVOICE";
+    static final String ERROR_DELETE_USED_UPCOMING = "ERROR_DELETE_USED_UPCOMING";
+    static final String SUCCESS_DELETED = "SUCCESS_DELETED";
+
+    /**
+     * Package-private, extracted from handleReactivate/handleHardDelete for
+     * testability. Mirrors the Decision Table in
+     * doc/Huong_dan_Decision_Table_Testing.docx section 5.
+     *
+     * @param actionType "reactivate" or "hardDelete"
+     * @param currentStatus current Promotion.status, only relevant for "reactivate"
+     * @param hasInvoicePaid whether the promotion is referenced by a paid invoice, only relevant for "hardDelete"
+     * @param usedCount Promotion.usedCount, only relevant for "hardDelete"
+     * @param returnTo the tab the hard-delete action was invoked from, only relevant for "hardDelete"
+     */
+    static String decidePromotionAction(String actionType, String currentStatus,
+            boolean hasInvoicePaid, int usedCount, String returnTo) {
+        if ("reactivate".equals(actionType)) {
+            return "expired".equals(currentStatus) ? ERROR_REACTIVATE_EXPIRED : SUCCESS_REACTIVATED;
+        }
+        if (hasInvoicePaid) {
+            return ERROR_DELETE_PAID_INVOICE;
+        }
+        if (usedCount > 0 && "upcoming".equals(returnTo)) {
+            return ERROR_DELETE_USED_UPCOMING;
+        }
+        return SUCCESS_DELETED;
     }
 
     private void handleActivateEarly(HttpServletRequest request, HttpServletResponse response)
@@ -508,19 +540,23 @@ public class PromotionServlet extends HttpServlet {
         }
         if (id > 0) {
             try {
-                if (promotionDAO.hasInvoicePaid(id)) {
+                boolean hasInvoicePaid = promotionDAO.hasInvoicePaid(id);
+                int usedCount = 0;
+                if (!hasInvoicePaid) {
+                    Promotion p = promotionDAO.findById(id);
+                    usedCount = (p != null) ? p.getUsedCount() : 0;
+                }
+                String outcome = decidePromotionAction("hardDelete", null, hasInvoicePaid, usedCount, returnTo);
+                if (ERROR_DELETE_PAID_INVOICE.equals(outcome)) {
                     request.getSession().setAttribute("flashError",
                             "Cannot delete: promotion is referenced by paid invoices.");
+                } else if (ERROR_DELETE_USED_UPCOMING.equals(outcome)) {
+                    request.getSession().setAttribute("flashError",
+                            "Cannot cancel a promotion that has already been used.");
                 } else {
-                    Promotion p = promotionDAO.findById(id);
-                    if (p != null && p.getUsedCount() > 0 && "upcoming".equals(returnTo)) {
-                        request.getSession().setAttribute("flashError",
-                                "Cannot cancel a promotion that has already been used.");
-                    } else {
-                        promotionDAO.hardDelete(id);
-                        request.getSession().setAttribute("flashSuccess",
-                                "Promotion permanently deleted.");
-                    }
+                    promotionDAO.hardDelete(id);
+                    request.getSession().setAttribute("flashSuccess",
+                            "Promotion permanently deleted.");
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -166,6 +166,7 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">Bán vé tại quầy (UC48)</h1>
         <div class="cgv-header-right">
+            <%@ include file="_notifications.jsp" %>
             <a href="${pageContext.request.contextPath}/employee/schedules" class="btn--cgv-outline">← Quay lại Lịch chiếu</a>
         </div>
     </header>

@@ -104,7 +104,9 @@ public class RegisterController extends HttpServlet {
         }
     }
 
-    private Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
+    // Package-private (not private) so RegisterControllerValidateInputTest,
+    // in the same package under test/, can call it directly without reflection.
+    Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
         Map<String, String> errors = new HashMap<>();
         if (fullName == null || fullName.trim().isEmpty()) {
             errors.put("fullName", "Vui lòng nhập họ tên.");

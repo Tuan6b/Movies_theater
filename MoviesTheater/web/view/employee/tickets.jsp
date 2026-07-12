@@ -57,6 +57,7 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">Danh sách Vé đã đặt (UC47)</h1>
         <div class="cgv-header-right" style="display:flex; gap:8px; align-items:center;">
+            <%@ include file="_notifications.jsp" %>
             <a href="${pageContext.request.contextPath}/employee/book?scheduleId=${schedule.scheduleId}" class="btn--cgv">+ Thêm vé</a>
             <a href="${pageContext.request.contextPath}/employee/schedules" class="btn--cgv-outline">← Quay lại Lịch chiếu</a>
         </div>

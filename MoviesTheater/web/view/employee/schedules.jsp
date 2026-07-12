@@ -18,6 +18,7 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">Quản lý Lịch chiếu &amp; Vé tại quầy</h1>
         <div class="cgv-header-right">
+            <%@ include file="_notifications.jsp" %>
             <div class="cgv-user-wrap">
                 <div class="cgv-avatar">EM</div>
                 <span class="cgv-user-name">${sessionScope.account.fullName}</span>

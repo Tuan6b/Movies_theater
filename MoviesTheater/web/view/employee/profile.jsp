@@ -76,6 +76,9 @@
 
     <header class="cgv-header">
         <h1 class="cgv-header-title">Hồ sơ cá nhân</h1>
+        <div class="cgv-header-right">
+            <%@ include file="_notifications.jsp" %>
+        </div>
     </header>
 
     <div class="cgv-page">
