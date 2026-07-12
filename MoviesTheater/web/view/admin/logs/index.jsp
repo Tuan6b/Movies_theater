@@ -18,40 +18,61 @@
         }
         .badge-action {
             display: inline-block;
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1px;
+            font-size: 11px;
+            font-weight: 500;
             text-transform: uppercase;
             font-family: monospace;
-            background: #f1f5f9;
+            background: #f8fafc;
             color: #475569;
+            border: 1px solid #e2e8f0;
         }
-        .badge-LOGIN_SUCCESS  { background: #d1fae5; color: #065f46; }
-        .badge-LOGIN_FAILED   { background: #fee2e2; color: #991b1b; }
-        .badge-LOGIN_BLOCKED  { background: #fef3c7; color: #92400e; }
-        .badge-BOOK_TICKET    { background: #dbeafe; color: #1e40af; }
-        .badge-CHECKIN        { background: #ede9fe; color: #5b21b6; }
-        .badge-CONFIG_UPDATE  { background: #fce7f3; color: #9d174d; }
+        .badge-LOGIN_SUCCESS  { border-color: #bbf7d0; color: #15803d; background: #f0fdf4; }
+        .badge-LOGIN_FAILED   { border-color: #fecaca; color: #b91c1c; background: #fef2f2; }
+        .badge-LOGIN_BLOCKED  { border-color: #fed7aa; color: #c2410c; background: #fff7ed; }
+        
         .log-desc {
-            max-width: 360px;
+            max-width: 450px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             font-size: 13px;
-            color: rgba(94,63,58,0.7);
+            color: #334155;
+        }
+        .cgv-dt {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .cgv-dt th {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 600 !important;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 12px 16px !important;
+        }
+        .cgv-dt td {
+            padding: 12px 16px !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            color: #334155;
+            font-size: 13px;
+        }
+        .cgv-dt tr:hover {
+            background-color: #f8fafc !important;
         }
         .pagination { display: flex; gap: 6px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
         .pagination a, .pagination span {
             display: inline-flex; align-items: center; justify-content: center;
             width: 36px; height: 36px; border-radius: 6px;
             font-size: 13px; font-weight: 600; text-decoration: none;
-            border: 1px solid var(--cgv-border);
-            color: var(--cgv-dark);
+            border: 1px solid #e2e8f0;
+            color: #475569;
         }
-        .pagination span.current { background: var(--cgv-red); color: #fff; border-color: var(--cgv-red); }
-        .pagination a:hover { border-color: var(--cgv-red); color: var(--cgv-red); }
+        .pagination span.current { background: #334155; color: #fff; border-color: #334155; }
+        .pagination a:hover { border-color: #475569; color: #1e293b; background: #f8fafc; }
     </style>
 </head>
 <body class="cgv-body">
@@ -115,7 +136,7 @@
                             <c:when test="${not empty logs}">
                                 <c:forEach var="log" items="${logs}">
                                     <tr>
-                                        <td style="color:rgba(94,63,58,0.4); font-size:12px;">${log.logId}</td>
+                                        <td style="color: #94a3b8; font-size:12px;">${log.logId}</td>
                                         <td>
                                             <span class="badge-action badge-${log.actionType}">
                                                 ${log.actionType}
@@ -125,23 +146,23 @@
                                             <c:choose>
                                                 <c:when test="${not empty log.fullName}">
                                                     <strong>${log.fullName}</strong><br>
-                                                    <span style="font-size:12px; color:rgba(94,63,58,0.5);">${log.email}</span>
+                                                    <span style="font-size:12px; color: #64748b;">${log.email}</span>
                                                 </c:when>
                                                 <c:when test="${not empty log.email}">
                                                     <span>${log.email}</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span style="color:rgba(94,63,58,0.35);">—</span>
+                                                    <span style="color: #cbd5e1;">—</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td>
                                             <div class="log-desc" title="${log.description}">${log.description}</div>
                                         </td>
-                                        <td style="font-family:monospace; font-size:12px; color:rgba(94,63,58,0.5);">
+                                        <td style="font-family:monospace; font-size:12px; color: #64748b;">
                                             ${log.ipAddress}
                                         </td>
-                                        <td style="font-size:12px; color:rgba(94,63,58,0.6); white-space:nowrap;">
+                                        <td style="font-size:12px; color: #475569; white-space:nowrap;">
                                             <fmt:formatDate value="${log.createdAt}" pattern="dd/MM/yyyy HH:mm:ss"/>
                                         </td>
                                     </tr>

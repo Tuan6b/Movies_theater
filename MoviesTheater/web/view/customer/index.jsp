@@ -40,7 +40,18 @@
                     <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
                         Xin chào, <strong>${sessionScope.account.fullName}</strong>
                     </span>
-                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost">Đăng xuất</a>
+                    <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost" style="margin-right: 8px;">Đăng xuất</a>
+                    <c:choose>
+                        <c:when test="${sessionScope.account.roleId == 5}">
+                            <a href="${pageContext.request.contextPath}/admin" class="btn btn-primary">Trang Admin</a>
+                        </c:when>
+                        <c:when test="${sessionScope.account.roleId == 4}">
+                            <a href="${pageContext.request.contextPath}/manager" class="btn btn-primary">Trang Quản Lý</a>
+                        </c:when>
+                        <c:when test="${sessionScope.account.roleId == 3}">
+                            <a href="${pageContext.request.contextPath}/employee" class="btn btn-primary">Trang Nhân Viên</a>
+                        </c:when>
+                    </c:choose>
                 </c:when>
                 <c:otherwise>
                     <a href="${pageContext.request.contextPath}/Login" class="btn btn-ghost">Đăng nhập</a>
