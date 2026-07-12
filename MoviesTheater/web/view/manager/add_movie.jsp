@@ -106,7 +106,7 @@
                             </div>
 
                             <div class="cgv-field cgv-form-full">
-                                <label class="cgv-label">Thể loại phim (Có thể chọn nhiều)</label>
+                                <label class="cgv-label">Thể loại phim (Có thể chọn nhiều) *</label>
                                 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px;">
                                     <c:forEach items="${genreList}" var="g">
                                         <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--cgv-dark);">
@@ -244,6 +244,14 @@
                 var form = document.querySelector('form');
                 if (form) {
                     form.addEventListener('submit', function (e) {
+                        // Kiểm tra bắt buộc chọn ít nhất một thể loại
+                        var checkedGenres = document.querySelectorAll('input[name="genreIds"]:checked');
+                        if (checkedGenres.length === 0) {
+                            alert("Vui lòng chọn ít nhất một thể loại phim!");
+                            e.preventDefault(); // Chặn không cho lưu
+                            return;
+                        }
+
                         // Lấy thời lượng phim do Manager nhập
                         var durationInput = document.querySelector('input[name="duration"]');
                         if (durationInput) {
