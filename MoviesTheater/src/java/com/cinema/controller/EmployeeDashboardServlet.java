@@ -11,6 +11,7 @@ import com.cinema.dao.WorkShiftDAO;
 import com.cinema.dao.tbMovie;
 import com.cinema.dao.tbSchedule;
 import com.cinema.model.Account;
+import com.cinema.model.Notification;
 import com.cinema.model.Promotion;
 import com.cinema.model.Room;
 import com.cinema.model.Seat;
@@ -19,7 +20,9 @@ import com.cinema.model.Ticket;
 import com.cinema.model.WorkShift;
 import com.cinema.model.clsMovie;
 import com.cinema.model.clsSchedule;
+import com.cinema.service.NotificationService;
 import com.cinema.util.DBUtils;
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,6 +55,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
     private final EmployeeDAO     employeeDAO     = new EmployeeDAO();
     private final WorkShiftDAO    shiftDAO        = new WorkShiftDAO();
     private final ShiftExchangeDAO exchangeDAO    = new ShiftExchangeDAO();
+    private final NotificationService notificationService = new NotificationService();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -112,6 +116,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "/my-shifts":
                     showMyShifts(request, response);
                     break;
+                case "/notifications":
+                    handleNotificationsGet(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -129,6 +136,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     break;
                 case "/my-shifts":
                     handleMyShiftsPost(request, response);
+                    break;
+                case "/notifications":
+                    handleNotificationsPost(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -448,7 +458,9 @@ public class EmployeeDashboardServlet extends HttpServlet {
         return empAcc.getAccountId();
     }
 
-    private double computeSubtotal(List<Seat> seats, double basePrice) {
+    // Package-private (not private) so EmployeeDashboardServletComputeSubtotalTest,
+    // in the same package under test/, can call it directly without reflection.
+    double computeSubtotal(List<Seat> seats, double basePrice) {
         double total = 0.0;
         for (Seat seat : seats) {
             if ("VIP".equalsIgnoreCase(seat.getSeatType())) {
@@ -762,6 +774,10 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     int created = exchangeDAO.createRequest(shiftId, empId, targetId, message);
                     if (created > 0) {
                         session.setAttribute("flashSuccess", "Yêu cầu chuyển ca đã được gửi.");
+                        ShiftExchangeRequest newRequest = exchangeDAO.getById(created);
+                        if (newRequest != null) {
+                            notificationService.notifyShiftExchangeRequested(newRequest);
+                        }
                     } else {
                         session.setAttribute("flashError", "Không thể gửi yêu cầu. Vui lòng thử lại.");
                     }
@@ -770,6 +786,12 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "accept_exchange": {
                     int requestId = Integer.parseInt(request.getParameter("requestId"));
                     boolean ok = exchangeDAO.accept(requestId, empId);
+                    if (ok) {
+                        ShiftExchangeRequest accepted = exchangeDAO.getById(requestId);
+                        if (accepted != null) {
+                            notificationService.notifyShiftExchangeAccepted(accepted);
+                        }
+                    }
                     session.setAttribute(ok ? "flashSuccess" : "flashError",
                             ok ? "Đã nhận ca thành công." : "Không thể nhận ca. Yêu cầu có thể đã hết hạn.");
                     break;
@@ -777,6 +799,12 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "reject_exchange": {
                     int requestId = Integer.parseInt(request.getParameter("requestId"));
                     boolean ok = exchangeDAO.reject(requestId, empId);
+                    if (ok) {
+                        ShiftExchangeRequest rejected = exchangeDAO.getById(requestId);
+                        if (rejected != null) {
+                            notificationService.notifyShiftExchangeRejected(rejected);
+                        }
+                    }
                     session.setAttribute(ok ? "flashSuccess" : "flashError",
                             ok ? "Đã từ chối yêu cầu." : "Không thể từ chối. Vui lòng thử lại.");
                     break;
@@ -784,6 +812,12 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 case "cancel_exchange": {
                     int requestId = Integer.parseInt(request.getParameter("requestId"));
                     boolean ok = exchangeDAO.cancel(requestId, empId);
+                    if (ok) {
+                        ShiftExchangeRequest cancelled = exchangeDAO.getById(requestId);
+                        if (cancelled != null) {
+                            notificationService.notifyShiftExchangeCancelled(cancelled);
+                        }
+                    }
                     session.setAttribute(ok ? "flashSuccess" : "flashError",
                             ok ? "Đã hủy yêu cầu chuyển ca." : "Không thể hủy. Vui lòng thử lại.");
                     break;
@@ -796,6 +830,68 @@ public class EmployeeDashboardServlet extends HttpServlet {
             session.setAttribute("flashError", "Lỗi hệ thống. Vui lòng thử lại.");
         }
         response.sendRedirect(backUrl);
+    }
+
+    // Returns the current employee's unread count and recent notifications as JSON,
+    // used by the bell icon popup on employee pages.
+    private void handleNotificationsGet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        HttpSession session = request.getSession(false);
+        Account emp = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (emp == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\":\"Not logged in\"}");
+            return;
+        }
+
+        List<Notification> recent = notificationService.getRecent(emp.getAccountId(), 10);
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Notification n : recent) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", n.getNotificationId());
+            item.put("type", n.getType());
+            item.put("title", n.getTitle());
+            item.put("message", n.getMessage());
+            item.put("read", n.isRead());
+            item.put("timeAgo", n.getTimeAgoDisplay());
+            items.add(item);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("unreadCount", notificationService.getUnreadCount(emp.getAccountId()));
+        result.put("items", items);
+
+        response.getWriter().write(new Gson().toJson(result));
+    }
+
+    // Marks one notification (action=mark_read&notificationId=) or all
+    // notifications (action=mark_all_read) as read for the current employee.
+    private void handleNotificationsPost(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
+        HttpSession session = request.getSession(false);
+        Account emp = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (emp == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"success\":false}");
+            return;
+        }
+
+        String action = request.getParameter("action");
+        boolean success;
+        if ("mark_all_read".equals(action)) {
+            notificationService.markAllAsRead(emp.getAccountId());
+            success = true;
+        } else if ("mark_read".equals(action)) {
+            int notificationId = Integer.parseInt(request.getParameter("notificationId"));
+            success = notificationService.markAsRead(notificationId, emp.getAccountId());
+        } else {
+            success = false;
+        }
+
+        response.getWriter().write("{\"success\":" + success + "}");
     }
 
     private void showProfile(HttpServletRequest request, HttpServletResponse response)

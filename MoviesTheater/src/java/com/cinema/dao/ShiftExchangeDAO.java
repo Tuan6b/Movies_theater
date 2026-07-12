@@ -11,6 +11,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -34,24 +35,45 @@ public class ShiftExchangeDAO {
             + "JOIN Account ta ON r.TargetEmpID = ta.AccountID "
             + "LEFT JOIN UserProfile tu ON ta.AccountID = tu.AccountID ";
 
+    // Returns the generated RequestID (> 0) on success, or 0 if the shift no
+    // longer belongs to the requester (WHERE EXISTS check fails) or on error.
     public int createRequest(int shiftId, int requesterId, int targetEmpId, String message) {
         // WHERE EXISTS ensures the shift belongs to the requester at the DB level
         String sql = "INSERT INTO ShiftExchangeRequest (ShiftID, RequesterID, TargetEmpID, Message) "
                 + "SELECT ?, ?, ?, ? "
                 + "WHERE EXISTS (SELECT 1 FROM WorkShift WHERE ShiftID = ? AND EmployeeID = ?)";
         try (Connection conn = DBUtils.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, shiftId);
             ps.setInt(2, requesterId);
             ps.setInt(3, targetEmpId);
             ps.setNString(4, message);
             ps.setInt(5, shiftId);
             ps.setInt(6, requesterId);
-            return ps.executeUpdate();
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) return keys.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public ShiftExchangeRequest getById(int requestId) {
+        String sql = BASE_SELECT + "WHERE r.RequestID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, requestId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRequest(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<ShiftExchangeRequest> getIncoming(int targetEmpId) {

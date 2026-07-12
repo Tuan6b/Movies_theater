@@ -1038,6 +1038,129 @@ table:not(.dt) tbody tr:last-child td { border-bottom: none; }
     justify-content: center;
 }
 
+/* --- Notification bell + right-side popup panel --- */
+.cgv-notif {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cgv-notif .cgv-bell-btn {
+    position: relative;
+}
+
+.cgv-notif-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--cgv-red);
+    color: #fff;
+    font-family: var(--font-cgv-ui);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.cgv-notif-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 16px);
+    right: 0;
+    width: 340px;
+    max-height: 420px;
+    background: #fff;
+    border: 1px solid var(--cgv-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(27, 27, 27, 0.14);
+    z-index: 60;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.cgv-notif-panel.open {
+    display: flex;
+}
+
+.cgv-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--cgv-border);
+    font-family: var(--font-cgv-ui);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--cgv-dark);
+}
+
+.cgv-notif-markall {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--font-cgv-ui);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cgv-red);
+}
+
+.cgv-notif-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.cgv-notif-empty {
+    padding: 32px 16px;
+    text-align: center;
+    font-family: var(--font-cgv-ui);
+    font-size: 12px;
+    color: rgba(94, 63, 58, 0.5);
+}
+
+.cgv-notif-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--cgv-border);
+    cursor: default;
+}
+
+.cgv-notif-item:last-child {
+    border-bottom: none;
+}
+
+.cgv-notif-item.unread {
+    background: #fdf3f1;
+    cursor: pointer;
+}
+
+.cgv-notif-item-title {
+    font-family: var(--font-cgv-ui);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cgv-dark);
+    margin-bottom: 2px;
+}
+
+.cgv-notif-item-message {
+    font-family: var(--font-cgv-ui);
+    font-size: 12px;
+    color: var(--cgv-brown);
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.cgv-notif-item-time {
+    font-family: var(--font-cgv-ui);
+    font-size: 10px;
+    color: rgba(94, 63, 58, 0.5);
+}
+
 .cgv-header-divider {
     width: 1px;
     height: 32px;

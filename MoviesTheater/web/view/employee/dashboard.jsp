@@ -19,6 +19,7 @@
         <h1 class="cgv-header-title">Dashboard</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
+                <%@ include file="_notifications.jsp" %>
                 <div class="cgv-header-divider"></div>
                 <div class="cgv-user-wrap">
                     <div class="cgv-avatar">EM</div>
