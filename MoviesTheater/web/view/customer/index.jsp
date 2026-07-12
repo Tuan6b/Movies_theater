@@ -103,9 +103,18 @@
 <section class="section">
     <div class="section-inner">
         <div class="section-eyebrow">Đang chiếu rạp</div>
-        <div class="section-header">
-            <h2 class="section-title">Phim đang chiếu</h2>
-            <a href="#" class="section-link">Xem tất cả →</a>
+        <div class="section-header" style="display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid var(--cgv-red); padding-bottom: 12px; margin-bottom: 32px;">
+            <h2 class="section-title" style="margin: 0; color: var(--cgv-red);">Phim đang chiếu</h2>
+            <div style="position: relative;">
+                <form action="#" method="GET" style="display: flex; gap: 8px;" onsubmit="return false;">
+                    <input type="text" id="liveSearchInput" placeholder="Tìm tên phim..."
+                           style="padding: 8px 16px; border: 1px solid var(--cgv-border); border-radius: 99px; outline: none; font-family: var(--font-body); width: 250px;">
+                    <button type="button" class="btn btn-primary" style="border-radius: 99px; padding: 0 16px;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+                <div id="liveSearchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
+            </div>
         </div>
         <div class="movie-grid">
             <%
@@ -244,6 +253,64 @@
         </div>
     </div>
 </footer>
+
+<script>
+    const searchInput = document.getElementById('liveSearchInput');
+    const searchResults = document.getElementById('liveSearchResults');
+    let debounceTimer;
+
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            const keyword = this.value.trim();
+
+            if (keyword.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            // Đợi 300ms mới xử lý
+            debounceTimer = setTimeout(() => {
+                const allMovies = document.querySelectorAll('.movie-title');
+                let matches = [];
+
+                allMovies.forEach(movie => {
+                    const title = movie.innerText;
+                    if (title && title.toLowerCase().includes(keyword.toLowerCase())) {
+                        matches.push({
+                            title: title,
+                            url: movie.closest('a').getAttribute('href')
+                        });
+                    }
+                });
+
+                if (matches.length > 0) {
+                    let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                    matches.forEach(m => {
+                        html += `<li style="border-bottom: 1px solid #f0f0f0;">
+                                    <a href="` + m.url + `" style="display: block; padding: 10px 15px; color: #333; text-decoration: none;">
+                                        <i class="fa-solid fa-film" style="margin-right: 8px; color: #888;"></i> ` + m.title + `
+                                    </a>
+                                 </li>`;
+                    });
+                    html += '</ul>';
+                    searchResults.innerHTML = html;
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.innerHTML = '<div style="padding: 10px 15px; color: #888;">Không tìm thấy phim phù hợp</div>';
+                    searchResults.style.display = 'block';
+                }
+            }, 300);
+        });
+
+        // Ẩn box tìm kiếm khi click ra ngoài
+        document.addEventListener('click', function (e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+    }
+</script>
 
 </body>
 </html>

@@ -112,7 +112,7 @@
                             </div>
 
                             <div class="cgv-field cgv-form-full">
-                                <label class="cgv-label">Thể loại phim (Có thể chọn nhiều)</label>
+                                <label class="cgv-label">Thể loại phim (Có thể chọn nhiều) *</label>
                                 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 8px;">
                                     <c:forEach items="${genreList}" var="g">
                                         <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--cgv-dark);">
@@ -237,6 +237,14 @@
                             btn.disabled = false;
                             alert("Có lỗi mạng xảy ra khi tra cứu!");
                         });
+            });
+
+            document.querySelector('form').addEventListener('submit', function(e) {
+                var checkedGenres = document.querySelectorAll('input[name="genreIds"]:checked');
+                if (checkedGenres.length === 0) {
+                    alert("Vui lòng chọn ít nhất một thể loại phim!");
+                    e.preventDefault();
+                }
             });
         </script>
     </body>

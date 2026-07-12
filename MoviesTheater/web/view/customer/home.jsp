@@ -55,13 +55,35 @@
         </header>
 
         <c:if test="${empty searchKeyword}">
-            <section class="hero">
-                <div class="hero-inner">
-                    <div class="hero-eyebrow">Hệ thống rạp chiếu phim số 1</div>
-                    <h1 class="hero-title">Trải nghiệm<br>điện ảnh đỉnh cao</h1>
+            <section class="hero fade-up" style="background-image: url('${pageContext.request.contextPath}/Image/Hero/cgv-trang-tien-plaza.png'); background-size: cover; background-position: center; position: relative;">
+                <div style="position:absolute;inset:0;background:linear-gradient(155deg,rgba(5,0,0,0.90) 0%,rgba(30,0,0,0.82) 45%,rgba(130,0,0,0.68) 100%);pointer-events:none;z-index:0;"></div>
+                <div class="hero-inner" style="position:relative;z-index:1;">
+                    <div class="hero-eyebrow">Hệ thống rạp chiếu phim hàng đầu Việt Nam</div>
+                    <h1 class="hero-title">Trải nghiệm<br>điện ảnh<br>đỉnh cao</h1>
                     <p class="hero-sub">Đặt vé ngay hôm nay — chọn phim, chọn ghế, thanh toán trong 60 giây.</p>
                     <div class="hero-actions">
-                        <a href="#movie-list" class="btn btn-primary btn-lg">Mua Vé Ngay</a>
+                        <a href="${pageContext.request.contextPath}/showtimes?movieId=${not empty showingList ? showingList[0].movieId : 1}" class="btn btn-primary btn-lg">Đặt vé ngay</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-num">50+</div>
+                            <div class="hero-stat-label">Phim đang chiếu</div>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-num">IMAX</div>
+                            <div class="hero-stat-label">Màn hình khổng lồ</div>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-num">4DX</div>
+                            <div class="hero-stat-label">Trải nghiệm 4 chiều</div>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-num">24/7</div>
+                            <div class="hero-stat-label">Đặt vé online</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -84,25 +106,29 @@
                         </h2>
                     </div>
 
-                    <form action="${pageContext.request.contextPath}/HomeController" method="GET" style="display: flex; gap: 8px;">
-                        <input type="hidden" name="genreShowing" value="${genreShowing}">
-                        <input type="hidden" name="genreUpcoming" value="${genreUpcoming}">
-                        <input type="text" name="search" value="${searchKeyword}" placeholder="Tìm tên phim..."
-                               style="padding: 8px 16px; border: 1px solid var(--cgv-border); border-radius: 99px; outline: none; font-family: var(--font-body);">
-                        <button type="submit" class="btn btn-primary" style="border-radius: 99px; padding: 0 16px;">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                        <c:if test="${not empty searchKeyword}">
-                            <a href="${pageContext.request.contextPath}/HomeController?genreShowing=${genreShowing}&genreUpcoming=${genreUpcoming}" class="btn btn-ghost">Xóa lọc</a>
-                        </c:if>
-                    </form>
+                    <div style="position: relative;">
+                        <form action="${pageContext.request.contextPath}/HomeController" method="GET" style="display: flex; gap: 8px;">
+                            <input type="hidden" name="genreShowing" value="${genreShowing}">
+                            <input type="hidden" name="genreUpcoming" value="${genreUpcoming}">
+                            <input type="text" id="liveSearchInput" name="search" value="${searchKeyword}" placeholder="Tìm tên phim..."
+                                   style="padding: 8px 16px; border: 1px solid var(--cgv-border); border-radius: 99px; outline: none; font-family: var(--font-body); width: 250px;">
+                            <button type="submit" class="btn btn-primary" style="border-radius: 99px; padding: 0 16px;">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                            <c:if test="${not empty searchKeyword}">
+                                <a href="${pageContext.request.contextPath}/HomeController?genreShowing=${genreShowing}&genreUpcoming=${genreUpcoming}" class="btn btn-ghost">Xóa lọc</a>
+                            </c:if>
+                        </form>
+                        <div id="liveSearchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
+                    </div>
                 </div>
 
                 <!-- update: Showing and Upcoming sections -->
                 <!-- ================= PHẦN PHIM ĐANG CHIẾU ================= -->
                 <section class="section" style="padding-top: 0;">
                     <div class="section-inner" style="padding: 0;">
-                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--cgv-red); padding-bottom: 12px; margin-bottom: 32px;">
+                        <div class="section-eyebrow">Đang chiếu rạp</div>
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; margin-bottom: 32px;">
                             <h2 class="section-title" style="margin: 0; color: var(--cgv-red);">PHIM ĐANG CHIẾU</h2>
                             <form action="${pageContext.request.contextPath}/HomeController" method="GET" id="genreShowingForm">
                                 <label for="genreShowing" style="font-weight: bold; margin-right: 10px;">Lọc thể loại:</label>
@@ -166,7 +192,8 @@
                 <!-- ================= PHẦN PHIM SẮP CHIẾU ================= -->
                 <section class="section" style="padding-top: 40px;">
                     <div class="section-inner" style="padding: 0;">
-                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--cgv-red); padding-bottom: 12px; margin-bottom: 32px;">
+                        <div class="section-eyebrow">Sắp ra mắt</div>
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; margin-bottom: 32px;">
                             <h2 class="section-title" style="margin: 0; color: var(--cgv-red);">PHIM SẮP CHIẾU</h2>
                             <form action="${pageContext.request.contextPath}/HomeController" method="GET" id="genreUpcomingForm">
                                 <label for="genreUpcoming" style="font-weight: bold; margin-right: 10px;">Lọc thể loại:</label>
@@ -228,6 +255,51 @@
                 </section>
                 <!-- end update code -->
 
+            </div>
+        </section>
+
+        <section class="experience-strip">
+            <div class="section-inner">
+                <div class="section-eyebrow">Tại sao chọn CGV?</div>
+                <h2 class="section-title">Trải nghiệm khác biệt</h2>
+                <div class="experience-grid">
+                    <div class="experience-card">
+                        <div class="experience-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/>
+                            </svg>
+                        </div>
+                        <h3>Màn hình IMAX</h3>
+                        <p>Công nghệ chiếu hình IMAX mang lại hình ảnh sắc nét chưa từng có.</p>
+                    </div>
+                    <div class="experience-card">
+                        <div class="experience-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/>
+                            </svg>
+                        </div>
+                        <h3>Đặt vé 24/7</h3>
+                        <p>Chọn phim, chọn ghế và thanh toán mọi lúc mọi nơi chỉ trong vài giây.</p>
+                    </div>
+                    <div class="experience-card">
+                        <div class="experience-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </div>
+                        <h3>Ghế VIP cao cấp</h3>
+                        <p>Ghế recliner êm ái, không gian riêng tư tuyệt đối cho trải nghiệm VIP.</p>
+                    </div>
+                    <div class="experience-card">
+                        <div class="experience-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h3>4DX sống động</h3>
+                        <p>Cảm nhận phim bằng toàn thân — ghế chuyển động, gió, nước và ánh sáng.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
