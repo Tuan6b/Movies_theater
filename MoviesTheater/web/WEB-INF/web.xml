@@ -213,6 +213,14 @@
         <servlet-name>ReviewController</servlet-name>
         <url-pattern>/ReviewController</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>FoodController</servlet-name>
+        <servlet-class>com.cinema.controller.FoodController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FoodController</servlet-name>
+        <url-pattern>/FoodController</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
