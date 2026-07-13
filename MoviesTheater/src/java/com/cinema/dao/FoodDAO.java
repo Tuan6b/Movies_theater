@@ -43,6 +43,62 @@ public class FoodDAO {
         return list;
     }
 
+    public List<Food> getActiveCombos() {
+        List<Food> list = new ArrayList<>();
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsCombo = 1 AND IsActive = 1 ORDER BY FoodName";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Food> getActiveIndividualItems() {
+        List<Food> list = new ArrayList<>();
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsCombo = 0 AND IsActive = 1 ORDER BY FoodName";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    public Map<Integer, Food> getFoodMapByIds(List<Integer> ids) {
+        Map<Integer, Food> map = new java.util.HashMap<>();
+        if (ids == null || ids.isEmpty()) return map;
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE FoodID IN (";
+        StringBuilder sb = new StringBuilder(sql);
+        for (int i = 0; i < ids.size(); i++) {
+            sb.append(i > 0 ? ",?" : "?");
+        }
+        sb.append(")");
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+            for (int i = 0; i < ids.size(); i++) {
+                ps.setInt(i + 1, ids.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Food f = mapRow(rs);
+                    map.put(f.getFoodId(), f);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return map;
+    }
+
     public Food getFoodById(int id) {
         String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE FoodID = ?";
         try (Connection conn = DBUtils.getConnection();

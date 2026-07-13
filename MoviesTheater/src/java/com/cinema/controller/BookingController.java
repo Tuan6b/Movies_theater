@@ -14,6 +14,7 @@ import com.cinema.model.Food;
 import com.cinema.model.Promotion;
 import com.cinema.model.SeatView;
 
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,6 +75,9 @@ public class BookingController extends HttpServlet {
                 case "checkout":
                     showCheckoutPage(request, response);
                     break;
+                case "searchPromotions":
+                    searchPromotions(request, response);
+                    break;
                 default:
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
                     break;
@@ -84,6 +89,8 @@ public class BookingController extends HttpServlet {
                 selectSeat(request, response);
             } else if ("selectFood".equals(action)) {
                 selectFood(request, response);
+            } else if ("confirmPayment".equals(action)) {
+                confirmPayment(request, response);
             } else {
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
             }
@@ -105,7 +112,7 @@ public class BookingController extends HttpServlet {
 
             if (schedule == null) {
                 request.setAttribute("error", "Không tìm thấy suất chiếu.");
-                request.getRequestDispatcher("Error.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
                 return;
             }
 
@@ -114,7 +121,7 @@ public class BookingController extends HttpServlet {
             request.setAttribute("schedule", schedule);
             request.setAttribute("seats", seats);
 
-            request.getRequestDispatcher("seat_selection.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/customer/seat_selection.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/showtimes.jsp");
@@ -138,7 +145,7 @@ public class BookingController extends HttpServlet {
 
             if (schedule == null) {
                 request.setAttribute("error", "Không tìm thấy suất chiếu.");
-                request.getRequestDispatcher("Error.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
                 return;
             }
 
@@ -199,27 +206,46 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        List<Food> foodList = foodDAO.getAllActiveFoods();
-        Map<Integer, Integer> foodQuantities = new HashMap<>();
-        double foodTotal = 0;
-
-        for (Food food : foodList) {
-            String paramName = "qty_" + food.getFoodId();
-            String qtyRaw = request.getParameter(paramName);
-            if (qtyRaw != null) {
+        // Collect selected food IDs from request
+        List<Integer> selectedIds = new ArrayList<>();
+        Map<Integer, Integer> rawQuantities = new HashMap<>();
+        for (String paramName : request.getParameterMap().keySet()) {
+            if (paramName.startsWith("qty_")) {
                 try {
+                    int foodId = Integer.parseInt(paramName.substring(4));
+                    String qtyRaw = request.getParameter(paramName);
                     int qty = Integer.parseInt(qtyRaw);
                     if (qty > 0) {
-                        foodQuantities.put(food.getFoodId(), qty);
-                        foodTotal += food.getPrice() * qty;
+                        selectedIds.add(foodId);
+                        rawQuantities.put(foodId, qty);
                     }
                 } catch (NumberFormatException ignored) {
                 }
             }
         }
 
+        // Validate against database: only accept active items with correct prices
+        Map<Integer, Food> validFoodMap = foodDAO.getFoodMapByIds(selectedIds);
+        Map<Integer, Integer> foodQuantities = new HashMap<>();
+        double foodTotal = 0;
+
+        for (Map.Entry<Integer, Integer> entry : rawQuantities.entrySet()) {
+            int foodId = entry.getKey();
+            int qty = entry.getValue();
+            Food food = validFoodMap.get(foodId);
+            if (food != null && food.isIsActive()) {
+                foodQuantities.put(foodId, qty);
+                foodTotal += food.getPrice() * qty;
+            }
+        }
+
         cart.setFoodQuantities(foodQuantities);
         cart.setFoodTotal(foodTotal);
+        // Reset promotion when food changes
+        cart.setAppliedPromotionId(null);
+        cart.setAppliedPromotionCode(null);
+        cart.setDiscountAmount(0);
+        cart.setFinalTotal(0);
 
         session.setAttribute("bookingCart", cart);
         response.sendRedirect(request.getContextPath() + "/booking?action=checkout");
@@ -236,12 +262,12 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        List<Food> foodList = foodDAO.getAllActiveFoods();
+        List<Food> foodList = foodDAO.getAllFoods();
         List<Promotion> promotions = promotionDAO.getActivePromotions();
 
         request.setAttribute("foodList", foodList);
         request.setAttribute("promotions", promotions);
-        request.getRequestDispatcher("checkout.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/customer/checkout.jsp").forward(request, response);
     }
 
     private void showFoodPage(HttpServletRequest request, HttpServletResponse response)
@@ -255,9 +281,119 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        List<Food> foodList = foodDAO.getAllActiveFoods();
-        request.setAttribute("foodList", foodList);
-        request.getRequestDispatcher("food_selection.jsp").forward(request, response);
+        List<Food> comboList = foodDAO.getActiveCombos();
+        List<Food> itemList = foodDAO.getActiveIndividualItems();
+        request.setAttribute("comboList", comboList);
+        request.setAttribute("itemList", itemList);
+        request.getRequestDispatcher("/view/customer/food_selection.jsp").forward(request, response);
+    }
+
+    private void searchPromotions(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String keyword = request.getParameter("q");
+        if (keyword == null || keyword.trim().isEmpty()) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("[]");
+            return;
+        }
+
+        List<Promotion> results = promotionDAO.searchActivePromotions(keyword);
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+        for (Promotion p : results) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", p.getPromotionId());
+            item.put("code", p.getPromotionCode());
+            item.put("type", p.getDiscountType());
+            item.put("value", p.getDiscountValue());
+            item.put("minOrder", p.getMinOrderAmount() != null ? p.getMinOrderAmount() : BigDecimal.ZERO);
+            item.put("maxDiscount", p.getMaxDiscountAmount());
+            item.put("endDate", p.getEndDateDisplay());
+            jsonList.add(item);
+        }
+
+        String json = new Gson().toJson(jsonList);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(json);
+    }
+
+    private void confirmPayment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
+        BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+
+        if (cart == null || schedule == null) {
+            response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        // Validate discount code on backend
+        String promoIdRaw = request.getParameter("promotionId");
+        if (promoIdRaw != null && !promoIdRaw.trim().isEmpty()) {
+            try {
+                int promoId = Integer.parseInt(promoIdRaw);
+                Promotion promo = promotionDAO.findById(promoId);
+                double subtotal = cart.getGrandTotal();
+
+                if (promo == null || !promo.isActive() || !"active".equals(promo.getStatus())) {
+                    request.setAttribute("error", "Mã khuyến mãi không hợp lệ hoặc đã hết hạn.");
+                    showCheckoutPage(request, response);
+                    return;
+                }
+
+                // Check date validity
+                if (promo.getEndDate() != null && promo.getEndDate().isBefore(java.time.LocalDateTime.now())) {
+                    request.setAttribute("error", "Mã khuyến mãi đã hết hạn.");
+                    showCheckoutPage(request, response);
+                    return;
+                }
+
+                // Check usage limit
+                if (promo.getUsageLimit() != null && promo.getUsedCount() >= promo.getUsageLimit()) {
+                    request.setAttribute("error", "Mã khuyến mãi đã hết lượt sử dụng.");
+                    showCheckoutPage(request, response);
+                    return;
+                }
+
+                // Check min order
+                if (promo.getMinOrderAmount() != null && subtotal < promo.getMinOrderAmount().doubleValue()) {
+                    request.setAttribute("error", "Đơn hàng chưa đạt giá trị tối thiểu " + String.format("%,.0f", promo.getMinOrderAmount()) + " đ.");
+                    showCheckoutPage(request, response);
+                    return;
+                }
+
+                // Calculate discount
+                double discount;
+                if ("Percentage".equals(promo.getDiscountType())) {
+                    discount = subtotal * promo.getDiscountValue().doubleValue() / 100;
+                    if (promo.getMaxDiscountAmount() != null && discount > promo.getMaxDiscountAmount().doubleValue()) {
+                        discount = promo.getMaxDiscountAmount().doubleValue();
+                    }
+                } else {
+                    discount = promo.getDiscountValue().doubleValue();
+                }
+
+                cart.setAppliedPromotionId(promoId);
+                cart.setAppliedPromotionCode(promo.getPromotionCode());
+                cart.setDiscountAmount(discount);
+                cart.setFinalTotal(subtotal - discount);
+            } catch (Exception e) {
+                request.setAttribute("error", "Mã khuyến mãi không hợp lệ.");
+                showCheckoutPage(request, response);
+                return;
+            }
+        } else {
+            cart.setAppliedPromotionId(null);
+            cart.setAppliedPromotionCode(null);
+            cart.setDiscountAmount(0);
+            cart.setFinalTotal(cart.getGrandTotal());
+        }
+
+        session.setAttribute("bookingCart", cart);
+
+        // For now, just redirect back to checkout to show the validated result
+        // (Invoice creation will be implemented in a future step)
+        response.sendRedirect(request.getContextPath() + "/booking?action=checkout");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

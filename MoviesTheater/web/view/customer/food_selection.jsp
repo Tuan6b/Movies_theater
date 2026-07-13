@@ -4,7 +4,8 @@
 <%
     BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
     BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
-    List<Food> foodList = (List<Food>) request.getAttribute("foodList");
+    List<Food> comboList = (List<Food>) request.getAttribute("comboList");
+    List<Food> itemList = (List<Food>) request.getAttribute("itemList");
 
     if (cart == null || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/showtimes");
@@ -87,10 +88,43 @@
 
             <section class="food-grid">
                 
-                <% if (foodList != null) {
-                    for (Food food : foodList) {
+                <% if (comboList != null && !comboList.isEmpty()) { %>
+                    <div class="food-section-label">COMBO</div>
+                    <% for (Food food : comboList) {
                         boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
-                %>
+                    %>
+                    <div class="food-card">
+                        <div class="food-image">
+                            <% if (hasImage) { %>
+                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>">
+                            <% } else { %>
+                                <div class="food-image-placeholder">
+                                    <span><%= food.getFoodName().substring(0, Math.min(2, food.getFoodName().length())) %></span>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="food-info">
+                            <div>
+                                <h3 class="food-name"><%= food.getFoodName() %></h3>
+                            </div>
+                            <div class="food-purchase">
+                                <span class="food-price"><%= String.format("%,.0f", food.getPrice()) %> đ</span>
+                                <div class="quantity-control">
+                                    <button type="button" class="qty-btn dec-btn" data-food-id="<%= food.getFoodId() %>">-</button>
+                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="0" data-price="<%= (int) food.getPrice() %>">
+                                    <button type="button" class="qty-btn inc-btn" data-food-id="<%= food.getFoodId() %>">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <%  }
+                } %>
+
+                <% if (itemList != null && !itemList.isEmpty()) { %>
+                    <div class="food-section-label">ĐỒ ĂN LẺ</div>
+                    <% for (Food food : itemList) {
+                        boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
+                    %>
                     <div class="food-card">
                         <div class="food-image">
                             <% if (hasImage) { %>

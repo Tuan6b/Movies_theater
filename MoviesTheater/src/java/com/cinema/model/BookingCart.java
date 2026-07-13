@@ -23,6 +23,44 @@ public class BookingCart {
     private Map<Integer, Integer> foodQuantities = new HashMap<>();
     private double foodTotal;
 
+    // Applied promotion
+    private Integer appliedPromotionId;
+    private String appliedPromotionCode;
+    private double discountAmount;
+    private double finalTotal;
+
+    public Integer getAppliedPromotionId() {
+        return appliedPromotionId;
+    }
+
+    public void setAppliedPromotionId(Integer appliedPromotionId) {
+        this.appliedPromotionId = appliedPromotionId;
+    }
+
+    public String getAppliedPromotionCode() {
+        return appliedPromotionCode;
+    }
+
+    public void setAppliedPromotionCode(String appliedPromotionCode) {
+        this.appliedPromotionCode = appliedPromotionCode;
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public double getFinalTotal() {
+        return finalTotal > 0 ? finalTotal : getGrandTotal();
+    }
+
+    public void setFinalTotal(double finalTotal) {
+        this.finalTotal = finalTotal;
+    }
+
     public int getScheduleId() {
         return scheduleId;
     }

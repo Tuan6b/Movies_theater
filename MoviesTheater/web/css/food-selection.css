@@ -165,6 +165,18 @@ body {
     margin-bottom: 32px;
 }
 
+.food-section-label {
+    grid-column: 1 / -1;
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    color: var(--cgv-red);
+    border-bottom: 2px solid var(--cgv-red);
+    padding-bottom: 6px;
+    margin-top: 8px;
+    text-transform: uppercase;
+}
+
 .food-card {
     background: var(--cgv-surface);
     border: 1px solid var(--cgv-border);
