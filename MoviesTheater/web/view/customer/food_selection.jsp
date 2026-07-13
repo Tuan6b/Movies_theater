@@ -94,7 +94,8 @@
                     <div class="food-card">
                         <div class="food-image">
                             <% if (hasImage) { %>
-                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>">
+                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>"
+                                     onerror="this.onerror=null; this.src='<%= request.getContextPath() %>/Image/cgv_combo.svg';">
                             <% } else { %>
                                 <div class="food-image-placeholder">
                                     <span><%= food.getFoodName().substring(0, Math.min(2, food.getFoodName().length())) %></span>

@@ -12,7 +12,7 @@
 </head>
 <body class="cgv-body">
 
-<%@ include file="/WEB-INF/employee/_sidebar.jsp" %>
+<%@ include file="/view/employee/_sidebar.jsp" %>
 
 <div class="cgv-main">
 
@@ -79,6 +79,7 @@
                                             <c:choose>
                                                 <c:when test="${not empty item.image}">
                                                     <img src="${item.image}" alt="${item.foodName}"
+                                                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/Image/cgv_combo.svg';"
                                                          style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--cgv-border);">
                                                 </c:when>
                                                 <c:otherwise>

@@ -11,7 +11,7 @@
 </head>
 <body class="cgv-body">
 
-<%@ include file="/WEB-INF/employee/_sidebar.jsp" %>
+<%@ include file="/view/employee/_sidebar.jsp" %>
 
 <div class="cgv-main">
 
@@ -71,11 +71,12 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">URL Ảnh</label>
-                        <input class="cgv-input" type="url" name="image"
+                        <input class="cgv-input" type="text" name="image"
                                value="${food.image}" placeholder="https://example.com/image.jpg">
                         <c:if test="${not empty food.image}">
                             <div style="margin-top:8px;">
                                 <img src="${food.image}" alt="${food.foodName}"
+                                     onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/Image/cgv_combo.svg';"
                                      style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid var(--cgv-border);">
                             </div>
                         </c:if>
