@@ -12,7 +12,7 @@
 </head>
 <body class="cgv-body">
 
-<%@ include file="/WEB-INF/employee/_sidebar.jsp" %>
+<%@ include file="/view/employee/_sidebar.jsp" %>
 
 <div class="cgv-main">
 

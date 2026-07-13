@@ -280,7 +280,7 @@
                                                 <span class="showtime-slot-time"><%= timeFormat.format(s.getStartTime()) %></span> 
                                                 <span class="showtime-slot-price"><%= String.format("%,.0f", s.getBaseTicketPrice()) %> đ</span>
                                                 <span class="showtime-slot-seats <%= isFull ? "seats-full" : "seats-available" %>">
-                                                    <%= isFull ? "Hết ghế" : + remaining + "/" + room.getCapacity() + ""%>
+                                                    <%= isFull ? "Hết ghế" : "Còn "+ remaining + "/" + room.getCapacity() + " Ghế"%>
                                                 </span>
                                             </a>
                                         <% } %>

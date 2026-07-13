@@ -308,6 +308,106 @@ body {
     min-height: 20px;
 }
 
+.promo-list {
+    margin-top: 16px;
+}
+
+.promo-list-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cgv-text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+}
+
+.promo-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border: 1px solid var(--cgv-border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.promo-card:hover {
+    border-color: var(--cgv-red);
+    background: rgba(231, 26, 15, 0.03);
+}
+
+.promo-card.promo-active {
+    border-color: var(--cgv-red);
+    background: rgba(231, 26, 15, 0.06);
+    box-shadow: 0 0 0 2px rgba(231, 26, 15, 0.15);
+}
+
+.promo-card.promo-suggested {
+    border-color: #f39c12;
+    background: rgba(243, 156, 18, 0.06);
+}
+
+.promo-card.promo-suggested.promo-active {
+    border-color: var(--cgv-red);
+    background: rgba(231, 26, 15, 0.06);
+    box-shadow: 0 0 0 2px rgba(231, 26, 15, 0.15);
+}
+
+.promo-card-left {
+    flex: 1;
+}
+
+.promo-card-code {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cgv-dark);
+    margin-bottom: 2px;
+}
+
+.promo-card-desc {
+    font-size: 12px;
+    color: var(--cgv-text-muted);
+    line-height: 1.4;
+}
+
+.promo-card-right {
+    text-align: right;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.promo-card-discount {
+    display: block;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--cgv-red);
+}
+
+.promo-card-minorder {
+    display: block;
+    font-size: 11px;
+    color: var(--cgv-text-dim);
+    margin-top: 2px;
+}
+
+.promo-suggested-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #f39c12;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 0 10px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 .summary-card {
     background: var(--cgv-surface);
     border: 2px solid var(--cgv-dark);

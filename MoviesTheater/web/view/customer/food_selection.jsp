@@ -121,7 +121,9 @@
                 } %>
 
                 <% if (itemList != null && !itemList.isEmpty()) { %>
-                    <div class="food-section-label">ĐỒ ĂN LẺ</div>
+                    <div class="food-section-label">ĐỒ ĂN LẺ/COMBO</div>
+                    
+                    
                     <% for (Food food : itemList) {
                         boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
                     %>

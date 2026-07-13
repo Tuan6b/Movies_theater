@@ -116,15 +116,75 @@
 
                 <div class="checkout-card">
                     <h3 class="card-title">Mã khuyến mãi</h3>
+
                     <div class="promo-input-wrapper">
                         <input type="text"
                                id="promotionInput"
                                class="promotion-input"
-                               placeholder="Nhập mã khuyến mãi..."
+                               placeholder="Nhập hoặc chọn mã khuyến mãi..."
                                autocomplete="off"
                                value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
                         <div id="promotionSuggestions" class="promo-suggestions"></div>
                     </div>
+
+                    <% if (promotions != null && !promotions.isEmpty()) {
+                        // Find the best suggested promotion for the customer
+                        Promotion suggested = null;
+                        double bestDiscount = 0;
+                        double sub = cart.getGrandTotal();
+                        for (Promotion p : promotions) {
+                            double minOrder = p.getMinOrderAmount() != null ? p.getMinOrderAmount().doubleValue() : 0;
+                            if (sub < minOrder) continue;
+                            double disc;
+                            if ("Percentage".equals(p.getDiscountType())) {
+                                disc = sub * p.getDiscountValue().doubleValue() / 100;
+                                if (p.getMaxDiscountAmount() != null && disc > p.getMaxDiscountAmount().doubleValue()) {
+                                    disc = p.getMaxDiscountAmount().doubleValue();
+                                }
+                            } else {
+                                disc = p.getDiscountValue().doubleValue();
+                            }
+                            if (disc > bestDiscount) {
+                                bestDiscount = disc;
+                                suggested = p;
+                            }
+                        }
+                    %>
+                    <div class="promo-list">
+                        <p class="promo-list-title">Tất cả mã giảm giá</p>
+                        <% for (Promotion p : promotions) {
+                            boolean isSuggested = suggested != null && p.getPromotionId() == suggested.getPromotionId();
+                            String discountLabel = p.getDiscountType().equals("Percentage")
+                                ? p.getDiscountValue().intValue() + "%"
+                                : String.format("%,.0f", p.getDiscountValue()) + "đ";
+                            if (p.getMaxDiscountAmount() != null && p.getDiscountType().equals("Percentage")) {
+                                discountLabel += " (tối đa " + String.format("%,.0f", p.getMaxDiscountAmount()) + "đ)";
+                            }
+                        %>
+                        <div class="promo-card<%= isSuggested ? " promo-suggested" : "" %>"
+                             data-promo-id="<%= p.getPromotionId() %>"
+                             data-promo-code="<%= p.getPromotionCode() %>"
+                             data-promo-type="<%= p.getDiscountType() %>"
+                             data-promo-value="<%= p.getDiscountValue() %>"
+                             data-promo-min-order="<%= p.getMinOrderAmount() != null ? p.getMinOrderAmount() : 0 %>"
+                             data-promo-max-discount="<%= p.getMaxDiscountAmount() != null ? p.getMaxDiscountAmount() : "" %>"
+                             onclick="selectPromoCard(this)">
+                            <div class="promo-card-left">
+                                <div class="promo-card-code"><%= p.getPromotionCode() %></div>
+                                <div class="promo-card-desc"><%= p.getDescription() != null ? p.getDescription() : "" %></div>
+                            </div>
+                            <div class="promo-card-right">
+                                <span class="promo-card-discount">-<%= discountLabel %></span>
+                                <span class="promo-card-minorder">Đơn từ <%= String.format("%,.0f", p.getMinOrderAmount() != null ? p.getMinOrderAmount() : 0) %>đ</span>
+                            </div>
+                            <% if (isSuggested) { %>
+                            <div class="promo-suggested-badge">Gợi ý</div>
+                            <% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                    <% } %>
+
                     <div id="promotionInfo" class="promotion-info"></div>
                     <input type="hidden" id="selectedPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
                     <input type="hidden" id="selectedPromotionCode" value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
@@ -318,6 +378,51 @@
         }
     });
 
+    function selectPromoCard(el) {
+        // Remove active class from all cards
+        document.querySelectorAll(".promo-card").forEach(function(c) { c.classList.remove("promo-active"); });
+        el.classList.add("promo-active");
+
+        promoInput.value = el.dataset.promoCode;
+        selectedPromotionId.value = el.dataset.promoId;
+        selectedPromotionCode.value = el.dataset.promoCode;
+        selectedPromo = {
+            id: parseInt(el.dataset.promoId),
+            code: el.dataset.promoCode,
+            type: el.dataset.promoType,
+            value: parseFloat(el.dataset.promoValue),
+            minOrder: parseFloat(el.dataset.promoMinOrder),
+            maxDiscount: el.dataset.promoMaxDiscount ? parseFloat(el.dataset.promoMaxDiscount) : null
+        };
+        updateTotal();
+    }
+
+    // Sync input typing with card highlighting
+    promoInput.addEventListener("input", function() {
+        var val = promoInput.value.trim().toUpperCase();
+
+        if (selectedPromo && selectedPromo.code !== val) {
+            selectedPromo = null;
+            selectedPromotionId.value = "";
+            selectedPromotionCode.value = "";
+            document.querySelectorAll(".promo-card").forEach(function(c) { c.classList.remove("promo-active"); });
+            updateTotal();
+        }
+
+        // Highlight matching card while typing
+        document.querySelectorAll(".promo-card").forEach(function(c) {
+            var code = c.dataset.promoCode;
+            if (val && code === val) {
+                c.classList.add("promo-active");
+            } else if (!val) {
+                c.classList.remove("promo-active");
+            }
+        });
+
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() { fetchSuggestions(val); }, 300);
+    });
+
     // Init with any pre-selected promo from session
     if (selectedPromotionId.value) {
         // Rebuild selectedPromo from session data for display
@@ -327,6 +432,12 @@
                 if (data.length > 0) {
                     selectedPromo = data[0];
                     updateTotal();
+                    // Highlight the card
+                    document.querySelectorAll(".promo-card").forEach(function(c) {
+                        if (c.dataset.promoCode === selectedPromo.code) {
+                            c.classList.add("promo-active");
+                        }
+                    });
                 }
             });
     }
