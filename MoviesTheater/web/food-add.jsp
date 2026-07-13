@@ -11,7 +11,7 @@
 </head>
 <body class="cgv-body">
 
-<%@ include file="/WEB-INF/employee/_sidebar.jsp" %>
+<%@ include file="/view/employee/_sidebar.jsp" %>
 
 <div class="cgv-main">
 
@@ -70,7 +70,7 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">URL Ảnh</label>
-                        <input class="cgv-input" type="url" name="image"
+                        <input class="cgv-input" type="text" name="image"
                                placeholder="https://example.com/image.jpg">
                     </div>
 
