@@ -7,7 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FoodDAO {
 
@@ -19,23 +21,6 @@ public class FoodDAO {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapRow(rs));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<Food> getFoodsByType(boolean isCombo) {
-        List<Food> list = new ArrayList<>();
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsCombo = ? ORDER BY FoodName";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setBoolean(1, isCombo);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRow(rs));
-                }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -73,24 +58,40 @@ public class FoodDAO {
         return list;
     }
 
-    public Map<Integer, Food> getFoodMapByIds(List<Integer> ids) {
-        Map<Integer, Food> map = new java.util.HashMap<>();
-        if (ids == null || ids.isEmpty()) return map;
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE FoodID IN (";
-        StringBuilder sb = new StringBuilder(sql);
-        for (int i = 0; i < ids.size(); i++) {
-            sb.append(i > 0 ? ",?" : "?");
-        }
-        sb.append(")");
+    public List<Food> getFoodsByType(boolean isCombo) {
+        List<Food> list = new ArrayList<>();
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsCombo = ? ORDER BY FoodName";
         try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, isCombo);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    public Map<Integer, Food> getFoodMapByIds(List<Integer> ids) {
+        Map<Integer, Food> map = new HashMap<>();
+        if (ids == null || ids.isEmpty()) return map;
+        StringBuilder sql = new StringBuilder("SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE FoodID IN (");
+        for (int i = 0; i < ids.size(); i++) {
+            sql.append(i > 0 ? ",?" : "?");
+        }
+        sql.append(")");
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < ids.size(); i++) {
                 ps.setInt(i + 1, ids.get(i));
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Food f = mapRow(rs);
-                    map.put(f.getFoodId(), f);
+                    Food food = mapRow(rs);
+                    map.put(food.getFoodId(), food);
                 }
             }
         } catch (SQLException ex) {
