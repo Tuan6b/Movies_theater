@@ -264,9 +264,33 @@ public class BookingController extends HttpServlet {
 
         List<Food> foodList = foodDAO.getAllFoods();
         List<Promotion> promotions = promotionDAO.getActivePromotions();
+        double subtotal = cart.getGrandTotal();
+
+        // Determine best suggested promotion for the customer
+        Integer suggestedPromotionId = null;
+        double bestDiscount = 0;
+        if (promotions != null) {
+            for (Promotion p : promotions) {
+                if (p.getMinOrderAmount() != null && subtotal < p.getMinOrderAmount().doubleValue()) continue;
+                double discount;
+                if ("Percentage".equals(p.getDiscountType())) {
+                    discount = subtotal * p.getDiscountValue().doubleValue() / 100;
+                    if (p.getMaxDiscountAmount() != null && discount > p.getMaxDiscountAmount().doubleValue()) {
+                        discount = p.getMaxDiscountAmount().doubleValue();
+                    }
+                } else {
+                    discount = p.getDiscountValue().doubleValue();
+                }
+                if (discount > bestDiscount) {
+                    bestDiscount = discount;
+                    suggestedPromotionId = p.getPromotionId();
+                }
+            }
+        }
 
         request.setAttribute("foodList", foodList);
         request.setAttribute("promotions", promotions);
+        request.setAttribute("suggestedPromotionId", suggestedPromotionId);
         request.getRequestDispatcher("/view/customer/checkout.jsp").forward(request, response);
     }
 
