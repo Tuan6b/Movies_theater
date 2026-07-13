@@ -243,6 +243,21 @@ CREATE TABLE SystemLog (
     CONSTRAINT FK_Log_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
 );
 
+CREATE TABLE Notification (
+    NotificationID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountID   INT           NOT NULL,
+    Type        VARCHAR(50)   NOT NULL,
+    Title       NVARCHAR(200) NOT NULL,
+    Message     NVARCHAR(500) NOT NULL,
+    ReferenceID INT           NULL,
+    IsRead      BIT           NOT NULL DEFAULT 0,
+    CreatedAt   DATETIME      NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_Notification_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+);
+
+CREATE INDEX IDX_Notification_AccountID ON Notification(AccountID);
+CREATE INDEX IDX_Notification_AccountID_IsRead ON Notification(AccountID, IsRead);
+
 CREATE TABLE SystemConfig (
     ConfigKey   VARCHAR(100)   NOT NULL PRIMARY KEY,
     ConfigValue NVARCHAR(MAX)  NULL,
@@ -536,3 +551,17 @@ UPDATE Account SET Password = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj
 --     ALTER TABLE Account ADD ResetTokenExpiry DATETIME NULL;
 -- ALTER TABLE UserProfile ALTER COLUMN FullName NVARCHAR(100) NULL;
 -- ─────────────────────────────────────────────────────────────────────────────
+
+-- 4. UnlockRequest table
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('UnlockRequest') AND type = 'U')
+CREATE TABLE UnlockRequest (
+    RequestID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountID INT NOT NULL,
+    Reason NVARCHAR(MAX) NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    ReviewedBy INT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ReviewedAt DATETIME NULL,
+    CONSTRAINT FK_UnlockRequest_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
+    CONSTRAINT FK_UnlockRequest_ReviewedBy FOREIGN KEY (ReviewedBy) REFERENCES Account(AccountID)
+);

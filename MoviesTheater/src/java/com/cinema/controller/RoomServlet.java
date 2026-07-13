@@ -111,7 +111,7 @@ public class RoomServlet extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentFilter", filter);
 
-        request.getRequestDispatcher("room-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/manager/room-list.jsp").forward(request, response);
     }
 
     /**
@@ -299,7 +299,7 @@ public class RoomServlet extends HttpServlet {
         request.setAttribute("room", room);
 
         // Forward to edit page
-        request.getRequestDispatcher("room-edit.jsp")
+        request.getRequestDispatcher("/view/manager/room-edit.jsp")
                 .forward(request, response);
     }
 

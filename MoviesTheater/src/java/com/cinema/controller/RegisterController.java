@@ -51,7 +51,7 @@ public class RegisterController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/");
                 return;
             }
-            request.getRequestDispatcher("/register.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
 
         } else if ("POST".equalsIgnoreCase(method)) {
             request.setCharacterEncoding("UTF-8");
@@ -65,7 +65,7 @@ public class RegisterController extends HttpServlet {
             Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword, phoneNumber);
             if (!fieldErrors.isEmpty()) {
                 setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
                 return;
             }
 
@@ -73,7 +73,7 @@ public class RegisterController extends HttpServlet {
                 Map<String, String> emailErr = new HashMap<>();
                 emailErr.put("email", "Email này đã được đăng ký.");
                 setFormAttributes(request, fullName, email, phoneNumber, emailErr, "Email này đã được đăng ký.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
                 return;
             }
 
@@ -99,12 +99,14 @@ public class RegisterController extends HttpServlet {
                 sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
                 setFormAttributes(request, fullName, email, phoneNumber,
                         sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
             }
         }
     }
 
-    private Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
+    // Package-private (not private) so RegisterControllerValidateInputTest,
+    // in the same package under test/, can call it directly without reflection.
+    Map<String, String> validateInput(String fullName, String email, String password, String confirmPassword, String phoneNumber) {
         Map<String, String> errors = new HashMap<>();
         if (fullName == null || fullName.trim().isEmpty()) {
             errors.put("fullName", "Vui lòng nhập họ tên.");

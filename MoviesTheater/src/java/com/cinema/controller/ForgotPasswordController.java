@@ -39,21 +39,21 @@ public class ForgotPasswordController extends HttpServlet {
 
         if ("GET".equalsIgnoreCase(method)) {
             // GET: Show forgot password form
-            request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/forgot-password.jsp").forward(request, response);
         } else if ("POST".equalsIgnoreCase(method)) {
             request.setCharacterEncoding("UTF-8");
             // POST: Process form submission
             String email = request.getParameter("email");
             if (email == null || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w{2,}$")) {
                 request.setAttribute("error", "Email không hợp lệ.");
-                request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/forgot-password.jsp").forward(request, response);
                 return;
             }
 
             // Always display success message even if email doesn't exist to prevent enumeration vulnerability
             if (!accountDAO.isEmailExist(email.trim())) {
                 request.setAttribute("message", "Nếu email tồn tại trong hệ thống, link đặt lại mật khẩu đã được gửi.");
-                request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/forgot-password.jsp").forward(request, response);
                 return;
             }
 
@@ -63,7 +63,7 @@ public class ForgotPasswordController extends HttpServlet {
 
             if (!updated) {
                 request.setAttribute("error", "Có lỗi xảy ra khi tạo yêu cầu. Vui lòng thử lại sau.");
-                request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+                request.getRequestDispatcher("/view/auth/forgot-password.jsp").forward(request, response);
                 return;
             }
 
@@ -78,7 +78,7 @@ public class ForgotPasswordController extends HttpServlet {
             request.setAttribute("expirySeconds", expirySeconds);
             request.setAttribute("message", "Link đặt lại mật khẩu đã được tạo.<br>"
                     + "<a href=\"" + resetLink + "\" style=\"color:#bd0000;\">Nhấp vào đây để đặt lại mật khẩu</a>");
-            request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/auth/forgot-password.jsp").forward(request, response);
         }
     }
 

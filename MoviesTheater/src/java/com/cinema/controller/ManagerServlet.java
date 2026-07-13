@@ -17,23 +17,12 @@ import java.util.Map;
 
 public class ManagerServlet extends HttpServlet {
 
-    private static final String DASHBOARD_JSP = "/WEB-INF/manager/dashboard.jsp";
-    private static final String ANALYTICS_JSP = "/WEB-INF/manager/analytics/index.jsp";
+    private static final String DASHBOARD_JSP = "/view/manager/dashboard.jsp";
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-
-        String path = request.getPathInfo();
-        if (path == null || path.equals("/") || path.equals("/dashboard")) {
-            path = "/dashboard";
-        }
-
-        if ("/analytics".equals(path)) {
-            showAnalytics(request, response);
-        } else {
-            showDashboard(request, response);
-        }
+        showDashboard(request, response);
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response)
@@ -110,11 +99,7 @@ public class ManagerServlet extends HttpServlet {
         request.setAttribute("dashActivePromos",    activePromos);
         request.setAttribute("revenueChartJson",    new com.google.gson.Gson().toJson(chartMap));
 
-        request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
-    }
-
-    private void showAnalytics(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+        // ── Revenue & Analytics (merged from the former /manager/analytics page) ──
         String yearParam   = request.getParameter("year");
         String sortByParam = request.getParameter("sortBy");
         String dirParam    = request.getParameter("dir");
@@ -262,7 +247,8 @@ public class ManagerServlet extends HttpServlet {
         request.setAttribute("newCustomers",   newCustomers);
         request.setAttribute("topMovies",      topMovies);
         request.setAttribute("paymentStats",   paymentStats);
-        request.getRequestDispatcher(ANALYTICS_JSP).forward(request, response);
+
+        request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
     }
 
     // ─── DTOs ─────────────────────────────────────────────────────────────────
