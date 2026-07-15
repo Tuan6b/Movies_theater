@@ -118,7 +118,8 @@ CREATE TABLE Food (
     FoodName NVARCHAR(100) NOT NULL,
     Price DECIMAL(10,2) NOT NULL,
     Image VARCHAR(500) NULL,
-    IsActive BIT NOT NULL DEFAULT 1
+    IsActive BIT NOT NULL DEFAULT 1,
+    IsCombo BIT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE Promotion (
@@ -437,13 +438,12 @@ INSERT INTO Movie (MovieName, Description, Duration, ReleaseDate, Language, Subt
 INSERT INTO MovieGenre VALUES (1,1),(1,6),(1,8),(2,2),(2,4),(3,1),(3,6);
 
 -- Food
-INSERT INTO Food (FoodName, Price, IsActive) VALUES
-    (N'Bắp rang bơ lớn',    45000, 1),
-    (N'Bắp rang bơ vừa',    35000, 1),
-    (N'Pepsi lon',           25000, 1),
-    (N'Nước suối',           15000, 1),
-    (N'Combo 1 (Bắp L + Pepsi)', 65000, 1),
-    (N'Hotdog',              40000, 1);
+INSERT INTO Food (FoodName, Price, IsActive, IsCombo) VALUES
+    (N'Bắp rang bơ lớn',    45000, 1, 0),
+    (N'Bắp rang bơ vừa',    35000, 1, 0),
+    (N'Pepsi lon',           25000, 1, 0),
+    (N'Nước suối',           15000, 1, 0),
+    (N'Hotdog',              40000, 1, 0);
 
 -- Promotions
 INSERT INTO Promotion (PromotionCode, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscountAmount, StartDate, EndDate, UsageLimit) VALUES
