@@ -9,6 +9,7 @@ import java.sql.Statement;
 import java.time.Duration;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -38,13 +39,52 @@ public class ShiftExchangeSeleniumTest {
     private static final String BASE_URL = "http://localhost:8088/MoviesTheater";
 
     private static final int REQUESTER_ID = 3;   // employee@cinema.vn
-    private static final int TARGET_ID = 6;      // employee02@cinema.vn
     private static final String REQUESTER_EMAIL = "employee@cinema.vn";
     private static final String TARGET_EMAIL = "employee02@cinema.vn";
     private static final String PASSWORD = "123456";
 
+    // Base64(salt || SHA-256(salt || "123456")), the same stored hash the seed
+    // script (cinema_booking_database (1).sql) uses for every sample account -
+    // PasswordHash.verify() re-derives its own salt from this string, so reusing
+    // it here logs in with PASSWORD above exactly like the other seeded accounts.
+    private static final String SEED_PASSWORD_HASH =
+            "GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL";
+
     private WebDriver driver1;
     private WebDriver driver2;
+    private int targetId; // employee02@cinema.vn's AccountID, resolved/seeded in @Before
+
+    // The seed script only ships one employee (employee@cinema.vn), but shift
+    // exchange needs a second employee to hand a shift off to. Resolve
+    // employee02@cinema.vn if it already exists in the target DB, otherwise
+    // create it - keeps this test independent of what's actually been run
+    // against cinema_booking_database (1).sql.
+    @Before
+    public void ensureTargetEmployee() throws SQLException {
+        try (Connection conn = DBUtils.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT AccountID FROM Account WHERE Email = ?")) {
+                ps.setString(1, TARGET_EMAIL);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        targetId = rs.getInt(1);
+                        return;
+                    }
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO Account (Email, Password, RoleID) VALUES (?, ?, 3)",
+                    Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, TARGET_EMAIL);
+                ps.setString(2, SEED_PASSWORD_HASH);
+                ps.executeUpdate();
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    keys.next();
+                    targetId = keys.getInt(1);
+                }
+            }
+        }
+    }
 
     private WebDriver newDriver() {
         EdgeOptions options = new EdgeOptions();
@@ -61,9 +101,15 @@ public class ShiftExchangeSeleniumTest {
     }
 
     // Inserts a fresh Scheduled shift for the requester and returns its generated ShiftID.
+    // Dated tomorrow rather than today: LoginController.processRequest() calls
+    // WorkShiftDAO.hasActiveShift()/checkIn() on every employee login, which
+    // auto-flips a *today* shift straight to 'Completed' the instant login()
+    // runs if the current time falls inside its StartTime-EndTime window -
+    // and the "Chuyển ca" handoff button only renders while status is still
+    // 'Scheduled'. Tomorrow's date can never match that same-day check.
     private int seedScheduledShift() throws SQLException {
         String sql = "INSERT INTO WorkShift (EmployeeID, ShiftDate, StartTime, EndTime, Status, Notes) "
-                + "VALUES (?, CAST(GETDATE() AS DATE), '08:00', '16:00', 'Scheduled', 'Selenium UC test seed')";
+                + "VALUES (?, DATEADD(DAY, 1, CAST(GETDATE() AS DATE)), '08:00', '16:00', 'Scheduled', 'Selenium UC test seed')";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, REQUESTER_ID);
@@ -112,10 +158,11 @@ public class ShiftExchangeSeleniumTest {
         login(driver1, REQUESTER_EMAIL, PASSWORD);
         driver1.get(BASE_URL + "/employee/my-shifts");
 
-        driver1.findElement(By.cssSelector("#shift-wrap-" + shiftId + " button")).click();
+        wait(driver1).until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
         WebElement panel = wait(driver1).until(
                 ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
-        new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(TARGET_ID));
+        new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(targetId));
         panel.findElement(By.name("message")).sendKeys("Selenium test: xin nhuong ca");
         panel.findElement(By.cssSelector("button[type=submit]")).click();
 
@@ -145,9 +192,10 @@ public class ShiftExchangeSeleniumTest {
         assertTrue(hasRequestNotification);
 
         // Accept the request.
-        WebElement acceptForm = driver2.findElement(By.xpath(
+        By acceptFormLocator = By.xpath(
                 "//input[@name='requestId'][@value='" + requestId + "']"
-                        + "/ancestor::form[.//input[@name='action'][@value='accept_exchange']]"));
+                        + "/ancestor::form[.//input[@name='action'][@value='accept_exchange']]");
+        WebElement acceptForm = wait(driver2).until(ExpectedConditions.presenceOfElementLocated(acceptFormLocator));
         acceptForm.findElement(By.cssSelector("button[type=submit]")).click();
         driver2.switchTo().alert().accept();
 
@@ -167,7 +215,8 @@ public class ShiftExchangeSeleniumTest {
         login(driver1, REQUESTER_EMAIL, PASSWORD);
         driver1.get(BASE_URL + "/employee/my-shifts");
 
-        driver1.findElement(By.cssSelector("#shift-wrap-" + shiftId + " button")).click();
+        wait(driver1).until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
         WebElement panel = wait(driver1).until(
                 ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
 
@@ -193,10 +242,11 @@ public class ShiftExchangeSeleniumTest {
         driver1 = newDriver();
         login(driver1, REQUESTER_EMAIL, PASSWORD);
         driver1.get(BASE_URL + "/employee/my-shifts");
-        driver1.findElement(By.cssSelector("#shift-wrap-" + shiftId + " button")).click();
+        wait(driver1).until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
         WebElement panel = wait(driver1).until(
                 ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
-        new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(TARGET_ID));
+        new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(targetId));
         panel.findElement(By.cssSelector("button[type=submit]")).click();
         wait(driver1).until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
 
@@ -206,9 +256,10 @@ public class ShiftExchangeSeleniumTest {
         login(driver2, TARGET_EMAIL, PASSWORD);
         driver2.get(BASE_URL + "/employee/my-shifts");
 
-        WebElement rejectForm = driver2.findElement(By.xpath(
+        By rejectFormLocator = By.xpath(
                 "//input[@name='requestId'][@value='" + requestId + "']"
-                        + "/ancestor::form[.//input[@name='action'][@value='reject_exchange']]"));
+                        + "/ancestor::form[.//input[@name='action'][@value='reject_exchange']]");
+        WebElement rejectForm = wait(driver2).until(ExpectedConditions.presenceOfElementLocated(rejectFormLocator));
         rejectForm.findElement(By.cssSelector("button[type=submit]")).click();
 
         WebElement banner = wait(driver2).until(
