@@ -359,6 +359,18 @@ body {
     font-family: var(--font-body);
 }
 
+.btn-back {
+    background: #e2dfcc;
+    color: var(--cgv-dark);
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: #d4d1bc;
+    text-decoration: none;
+    color: var(--cgv-dark);
+}
+
 .btn-next {
     background: var(--cgv-red);
     color: white;

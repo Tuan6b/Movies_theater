@@ -183,6 +183,7 @@
                         <span>Tổng cộng</span>
                         <span id="summaryTotal"><%= String.format("%,.0f", cart.getFinalTotal() > 0 ? cart.getFinalTotal() : cart.getGrandTotal()) %> đ</span>
                     </div>
+                    <a href="<%= request.getContextPath() %>/booking?action=food" class="btn btn-back btn-block" style="margin-bottom:10px;">Quay lại</a>
                     <form action="<%= request.getContextPath() %>/booking" method="post">
                         <input type="hidden" name="action" value="confirmPayment">
                         <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">

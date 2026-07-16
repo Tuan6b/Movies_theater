@@ -91,12 +91,16 @@
                 <% if (comboList != null && !comboList.isEmpty()) { %>
                     <div class="food-section-label">COMBO</div>
                     <% for (Food food : comboList) {
-                        boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
+                        String imgSrc = food.getImage();
+                        boolean hasImage = imgSrc != null && !imgSrc.isEmpty();
+                        if (hasImage && !imgSrc.startsWith("http://") && !imgSrc.startsWith("https://") && !imgSrc.startsWith("/")) {
+                            imgSrc = request.getContextPath() + "/" + imgSrc;
+                        }
                     %>
                     <div class="food-card">
                         <div class="food-image">
                             <% if (hasImage) { %>
-                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>">
+                                <img src="<%= imgSrc %>" alt="<%= food.getFoodName() %>">
                             <% } else { %>
                                 <div class="food-image-placeholder">
                                     <span><%= food.getFoodName().substring(0, Math.min(2, food.getFoodName().length())) %></span>
@@ -125,12 +129,16 @@
                     
                     
                     <% for (Food food : itemList) {
-                        boolean hasImage = food.getImage() != null && !food.getImage().isEmpty();
+                        String imgSrc = food.getImage();
+                        boolean hasImage = imgSrc != null && !imgSrc.isEmpty();
+                        if (hasImage && !imgSrc.startsWith("http://") && !imgSrc.startsWith("https://") && !imgSrc.startsWith("/")) {
+                            imgSrc = request.getContextPath() + "/" + imgSrc;
+                        }
                     %>
                     <div class="food-card">
                         <div class="food-image">
                             <% if (hasImage) { %>
-                                <img src="<%= food.getImage() %>" alt="<%= food.getFoodName() %>">
+                                <img src="<%= imgSrc %>" alt="<%= food.getFoodName() %>">
                             <% } else { %>
                                 <div class="food-image-placeholder">
                                     <span><%= food.getFoodName().substring(0, Math.min(2, food.getFoodName().length())) %></span>
