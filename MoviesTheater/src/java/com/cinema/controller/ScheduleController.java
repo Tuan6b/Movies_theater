@@ -188,12 +188,18 @@ public class ScheduleController extends HttpServlet {
             List<String> errors = new ArrayList<>();
 
             List<Room> allRooms = roomDAO.getAllRooms();
-            java.util.Map<Integer, String> roomMap = new java.util.HashMap<>();
-            for (Room r : allRooms) roomMap.put(r.getRoomId(), r.getRoomNumber());
+            java.util.Map<Integer, Room> roomMap = new java.util.HashMap<>();
+            for (Room r : allRooms) roomMap.put(r.getRoomId(), r);
 
             for (String roomIdStr : roomIdArr) {
                 int roomId = Integer.parseInt(roomIdStr);
-                String roomLabel = roomMap.getOrDefault(roomId, "Room " + roomId);
+                Room currentRoom = roomMap.get(roomId);
+                if (currentRoom == null || !currentRoom.isActive()) {
+                    errors.add("Room " + roomId + " — room is deactivated, skipped.");
+                    skipped++;
+                    continue;
+                }
+                String roomLabel = currentRoom.getRoomNumber();
 
                 String[] startTimes = request.getParameterValues("startTime_" + roomId);
                 if (startTimes == null || startTimes.length == 0) {
