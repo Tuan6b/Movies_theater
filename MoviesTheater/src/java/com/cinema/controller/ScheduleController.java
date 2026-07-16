@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -160,6 +161,11 @@ public class ScheduleController extends HttpServlet {
             movieId = Integer.parseInt(request.getParameter("movieId"));
             String[] roomIdArr = request.getParameterValues("roomIds");
             String showDate = request.getParameter("showDate");
+            if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
+                request.getSession().setAttribute("flashError", "Cannot create a schedule with a past date.");
+                response.sendRedirect("ScheduleController?action=showAddForm&movieId=" + movieId);
+                return;
+            }
             String status = request.getParameter("status");
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
 
@@ -203,6 +209,11 @@ public class ScheduleController extends HttpServlet {
                     if (cleanStart.length() > 5) cleanStart = cleanStart.substring(0, 5);
 
                     LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + cleanStart + ":00");
+                    if (startDT.isBefore(LocalDateTime.now())) {
+                        errors.add(roomLabel + " @ " + cleanStart + " — time has already passed, skipped.");
+                        skipped++;
+                        continue;
+                    }
                     LocalDateTime endDT = startDT.plusMinutes(totalMinutes);
                     String endDate = endDT.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     String endTime = endDT.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -327,6 +338,11 @@ public class ScheduleController extends HttpServlet {
             movieId = Integer.parseInt(request.getParameter("movieId"));
             int roomId = Integer.parseInt(request.getParameter("roomId"));
             String showDate = request.getParameter("showDate");
+            if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
+                request.getSession().setAttribute("flashError", "Cannot set a schedule date in the past.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
             String startTime = request.getParameter("startTime");
             String status = request.getParameter("status");
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
@@ -339,6 +355,12 @@ public class ScheduleController extends HttpServlet {
             }
             int totalMinutes = movie.getDuration() + 15;
             LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + startTime + ":00");
+            if (startDT.isBefore(LocalDateTime.now())) {
+                request.getSession().setAttribute("flashError",
+                    "Cannot set a start time in the past.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
             LocalDateTime endDT = startDT.plusMinutes(totalMinutes);
             String endDate = endDT.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String endTime = endDT.format(DateTimeFormatter.ofPattern("HH:mm"));
