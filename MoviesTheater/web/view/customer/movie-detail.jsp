@@ -249,6 +249,10 @@
                 <span>${movie.duration} PHÚT</span>
                 <span><fmt:formatDate value="${movie.dateAdded}" pattern="dd 'THÁNG' MM, yyyy"/></span>
                 <span>C-${movie.ageRestriction}</span>
+                <span id="tmdb-user-score-badge" style="display:none; align-items:center; gap:5px; border-left: 2px solid var(--cgv-border); padding-left: 15px; margin-left: 5px;">
+                    <i class="fa-solid fa-face-smile" style="color: #ffb400;"></i> 
+                    Điểm số trên TMDB: <strong id="tmdb-user-score-value"></strong>
+                </span>
             </div>
 
             <div class="md-actions">
@@ -583,6 +587,22 @@
                     }
                 });
             });
+
+            // Fetch TMDB User Score dynamically for this movie
+            const movieName = "${fn:escapeXml(movie.movieName)}";
+            if (movieName) {
+                console.log("Đang lấy User Score cho phim:", movieName);
+                fetch('${pageContext.request.contextPath}/TMDBController?query=' + encodeURIComponent(movieName))
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Kết quả từ TMDB:", data);
+                        if (!data.error && data.UserScore) {
+                            document.getElementById('tmdb-user-score-value').innerText = data.UserScore;
+                            document.getElementById('tmdb-user-score-badge').style.display = 'inline-flex';
+                        }
+                    })
+                    .catch(err => console.error("TMDB fetch error:", err));
+            }
         </script>
     </body>
 </html>

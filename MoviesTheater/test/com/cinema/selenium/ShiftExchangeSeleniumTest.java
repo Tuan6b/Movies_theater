@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ShiftExchangeSeleniumTest {
 
-    private static final String BASE_URL = "http://localhost:8088/MoviesTheater";
+    private static final String BASE_URL = "http://localhost:9999/MoviesTheater";
 
     private static final int REQUESTER_ID = 3;   // employee@cinema.vn
     private static final int TARGET_ID = 6;      // employee02@cinema.vn
