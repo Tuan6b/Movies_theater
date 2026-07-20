@@ -23,11 +23,22 @@ public class BookingCart {
     private Map<Integer, Integer> foodQuantities = new HashMap<>();
     private double foodTotal;
 
+    // Per-seat prices: seatId -> price
+    private java.util.Map<Integer, Double> seatPrices = new java.util.HashMap<>();
+
     // Applied promotion
     private Integer appliedPromotionId;
     private String appliedPromotionCode;
     private double discountAmount;
     private double finalTotal;
+
+    public java.util.Map<Integer, Double> getSeatPrices() {
+        return seatPrices;
+    }
+
+    public void setSeatPrices(java.util.Map<Integer, Double> seatPrices) {
+        this.seatPrices = seatPrices;
+    }
 
     public Integer getAppliedPromotionId() {
         return appliedPromotionId;

@@ -238,6 +238,14 @@
         <servlet-name>BookingController</servlet-name>
         <url-pattern>/booking</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>VNPayServlet</servlet-name>
+        <servlet-class>com.cinema.controller.VNPayServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VNPayServlet</servlet-name>
+        <url-pattern>/vnpay</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

@@ -8,6 +8,7 @@ import com.cinema.dao.BookingScheduleDAO;
 import com.cinema.dao.BookingSeatDAO;
 import com.cinema.dao.FoodDAO;
 import com.cinema.dao.PromotionDAO;
+import com.cinema.model.Account;
 import com.cinema.model.BookingCart;
 import com.cinema.model.BookingScheduleView;
 import com.cinema.model.Food;
@@ -345,11 +346,30 @@ public class BookingController extends HttpServlet {
         HttpSession session = request.getSession();
         BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
         BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+        Account account = (Account) session.getAttribute("account");
 
         if (cart == null || schedule == null) {
             response.sendRedirect(request.getContextPath() + "/showtimes");
             return;
         }
+
+        if (account == null) {
+            session.setAttribute("redirectAfterLogin",
+                    request.getContextPath() + "/booking?action=checkout");
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
+        // Compute per-seat prices (same logic as selectSeat)
+        Map<Integer, Double> seatPrices = new HashMap<>();
+        for (int seatId : cart.getSeatIds()) {
+            String seatType = seatDAO.getSeatTypeById(seatId);
+            double seatPrice = "VIP".equalsIgnoreCase(seatType)
+                ? schedule.getBaseTicketPrice() + 10000
+                : schedule.getBaseTicketPrice();
+            seatPrices.put(seatId, seatPrice);
+        }
+        cart.setSeatPrices(seatPrices);
 
         // Validate discount code on backend
         String promoIdRaw = request.getParameter("promotionId");
@@ -365,28 +385,24 @@ public class BookingController extends HttpServlet {
                     return;
                 }
 
-                // Check date validity
                 if (promo.getEndDate() != null && promo.getEndDate().isBefore(java.time.LocalDateTime.now())) {
                     request.setAttribute("error", "Mã khuyến mãi đã hết hạn.");
                     showCheckoutPage(request, response);
                     return;
                 }
 
-                // Check usage limit
                 if (promo.getUsageLimit() != null && promo.getUsedCount() >= promo.getUsageLimit()) {
                     request.setAttribute("error", "Mã khuyến mãi đã hết lượt sử dụng.");
                     showCheckoutPage(request, response);
                     return;
                 }
 
-                // Check min order
                 if (promo.getMinOrderAmount() != null && subtotal < promo.getMinOrderAmount().doubleValue()) {
                     request.setAttribute("error", "Đơn hàng chưa đạt giá trị tối thiểu " + String.format("%,.0f", promo.getMinOrderAmount()) + " đ.");
                     showCheckoutPage(request, response);
                     return;
                 }
 
-                // Calculate discount
                 double discount;
                 if ("Percentage".equals(promo.getDiscountType())) {
                     discount = subtotal * promo.getDiscountValue().doubleValue() / 100;
@@ -415,9 +431,8 @@ public class BookingController extends HttpServlet {
 
         session.setAttribute("bookingCart", cart);
 
-        // For now, just redirect back to checkout to show the validated result
-        // (Invoice creation will be implemented in a future step)
-        response.sendRedirect(request.getContextPath() + "/booking?action=checkout");
+        // Redirect to VNPAY payment creation
+        response.sendRedirect(request.getContextPath() + "/vnpay?action=create");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

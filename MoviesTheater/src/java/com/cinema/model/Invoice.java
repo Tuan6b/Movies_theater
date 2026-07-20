@@ -17,6 +17,9 @@ public class Invoice {
     private String paymentMethod;
     private String paymentStatus;
     private Timestamp createdAt;
+    private String transactionRef;
+    private String bankCode;
+    private String payDate;
 
     // References
     private Account account;
@@ -108,6 +111,30 @@ public class Invoice {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getTransactionRef() {
+        return transactionRef;
+    }
+
+    public void setTransactionRef(String transactionRef) {
+        this.transactionRef = transactionRef;
+    }
+
+    public String getBankCode() {
+        return bankCode;
+    }
+
+    public void setBankCode(String bankCode) {
+        this.bankCode = bankCode;
+    }
+
+    public String getPayDate() {
+        return payDate;
+    }
+
+    public void setPayDate(String payDate) {
+        this.payDate = payDate;
     }
 
     public Account getAccount() {

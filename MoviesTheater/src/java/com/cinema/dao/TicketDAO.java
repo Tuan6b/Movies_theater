@@ -14,7 +14,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -238,6 +240,93 @@ public class TicketDAO {
                     closeEx.printStackTrace();
                 }
             }
+        }
+    }
+
+    public void createPendingTickets(Connection conn, int invoiceId, int scheduleId,
+            List<Integer> seatIds, Map<Integer, Double> seatPrices) throws SQLException {
+        String sql = "INSERT INTO Ticket (ScheduleID, SeatID, InvoiceID, PriceAtBooking, Code, IsCheckedIn, CheckedInAt) "
+                + "VALUES (?, ?, ?, ?, ?, 0, NULL)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int seatId : seatIds) {
+                double price = seatPrices != null ? seatPrices.getOrDefault(seatId, 0.0) : 0.0;
+                String holdCode = "HOLD-" + invoiceId + "-" + seatId + "-"
+                        + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                ps.setInt(1, scheduleId);
+                ps.setInt(2, seatId);
+                ps.setInt(3, invoiceId);
+                ps.setDouble(4, price);
+                ps.setString(5, holdCode);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    public void finalizeTickets(Connection conn, int invoiceId, int scheduleId) throws SQLException {
+        String sql = "UPDATE Ticket SET Code = ? WHERE InvoiceID = ? AND Code LIKE 'HOLD-%' AND SeatID = ?";
+        String getSeatsSql = "SELECT SeatID FROM Ticket WHERE InvoiceID = ? AND Code LIKE 'HOLD-%'";
+        List<Integer> seatIds = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(getSeatsSql)) {
+            ps.setInt(1, invoiceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) seatIds.add(rs.getInt("SeatID"));
+            }
+        }
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int seatId : seatIds) {
+                String finalCode = "TK-" + scheduleId + "-" + seatId + "-"
+                        + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                ps.setString(1, finalCode);
+                ps.setInt(2, invoiceId);
+                ps.setInt(3, seatId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    public List<Ticket> getByInvoiceId(int invoiceId) {
+        List<Ticket> tickets = new ArrayList<>();
+        String sql = "SELECT t.*, s.RowChar, s.ColNumber, s.SeatType FROM Ticket t "
+                + "LEFT JOIN Seat s ON t.SeatID = s.SeatID WHERE t.InvoiceID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, invoiceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Ticket t = new Ticket();
+                    t.setTicketId(rs.getInt("TicketID"));
+                    t.setScheduleId(rs.getInt("ScheduleID"));
+                    t.setSeatId(rs.getInt("SeatID"));
+                    t.setInvoiceId(rs.getInt("InvoiceID"));
+                    t.setPriceAtBooking(rs.getDouble("PriceAtBooking"));
+                    t.setCode(rs.getString("Code"));
+                    t.setCheckedIn(rs.getBoolean("IsCheckedIn"));
+                    t.setCheckedInAt(rs.getTimestamp("CheckedInAt"));
+                    Seat seat = new Seat();
+                    seat.setSeatId(rs.getInt("SeatID"));
+                    seat.setRowChar(rs.getString("RowChar"));
+                    seat.setColNumber(rs.getInt("ColNumber"));
+                    seat.setSeatType(rs.getString("SeatType"));
+                    t.setSeat(seat);
+                    tickets.add(t);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tickets;
+    }
+
+    public void deleteByInvoiceId(int invoiceId) {
+        String sql = "DELETE FROM Ticket WHERE InvoiceID = ? AND Code LIKE 'HOLD-%'";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, invoiceId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

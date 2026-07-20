@@ -187,7 +187,7 @@
                     <form action="<%= request.getContextPath() %>/booking" method="post">
                         <input type="hidden" name="action" value="confirmPayment">
                         <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
-                        <button type="submit" class="btn btn-next btn-block">Xác nhận thanh toán</button>
+                        <button type="submit" class="btn btn-next btn-block">Thanh toán qua VNPAY (Thẻ nội địa)</button>
                     </form>
                 </div>
             </div>
