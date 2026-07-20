@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ScheduleController extends HttpServlet {
 
@@ -96,6 +97,9 @@ public class ScheduleController extends HttpServlet {
         }
 
         int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
+
+        Set<Integer> schedulesWithTickets = scheduleDAO.getScheduleIdsWithBookedTickets();
+        request.setAttribute("schedulesWithTickets", schedulesWithTickets);
 
         LocalDateTime now = LocalDateTime.now();
         for (Schedule s : scheduleList) {
@@ -271,9 +275,8 @@ public class ScheduleController extends HttpServlet {
         response.sendRedirect("ScheduleController?movieId=" + movieId);
     }
 
-    /** Check if a schedule can be edited (only Scheduled). */
+    /** Check if a schedule can be edited (Scheduled or Cancelled). */
     private boolean isEditable(Schedule s) {
-        if ("Cancelled".equals(s.getStatus())) return false;
         try {
             String startDt = s.getShowDate() + "T" + s.getStartTime();
             String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
@@ -339,7 +342,7 @@ public class ScheduleController extends HttpServlet {
             }
             if (!isEditable(existing)) {
                 request.getSession().setAttribute("flashError",
-                    "Only scheduled schedules can be edited.");
+                "This schedule cannot be edited.");
                 response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
                 return;
             }
@@ -357,7 +360,7 @@ public class ScheduleController extends HttpServlet {
             if ("Cancelled".equals(status)
                     && !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty()) {
                 request.getSession().setAttribute("flashError",
-                    "Cannot cancel — schedule already has ticket bookings.");
+                    "Cannot cancel via Edit — schedule has ticket bookings. Use Delete instead.");
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
                 return;
             }
@@ -426,13 +429,14 @@ public class ScheduleController extends HttpServlet {
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
                 return;
             }
-            boolean ok = scheduleDAO.deleteSchedule(id);
+            boolean hasTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
 
-            if (ok) {
-                request.getSession().setAttribute("flashSuccess", "Schedule deleted successfully.");
-            } else {
+            if (hasTickets) {
                 scheduleDAO.cancelSchedule(id);
-                request.getSession().setAttribute("flashSuccess", "Schedule has been cancelled (had tickets, cannot be fully deleted).");
+                request.getSession().setAttribute("flashSuccess", "Schedule cancelled (has ticket bookings).");
+            } else {
+                scheduleDAO.deleteSchedule(id);
+                request.getSession().setAttribute("flashSuccess", "Schedule deleted successfully.");
             }
         } catch (NumberFormatException e) {
             request.getSession().setAttribute("flashError", "Invalid schedule ID.");

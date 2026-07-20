@@ -10,7 +10,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ScheduleDAO {
 
@@ -239,5 +241,20 @@ public class ScheduleDAO {
                 endDate,
                 rs.getString("Status")
         );
+    }
+
+    public Set<Integer> getScheduleIdsWithBookedTickets() {
+        Set<Integer> set = new HashSet<>();
+        String sql = "SELECT DISTINCT ScheduleID FROM Ticket";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                set.add(rs.getInt("ScheduleID"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return set;
     }
 }
