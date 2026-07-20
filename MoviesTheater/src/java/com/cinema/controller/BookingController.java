@@ -8,11 +8,16 @@ import com.cinema.dao.BookingScheduleDAO;
 import com.cinema.dao.BookingSeatDAO;
 import com.cinema.dao.FoodDAO;
 import com.cinema.dao.PromotionDAO;
+import com.cinema.dao.TicketDAO;
+import com.cinema.model.Account;
 import com.cinema.model.BookingCart;
 import com.cinema.model.BookingScheduleView;
 import com.cinema.model.Food;
 import com.cinema.model.Promotion;
 import com.cinema.model.SeatView;
+import com.cinema.model.Ticket;
+import com.cinema.util.MailUtil;
+import com.cinema.util.VNPayUtil;
 
 import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
@@ -41,6 +46,7 @@ public class BookingController extends HttpServlet {
     private final BookingScheduleDAO scheduleDAO = new BookingScheduleDAO();
     private final FoodDAO foodDAO = new FoodDAO();
     private final PromotionDAO promotionDAO = new PromotionDAO();
+    private final TicketDAO ticketDAO = new TicketDAO();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -77,6 +83,12 @@ public class BookingController extends HttpServlet {
                     break;
                 case "searchPromotions":
                     searchPromotions(request, response);
+                    break;
+                case "vnpayReturn":
+                    handleVnpayReturn(request, response);
+                    break;
+                case "ticketResult":
+                    showTicketResult(request, response);
                     break;
                 default:
                     response.sendRedirect(request.getContextPath() + "/index.jsp");
@@ -262,7 +274,7 @@ public class BookingController extends HttpServlet {
             return;
         }
 
-        List<Food> foodList = foodDAO.getAllFoods();
+        List<Food> foodList = foodDAO.getAllActiveFoods();
         List<Promotion> promotions = promotionDAO.getActivePromotions();
         double subtotal = cart.getGrandTotal();
 
@@ -351,6 +363,14 @@ public class BookingController extends HttpServlet {
             return;
         }
 
+        // Payment requires a logged-in account so we know where to send the e-ticket
+        Account account = (Account) session.getAttribute("account");
+        if (account == null) {
+            session.setAttribute("redirectAfterLogin", request.getContextPath() + "/booking?action=checkout");
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
         // Validate discount code on backend
         String promoIdRaw = request.getParameter("promotionId");
         if (promoIdRaw != null && !promoIdRaw.trim().isEmpty()) {
@@ -415,9 +435,219 @@ public class BookingController extends HttpServlet {
 
         session.setAttribute("bookingCart", cart);
 
-        // For now, just redirect back to checkout to show the validated result
-        // (Invoice creation will be implemented in a future step)
-        response.sendRedirect(request.getContextPath() + "/booking?action=checkout");
+        String paymentMethod = request.getParameter("paymentMethod");
+        if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+            paymentMethod = "Cash";
+        }
+
+        if ("VNPay".equals(paymentMethod)) {
+            startVnpayPayment(request, response, cart, schedule);
+            return;
+        }
+
+        List<Ticket> tickets = createBooking(cart, schedule, account, paymentMethod);
+        if (tickets.isEmpty()) {
+            request.setAttribute("error", "Không thể hoàn tất đặt vé. Ghế bạn chọn có thể vừa được người khác đặt, vui lòng thử lại.");
+            showCheckoutPage(request, response);
+            return;
+        }
+
+        finalizeBooking(request, response, tickets, cart, schedule, account, paymentMethod);
+    }
+
+    /**
+     * Recomputes per-seat prices and fetches selected food prices, then
+     * delegates to TicketDAO to persist the Invoice/Ticket/InvoiceFood rows
+     * in a single transaction.
+     */
+    private List<Ticket> createBooking(BookingCart cart, BookingScheduleView schedule, Account account, String paymentMethod) {
+        List<Double> seatPrices = new ArrayList<>();
+        for (Integer seatId : cart.getSeatIds()) {
+            String seatType = seatDAO.getSeatTypeById(seatId);
+            double price = "VIP".equalsIgnoreCase(seatType)
+                    ? schedule.getBaseTicketPrice() + 10000
+                    : schedule.getBaseTicketPrice();
+            seatPrices.add(price);
+        }
+
+        Map<Integer, Food> foodMap = foodDAO.getFoodMapByIds(new ArrayList<>(cart.getFoodQuantities().keySet()));
+
+        return ticketDAO.createCustomerBooking(
+                cart.getScheduleId(), cart.getSeatIds(), seatPrices,
+                account.getAccountId(), paymentMethod,
+                cart.getAppliedPromotionId(), cart.getDiscountAmount(),
+                cart.getFoodQuantities(), foodMap);
+    }
+
+    /**
+     * Sends the e-ticket email (best-effort, never blocks the booking on
+     * failure), stashes the result as flash session attributes for the
+     * PRG-redirected confirmation page, and clears the booking cart.
+     */
+    private void finalizeBooking(HttpServletRequest request, HttpServletResponse response,
+            List<Ticket> tickets, BookingCart cart, BookingScheduleView schedule, Account account, String paymentMethod)
+            throws IOException {
+        HttpSession session = request.getSession();
+        Map<Integer, Food> foodMap = foodDAO.getFoodMapByIds(new ArrayList<>(cart.getFoodQuantities().keySet()));
+        double finalTotal = cart.getFinalTotal();
+
+        boolean emailSent = false;
+        try {
+            MailUtil.sendTicketEmail(account.getEmail(), account.getFullName(), schedule, tickets,
+                    cart.getSeatIds(), cart.getSeatNames(), cart.getFoodQuantities(), foodMap,
+                    finalTotal, paymentMethod);
+            emailSent = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        session.setAttribute("flashTickets", tickets);
+        session.setAttribute("flashSchedule", schedule);
+        session.setAttribute("flashSeatIds", cart.getSeatIds());
+        session.setAttribute("flashSeatNames", cart.getSeatNames());
+        session.setAttribute("flashFoodQuantities", cart.getFoodQuantities());
+        session.setAttribute("flashFoodMap", foodMap);
+        session.setAttribute("flashTotal", finalTotal);
+        session.setAttribute("flashPaymentMethod", paymentMethod);
+        session.setAttribute("flashEmailSent", emailSent);
+        session.setAttribute("flashEmail", account.getEmail());
+
+        session.removeAttribute("bookingCart");
+        session.removeAttribute("bookingSchedule");
+        session.removeAttribute("vnpayTxnRef");
+        session.removeAttribute("vnpayAmount");
+
+        response.sendRedirect(request.getContextPath() + "/booking?action=ticketResult");
+    }
+
+    /**
+     * GET action that renders the e-ticket confirmation page from the flash
+     * session attributes set by finalizeBooking, then clears them so a page
+     * refresh doesn't re-show stale data.
+     */
+    private void showTicketResult(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Object tickets = session.getAttribute("flashTickets");
+
+        if (tickets == null) {
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            return;
+        }
+
+        request.setAttribute("tickets", tickets);
+        request.setAttribute("schedule", session.getAttribute("flashSchedule"));
+        request.setAttribute("seatIds", session.getAttribute("flashSeatIds"));
+        request.setAttribute("seatNames", session.getAttribute("flashSeatNames"));
+        request.setAttribute("foodQuantities", session.getAttribute("flashFoodQuantities"));
+        request.setAttribute("foodMap", session.getAttribute("flashFoodMap"));
+        request.setAttribute("total", session.getAttribute("flashTotal"));
+        request.setAttribute("paymentMethod", session.getAttribute("flashPaymentMethod"));
+        request.setAttribute("emailSent", session.getAttribute("flashEmailSent"));
+        request.setAttribute("email", session.getAttribute("flashEmail"));
+
+        session.removeAttribute("flashTickets");
+        session.removeAttribute("flashSchedule");
+        session.removeAttribute("flashSeatIds");
+        session.removeAttribute("flashSeatNames");
+        session.removeAttribute("flashFoodQuantities");
+        session.removeAttribute("flashFoodMap");
+        session.removeAttribute("flashTotal");
+        session.removeAttribute("flashPaymentMethod");
+        session.removeAttribute("flashEmailSent");
+        session.removeAttribute("flashEmail");
+
+        request.getRequestDispatcher("/view/customer/ticket_confirmation.jsp").forward(request, response);
+    }
+
+    /**
+     * Builds a signed VNPay sandbox payment URL for the cart total and
+     * redirects the customer there. No Invoice/Ticket is created yet — that
+     * only happens once handleVnpayReturn confirms a successful payment.
+     */
+    private void startVnpayPayment(HttpServletRequest request, HttpServletResponse response,
+            BookingCart cart, BookingScheduleView schedule) throws IOException {
+        HttpSession session = request.getSession();
+
+        String txnRef = VNPayUtil.generateTxnRef();
+        long amount = Math.round(cart.getFinalTotal());
+
+        session.setAttribute("vnpayTxnRef", txnRef);
+        session.setAttribute("vnpayAmount", amount);
+
+        String port = (request.getServerPort() == 80 || request.getServerPort() == 443)
+                ? "" : ":" + request.getServerPort();
+        String returnUrl = request.getScheme() + "://" + request.getServerName() + port
+                + request.getContextPath() + "/booking?action=vnpayReturn";
+
+        String orderInfo = "Thanh toan " + cart.getSeatIds().size() + " ve xem phim - Lich chieu " + schedule.getScheduleId();
+        String ipAddr = request.getRemoteAddr();
+
+        String paymentUrl = VNPayUtil.buildPaymentUrl(txnRef, amount, orderInfo, ipAddr, returnUrl);
+        response.sendRedirect(paymentUrl);
+    }
+
+    /**
+     * Handles the browser redirect VNPay sends back after a sandbox payment
+     * attempt. Verifies the secure hash and transaction reference before
+     * creating the Invoice/Ticket rows, so a tampered or forged callback
+     * cannot mint free tickets.
+     */
+    private void handleVnpayReturn(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        BookingCart cart = (BookingCart) session.getAttribute("bookingCart");
+        BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
+        Account account = (Account) session.getAttribute("account");
+        String expectedTxnRef = (String) session.getAttribute("vnpayTxnRef");
+        Long expectedAmount = (Long) session.getAttribute("vnpayAmount");
+
+        // Only forward vnp_* params to the verifier — the return URL also carries our
+        // own "action" query param, which VNPay never included when signing its payload.
+        Map<String, String> params = new HashMap<>();
+        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            if (entry.getKey().startsWith("vnp_") && entry.getValue() != null && entry.getValue().length > 0) {
+                params.put(entry.getKey(), entry.getValue()[0]);
+            }
+        }
+
+        boolean validSignature = VNPayUtil.verifyReturn(params);
+        String vnpTxnRef = params.get("vnp_TxnRef");
+        String vnpResponseCode = params.get("vnp_ResponseCode");
+        String vnpTransactionStatus = params.get("vnp_TransactionStatus");
+
+        boolean amountMatches = false;
+        if (expectedAmount != null) {
+            try {
+                long vnpAmount = Long.parseLong(params.get("vnp_Amount"));
+                amountMatches = vnpAmount == expectedAmount * 100;
+            } catch (NumberFormatException | NullPointerException ignored) {
+            }
+        }
+
+        session.removeAttribute("vnpayTxnRef");
+        session.removeAttribute("vnpayAmount");
+
+        if (cart == null || schedule == null || account == null) {
+            response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        if (!validSignature || expectedTxnRef == null || !expectedTxnRef.equals(vnpTxnRef)
+                || !amountMatches || !"00".equals(vnpResponseCode) || !"00".equals(vnpTransactionStatus)) {
+            request.setAttribute("error", "Thanh toán VNPay không thành công hoặc đã bị hủy. Vui lòng thử lại.");
+            showCheckoutPage(request, response);
+            return;
+        }
+
+        List<Ticket> tickets = createBooking(cart, schedule, account, "VNPay");
+        if (tickets.isEmpty()) {
+            request.setAttribute("error", "Thanh toán thành công nhưng không thể tạo vé vì ghế vừa hết. Vui lòng liên hệ hỗ trợ.");
+            showCheckoutPage(request, response);
+            return;
+        }
+
+        finalizeBooking(request, response, tickets, cart, schedule, account, "VNPay");
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
