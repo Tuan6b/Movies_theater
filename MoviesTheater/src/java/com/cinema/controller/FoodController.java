@@ -133,7 +133,6 @@ public class FoodController extends HttpServlet {
         food.setFoodName(foodName.trim());
         food.setPrice(price);
         food.setImage(image != null ? image.trim() : null);
-        food.setIsActive(true);
         food.setIsCombo(isCombo);
         foodDAO.addFood(food);
 

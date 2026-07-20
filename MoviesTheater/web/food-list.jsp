@@ -65,7 +65,6 @@
                             <th>Ảnh</th>
                             <th>Tên món</th>
                             <th>Giá</th>
-                            <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
@@ -90,11 +89,6 @@
                                         <td style="font-weight:600;">${item.foodName}</td>
                                         <td><fmt:formatNumber value="${item.price}" pattern="#,###"/> VNĐ</td>
                                         <td>
-                                            <span class="cgv-badge ${item.isActive ? 'active' : 'inactive'}">
-                                                ${item.isActive ? 'Đang bán' : 'Đã ẩn'}
-                                            </span>
-                                        </td>
-                                        <td>
                                             <div style="display:flex;gap:8px;">
                                                 <a href="${pageContext.request.contextPath}/FoodController?action=edit&amp;id=${item.foodId}&amp;type=${currentType}" class="btn--cgv-outline">
                                                     Sửa
@@ -116,7 +110,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="6" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                    <td                                         colspan="5" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
                                         Chưa có món ăn nào.
                                     </td>
                                 </tr>

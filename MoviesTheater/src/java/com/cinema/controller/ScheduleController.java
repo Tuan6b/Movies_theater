@@ -2,6 +2,7 @@ package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.ScheduleDAO;
+import com.cinema.dao.TicketDAO;
 import com.cinema.dao.tbMovie;
 import com.cinema.model.Schedule;
 import com.cinema.model.clsMovie;
@@ -22,6 +23,7 @@ public class ScheduleController extends HttpServlet {
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final tbMovie movieDAO = new tbMovie();
+    private final TicketDAO ticketDAO = new TicketDAO();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -351,6 +353,15 @@ public class ScheduleController extends HttpServlet {
             }
             String startTime = request.getParameter("startTime");
             String status = request.getParameter("status");
+
+            if ("Cancelled".equals(status)
+                    && !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty()) {
+                request.getSession().setAttribute("flashError",
+                    "Cannot cancel — schedule already has ticket bookings.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
+
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
 
             clsMovie movie = movieDAO.getMovieById(movieId);

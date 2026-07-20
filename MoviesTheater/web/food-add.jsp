@@ -48,13 +48,7 @@
                 <form action="${pageContext.request.contextPath}/FoodController" method="post">
                     <input type="hidden" name="action" value="add">
 
-                    <div class="cgv-field">
-                        <label class="cgv-label">Loại</label>
-                        <select name="type" class="cgv-select">
-                            <option value="retail" ${currentType eq 'retail' ? 'selected' : ''}>Bán lẻ</option>
-                            <option value="combo" ${currentType eq 'combo' ? 'selected' : ''}>Combo</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="type" value="${currentType}">
 
                     <div class="cgv-field">
                         <label class="cgv-label">Tên món</label>
