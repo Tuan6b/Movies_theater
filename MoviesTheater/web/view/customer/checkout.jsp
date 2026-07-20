@@ -6,6 +6,7 @@
     BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
     List<Food> foodList = (List<Food>) request.getAttribute("foodList");
     List<Promotion> promotions = (List<Promotion>) request.getAttribute("promotions");
+    Integer suggestedPromotionId = (Integer) request.getAttribute("suggestedPromotionId");
 
     if (cart == null || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/showtimes");
@@ -18,26 +19,6 @@
             seatNamesStr.append(cart.getSeatNames().get(i));
             if (i < cart.getSeatNames().size() - 1) seatNamesStr.append(", ");
         }
-    }
-
-    // Build promotions JSON for JS calculation
-    String promotionsJson = "[]";
-    if (promotions != null && !promotions.isEmpty()) {
-        StringBuilder json = new StringBuilder("[");
-        for (int i = 0; i < promotions.size(); i++) {
-            Promotion p = promotions.get(i);
-            json.append("{");
-            json.append("\"id\":").append(p.getPromotionId()).append(",");
-            json.append("\"code\":\"").append(p.getPromotionCode().replace("\"", "\\\"")).append("\",");
-            json.append("\"type\":\"").append(p.getDiscountType()).append("\",");
-            json.append("\"value\":").append(p.getDiscountValue()).append(",");
-            json.append("\"minOrder\":").append(p.getMinOrderAmount() != null ? p.getMinOrderAmount() : 0).append(",");
-            json.append("\"maxDiscount\":").append(p.getMaxDiscountAmount() != null ? p.getMaxDiscountAmount() : "null");
-            json.append("}");
-            if (i < promotions.size() - 1) json.append(",");
-        }
-        json.append("]");
-        promotionsJson = json.toString();
     }
 %>
 <!DOCTYPE html>
@@ -135,25 +116,71 @@
                 <% } %>
 
                 <div class="checkout-card">
-                    <h3 class="card-title">Mã khuyến mãi</h3>
+                    <h3 class="card-title">Chọn khuyến mãi</h3>
                     <select id="promotionSelect" class="promotion-select">
-                        <option value="">-- Chọn khuyến mãi --</option>
+                        <option value="">-- Không sử dụng khuyến mãi --</option>
                         <% if (promotions != null) {
+                            double subtotal = cart.getGrandTotal();
                             for (Promotion p : promotions) {
-                                String desc = p.getDescription() != null ? p.getDescription() : p.getPromotionCode();
+                                boolean suggested = suggestedPromotionId != null && suggestedPromotionId == p.getPromotionId();
+                                String disabled = "";
+                                String note = "";
+                                if (p.getMinOrderAmount() != null && subtotal < p.getMinOrderAmount().doubleValue()) {
+                                    disabled = "disabled";
+                                    note = " (chưa đủ " + String.format("%,.0f", p.getMinOrderAmount()) + " đ)";
+                                }
+                                String discountLabel = p.getDiscountType().equals("Percentage")
+                                    ? p.getDiscountValue().intValue() + "%"
+                                    : String.format("%,.0f", p.getDiscountValue()) + "đ";
+                                if (p.getMaxDiscountAmount() != null && "Percentage".equals(p.getDiscountType())) {
+                                    discountLabel += " (tối đa " + String.format("%,.0f", p.getMaxDiscountAmount()) + "đ)";
+                                }
                         %>
                             <option value="<%= p.getPromotionId() %>"
                                     data-type="<%= p.getDiscountType() %>"
                                     data-value="<%= p.getDiscountValue() %>"
                                     data-min-order="<%= p.getMinOrderAmount() != null ? p.getMinOrderAmount() : 0 %>"
-                                    data-max-discount="<%= p.getMaxDiscountAmount() != null ? p.getMaxDiscountAmount() : "" %>">
-                                <%= p.getPromotionCode() %> - <%= desc %>
-                                (<%= p.getDiscountType().equals("Percentage") ? p.getDiscountValue().intValue() + "%" : String.format("%,.0f", p.getDiscountValue()) + "đ" %>)
+                                    data-max-discount="<%= p.getMaxDiscountAmount() != null ? p.getMaxDiscountAmount() : "" %>"
+                                    <%= disabled %>
+                                    <%= suggested ? "class=\"suggested-promo\"" : "" %>>
+                                <%= p.getPromotionCode() %> - Giảm <%= discountLabel %><%= note %>
                             </option>
                         <%  }
                         } %>
                     </select>
+                    <div id="suggestionBadge" class="suggestion-badge" style="<%= suggestedPromotionId != null ? "" : "display:none;" %>">
+                        Gợi ý: Mã này giảm nhiều nhất cho đơn hàng của bạn!
+                    </div>
                     <div id="promotionInfo" class="promotion-info"></div>
+                    <input type="hidden" id="selectedPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
+                    <input type="hidden" id="selectedPromotionCode" value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
+                </div>
+
+                <div class="checkout-card">
+                    <h3 class="card-title">Phương thức thanh toán</h3>
+                    <div class="payment-method-list">
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="VNPay" checked>
+                            <span class="payment-method-label">
+                                <strong>VNPay</strong>
+                                <small>Thanh toán qua cổng VNPay (môi trường sandbox demo)</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Card">
+                            <span class="payment-method-label">
+                                <strong>Thẻ ngân hàng</strong>
+                                <small>Thanh toán bằng thẻ tại quầy / demo</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Cash">
+                            <span class="payment-method-label">
+                                <strong>Tiền mặt</strong>
+                                <small>Thanh toán tiền mặt tại quầy / demo</small>
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
             </div>
@@ -174,18 +201,20 @@
                         <span>Tạm tính</span>
                         <span id="summarySubtotal"><%= String.format("%,.0f", cart.getGrandTotal()) %> đ</span>
                     </div>
-                    <div class="summary-row discount-row" id="discountRow" style="display:none;">
-                        <span>Giảm giá</span>
-                        <span id="summaryDiscount">-0 đ</span>
+                    <div class="summary-row discount-row" id="discountRow" style="<%= cart.getDiscountAmount() > 0 ? "" : "display:none;" %>">
+                        <span>Giảm giá (<span id="discountCodeLabel"><%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %></span>)</span>
+                        <span id="summaryDiscount">-<%= cart.getDiscountAmount() > 0 ? String.format("%,.0f", cart.getDiscountAmount()) : "0" %> đ</span>
                     </div>
                     <div class="summary-divider"></div>
                     <div class="summary-row summary-total">
                         <span>Tổng cộng</span>
-                        <span id="summaryTotal"><%= String.format("%,.0f", cart.getGrandTotal()) %> đ</span>
+                        <span id="summaryTotal"><%= String.format("%,.0f", cart.getFinalTotal() > 0 ? cart.getFinalTotal() : cart.getGrandTotal()) %> đ</span>
                     </div>
+                    <a href="<%= request.getContextPath() %>/booking?action=food" class="btn btn-back btn-block" style="margin-bottom:10px;">Quay lại</a>
                     <form action="<%= request.getContextPath() %>/booking" method="post">
                         <input type="hidden" name="action" value="confirmPayment">
-                        <input type="hidden" name="promotionId" id="selectedPromotionId" value="">
+                        <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
+                        <input type="hidden" name="paymentMethod" id="hiddenPaymentMethod" value="VNPay">
                         <button type="submit" class="btn btn-next btn-block">Xác nhận thanh toán</button>
                     </form>
                 </div>
@@ -205,7 +234,6 @@
 </div>
 
 <script>
-    const promotions = <%= promotionsJson %>;
     const subtotal = <%= cart.getGrandTotal() %>;
     const ticketTotalVal = <%= cart.getTicketTotal() %>;
     const foodTotalVal = <%= cart.getFoodTotal() %>;
@@ -217,54 +245,98 @@
     const summarySubtotal = document.getElementById("summarySubtotal");
     const promoInfo = document.getElementById("promotionInfo");
     const selectedPromotionId = document.getElementById("selectedPromotionId");
+    const selectedPromotionCode = document.getElementById("selectedPromotionCode");
+    const hiddenPromotionId = document.getElementById("hiddenPromotionId");
+    const discountCodeLabel = document.getElementById("discountCodeLabel");
+    const suggestionBadge = document.getElementById("suggestionBadge");
+    const hiddenPaymentMethod = document.getElementById("hiddenPaymentMethod");
+
+    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function(radio) {
+        radio.addEventListener("change", function() {
+            hiddenPaymentMethod.value = this.value;
+        });
+    });
 
     function formatMoney(value) {
         return new Intl.NumberFormat("vi-VN").format(value) + " đ";
     }
 
     function updateTotal() {
-        const selectedId = promoSelect.value;
+        const option = promoSelect.options[promoSelect.selectedIndex];
         let discount = 0;
         let promoText = "";
 
-        if (selectedId) {
-            const promo = promotions.find(function(p) { return p.id == selectedId; });
-            if (promo) {
-                if (subtotal >= promo.minOrder) {
-                    if (promo.type === "Percentage") {
-                        discount = subtotal * promo.value / 100;
-                        if (promo.maxDiscount && discount > promo.maxDiscount) {
-                            discount = promo.maxDiscount;
-                        }
-                    } else {
-                        discount = promo.value;
-                    }
-                    promoText = "Áp dụng mã " + promo.code + ": giảm " + (promo.type === "Percentage" ? promo.value + "%" : formatMoney(promo.value));
-                    if (promo.maxDiscount) {
-                        promoText += " (tối đa " + formatMoney(promo.maxDiscount) + ")";
+        if (option && option.value) {
+            const type = option.dataset.type;
+            const value = parseFloat(option.dataset.value);
+            const minOrder = parseFloat(option.dataset.minOrder) || 0;
+            const maxDiscount = option.dataset.maxDiscount ? parseFloat(option.dataset.maxDiscount) : null;
+
+            if (subtotal >= minOrder) {
+                if (type === "Percentage") {
+                    discount = subtotal * value / 100;
+                    if (maxDiscount && discount > maxDiscount) {
+                        discount = maxDiscount;
                     }
                 } else {
-                    promoText = "Đơn hàng tối thiểu " + formatMoney(promo.minOrder) + " để áp dụng mã này.";
-                    promoSelect.value = "";
+                    discount = value;
                 }
+                promoText = "Áp dụng mã " + option.text.split(" - ")[0] + ": giảm "
+                    + (type === "Percentage" ? value + "%" : formatMoney(value));
+                if (maxDiscount) {
+                    promoText += " (tối đa " + formatMoney(maxDiscount) + ")";
+                }
+
+                selectedPromotionId.value = option.value;
+                selectedPromotionCode.value = option.text.split(" - ")[0];
+            } else {
+                promoText = "Đơn hàng tối thiểu " + formatMoney(minOrder) + " để áp dụng mã này.";
+                promoSelect.value = "";
+                selectedPromotionId.value = "";
+                selectedPromotionCode.value = "";
             }
+        } else {
+            selectedPromotionId.value = "";
+            selectedPromotionCode.value = "";
         }
 
         if (discount > 0) {
             discountRow.style.display = "flex";
             summaryDiscount.innerText = "-" + formatMoney(discount);
+            discountCodeLabel.innerText = selectedPromotionCode.value;
         } else {
             discountRow.style.display = "none";
         }
 
         promoInfo.innerText = promoText;
-        selectedPromotionId.value = selectedId || "";
+        hiddenPromotionId.value = selectedPromotionId.value;
 
         const total = subtotal - discount;
         summaryTotal.innerText = formatMoney(total);
+
+        if (option && option.value && option.getAttribute("class") === "suggested-promo") {
+            suggestionBadge.style.display = "block";
+        } else {
+            suggestionBadge.style.display = "none";
+        }
     }
 
     promoSelect.addEventListener("change", updateTotal);
+
+    // Auto-select the suggested promotion if none is already selected
+    if (!selectedPromotionId.value) {
+        const suggestedOption = Array.from(promoSelect.options).find(function(opt) {
+            return opt.getAttribute("class") === "suggested-promo";
+        });
+        if (suggestedOption) {
+            promoSelect.value = suggestedOption.value;
+            updateTotal();
+        }
+    } else {
+        // Restore previously selected promotion
+        promoSelect.value = selectedPromotionId.value;
+        updateTotal();
+    }
 </script>
 
 </body>

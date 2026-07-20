@@ -22,6 +22,7 @@ public class BookingScheduleView {
     private String showDate;
     private String startTime;
     private double baseTicketPrice;
+    private String imageUrl;
 
     public int getScheduleId() {
         return scheduleId;
@@ -98,6 +99,11 @@ public class BookingScheduleView {
     public double getBaseTicketPrice() {
         return baseTicketPrice;
     }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
 
     public void setBaseTicketPrice(double baseTicketPrice) {
         this.baseTicketPrice = baseTicketPrice;

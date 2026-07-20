@@ -1,0 +1,72 @@
+.reminder-banner {
+    max-width: 1200px;
+    margin: -12px auto 24px;
+    padding: 14px 20px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #664d03;
+    line-height: 1.6;
+}
+
+.reminder-banner strong {
+    color: #7a1f00;
+    margin-right: 6px;
+}
+
+.ticket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.ticket-card {
+    border: 1px dashed var(--cgv-red);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    background: #fffdf7;
+}
+
+.ticket-qr {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 140px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.ticket-seat {
+    font-weight: 700;
+    color: var(--cgv-dark);
+    font-size: 14px;
+}
+
+.ticket-code {
+    font-family: monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--cgv-text-muted);
+    word-break: break-all;
+}
+
+.ticket-price {
+    font-weight: 700;
+    color: var(--cgv-red);
+    font-size: 13px;
+}
+
+@media print {
+    .top-dark, .footer-dark, .booking-step, .reminder-banner .btn, .checkout-sidebar .btn-back {
+        display: none;
+    }
+}

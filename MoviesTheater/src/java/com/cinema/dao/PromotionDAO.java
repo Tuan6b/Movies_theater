@@ -140,6 +140,31 @@ public class PromotionDAO {
     }
 
     /**
+     * Search active promotions by keyword for autocomplete.
+     */
+    public List<Promotion> searchActivePromotions(String keyword) {
+        List<Promotion> list = new ArrayList<>();
+        String sql = "SELECT * FROM Promotion "
+                + "WHERE IsActive = 1 AND Status = 'active' "
+                + "AND StartDate <= GETDATE() AND EndDate >= GETDATE() "
+                + "AND (UsageLimit IS NULL OR UsedCount < UsageLimit) "
+                + "AND PromotionCode LIKE ? "
+                + "ORDER BY DiscountValue DESC";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + keyword.trim() + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
      * Retrieve all currently active promotions for the checkout dropdown.
      */
     public List<Promotion> getActivePromotions() {
