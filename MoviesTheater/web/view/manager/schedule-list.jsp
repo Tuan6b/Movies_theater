@@ -103,7 +103,7 @@
                                             </c:choose>
                                         </td>
                                         <td>${not empty roomNameMap[s.roomID] ? roomNameMap[s.roomID] : s.roomID}</td>
-                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VND</td>
                                         <td>
                                             <fmt:parseDate value="${s.showDate}" pattern="yyyy-MM-dd" var="parsedDate" type="date"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy"/>

@@ -6,6 +6,7 @@ public class Food {
     private double price;
     private String image;
     private boolean isCombo;
+    private boolean isActive;
 
     public Food() {
     }
@@ -56,6 +57,14 @@ public class Food {
 
     public void setIsCombo(boolean isCombo) {
         this.isCombo = isCombo;
+    }
+
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
     @Override
