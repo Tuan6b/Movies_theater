@@ -3,11 +3,11 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <% request.setAttribute("activeNav", "food"); %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý Đồ ăn — Nhân viên CGV</title>
+    <title>Food Management — CGV Staff</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body class="cgv-body">
@@ -17,7 +17,7 @@
 <div class="cgv-main">
 
     <header class="cgv-header">
-        <h1 class="cgv-header-title">Đồ ăn &amp; Nước uống</h1>
+        <h1 class="cgv-header-title">Food &amp; Drinks</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <div class="cgv-header-divider"></div>
@@ -26,7 +26,7 @@
                     <span class="cgv-user-name">
                         <c:choose>
                             <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
-                            <c:otherwise>Nhân viên</c:otherwise>
+                            <c:otherwise>Staff</c:otherwise>
                         </c:choose>
                     </span>
                 </div>
@@ -48,12 +48,12 @@
             <div class="cgv-toolbar">
                 <div class="cgv-pills">
                     <a href="${pageContext.request.contextPath}/FoodController?type=retail"
-                       class="cgv-pill ${currentType eq 'retail' ? 'active' : ''}">Bán lẻ</a>
+                       class="cgv-pill ${currentType eq 'retail' ? 'active' : ''}">Retail</a>
                     <a href="${pageContext.request.contextPath}/FoodController?type=combo"
                        class="cgv-pill ${currentType eq 'combo' ? 'active' : ''}">Combo</a>
                 </div>
                 <a href="${pageContext.request.contextPath}/FoodController?action=add&amp;type=${currentType}" class="btn--cgv" style="margin-left:auto;">
-                    + Thêm món
+                    + Add Item
                 </a>
             </div>
 
@@ -62,11 +62,11 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Ảnh</th>
-                            <th>Tên món</th>
-                            <th>Giá</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
+                            <th>Image</th>
+                            <th>Item Name</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,27 +88,40 @@
                                             </c:choose>
                                         </td>
                                         <td style="font-weight:600;">${item.foodName}</td>
-                                        <td><fmt:formatNumber value="${item.price}" pattern="#,###"/> VNĐ</td>
+                                        <td><fmt:formatNumber value="${item.price}" pattern="#,###"/> VND</td>
                                         <td>
-                                            <span class="cgv-badge ${item.isActive ? 'active' : 'inactive'}">
-                                                ${item.isActive ? 'Đang bán' : 'Đã ẩn'}
-                                            </span>
+                                            <span class="cgv-badge ${item.isActive ? 'active' : 'inactive'}">${item.isActive ? 'Active' : 'Inactive'}</span>
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
                                                 <a href="${pageContext.request.contextPath}/FoodController?action=edit&amp;id=${item.foodId}&amp;type=${currentType}" class="btn--cgv-outline">
-                                                    Sửa
+                                                    Edit
                                                 </a>
-                                                <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="id" value="${item.foodId}">
-                                                    <input type="hidden" name="type" value="${currentType}">
-                                                    <button type="submit" class="btn--cgv-outline"
-                                                            style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                            onclick="return confirm('Xóa món ${item.foodName}?')">
-                                                        Xóa
-                                                    </button>
-                                                </form>
+                                                <c:choose>
+                                                    <c:when test="${item.isActive}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${item.foodId}">
+                                                            <input type="hidden" name="type" value="${currentType}">
+                                                            <button type="submit" class="btn--cgv-outline"
+                                                                    style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                                    onclick="return confirm('Deactivate ${item.foodName}?')">
+                                                                Deactivate
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
+                                                            <input type="hidden" name="action" value="restore">
+                                                            <input type="hidden" name="id" value="${item.foodId}">
+                                                            <input type="hidden" name="type" value="${currentType}">
+                                                            <button type="submit" class="btn--cgv-outline"
+                                                                    style="color:var(--success);border-color:var(--success);">
+                                                                Restore
+                                                            </button>
+                                                        </form>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                         </td>
                                     </tr>
@@ -117,7 +130,7 @@
                             <c:otherwise>
                                 <tr>
                                     <td colspan="6" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
-                                        Chưa có món ăn nào.
+                                        No food items yet.
                                     </td>
                                 </tr>
                             </c:otherwise>
@@ -133,11 +146,11 @@
                 <div class="cgv-stats-group">
                     <div>
                         <div class="cgv-stat-num">${not empty foodList ? foodList.size() : '0'}</div>
-                        <div class="cgv-stat-key">MÓN ĂN</div>
+                        <div class="cgv-stat-key">ITEMS</div>
                     </div>
                     <div>
-                        <div class="cgv-stat-num amber">${currentType eq 'combo' ? 'Combo' : 'Bán lẻ'}</div>
-                        <div class="cgv-stat-key">LOẠI</div>
+                        <div class="cgv-stat-num amber">${currentType eq 'combo' ? 'Combo' : 'Retail'}</div>
+                        <div class="cgv-stat-key">TYPE</div>
                     </div>
                 </div>
             </div>

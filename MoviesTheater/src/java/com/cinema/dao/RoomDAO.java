@@ -53,22 +53,6 @@ public class RoomDAO {
         return null;
     }
 
-    public boolean addRoom(Room room) {
-        String sql = "INSERT INTO Room(RoomNumber, RoomType, Capacity, NumberOfRows, SeatsPerRow, IsActive) VALUES (?, ?, ?, ?, ?, 1)";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement stm = conn.prepareStatement(sql)) {
-            stm.setString(1, room.getRoomNumber());
-            stm.setString(2, room.getRoomType());
-            stm.setInt(3, room.getCapacity());
-            stm.setInt(4, room.getNumberOfRows());
-            stm.setInt(5, room.getSeatsPerRow());
-            return stm.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
     public boolean updateRoom(Room room) {
         String sql = "UPDATE Room SET RoomNumber = ?, RoomType = ?, Capacity = ?, NumberOfRows = ?, SeatsPerRow = ?, IsActive = ? WHERE RoomID = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -97,10 +81,6 @@ public class RoomDAO {
             ex.printStackTrace();
         }
         return false;
-    }
-
-    public List<Room> getRoomsByPage(int offset, int noOfRecords) {
-        return getRoomsByPage(offset, noOfRecords, null);
     }
 
     public List<Room> getRoomsByPage(int offset, int noOfRecords, Boolean isActive) {
@@ -146,10 +126,6 @@ public class RoomDAO {
             ex.printStackTrace();
         }
         return false;
-    }
-
-    public int getTotalRoomsCount() {
-        return getTotalRoomsCount(null);
     }
 
     public int getTotalRoomsCount(Boolean isActive) {

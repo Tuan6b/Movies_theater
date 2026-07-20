@@ -47,26 +47,6 @@
 
         <div class="cgv-table-wrap">
 
-            <!-- Dashboard Statistics -->
-            <div class="cgv-stats-dashboard fade-in" style="display: flex; gap: 16px; margin-bottom: 24px; padding: 16px; background: #fff; border: 1px solid #e1d8d8; border-radius: 8px;">
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Tổng số suất</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats ? scheduleStats['Total'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đang chiếu</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Ongoing'] ? scheduleStats['Ongoing'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Chưa chiếu</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Scheduled'] ? scheduleStats['Scheduled'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đã hoàn thành</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Finished'] ? scheduleStats['Finished'] : 0}</div>
-                </div>
-            </div>
-
             <c:if test="${not empty flashSuccess}">
                 <div style="background:#d4edda;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashSuccess}</div>
             </c:if>
@@ -123,7 +103,7 @@
                                             </c:choose>
                                         </td>
                                         <td>${not empty roomNameMap[s.roomID] ? roomNameMap[s.roomID] : s.roomID}</td>
-                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VND</td>
                                         <td>
                                             <fmt:parseDate value="${s.showDate}" pattern="yyyy-MM-dd" var="parsedDate" type="date"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy"/>

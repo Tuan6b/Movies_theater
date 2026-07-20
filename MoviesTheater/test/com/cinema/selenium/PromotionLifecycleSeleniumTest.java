@@ -116,6 +116,12 @@ public class PromotionLifecycleSeleniumTest {
         return new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
+    // Every navigation to a status view passes &dir=DESC so the row we just
+    // seeded (highest PromotionID) sorts onto page 1 - PromotionServlet
+    // defaults to PromotionID ASC when no explicit sort is requested, and
+    // these views accumulate rows across runs (only R5/R6 hard-delete
+    // theirs), so without a pinned sort the seeded row can land past
+    // PAGE_SIZE and findActionForm below would never see it.
     private WebElement findActionForm(int promotionId, String actionValue) {
         return driver.findElement(By.xpath(
                 "//input[@name='promotionId'][@value='" + promotionId + "']"
@@ -138,7 +144,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=inactive");
+        driver.get(BASE_URL + "/manager/promotions?view=inactive&dir=DESC");
         WebElement form = findActionForm(id, "reactivate");
 
         updatePromotionStatus(id, "expired");
@@ -157,7 +163,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=inactive");
+        driver.get(BASE_URL + "/manager/promotions?view=inactive&dir=DESC");
         WebElement form = findActionForm(id, "reactivate");
         submitAndAccept(form);
 
@@ -175,7 +181,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=inactive");
+        driver.get(BASE_URL + "/manager/promotions?view=inactive&dir=DESC");
         WebElement form = findActionForm(id, "hardDelete");
         submitAndAccept(form);
 
@@ -195,7 +201,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=upcoming");
+        driver.get(BASE_URL + "/manager/promotions?view=upcoming&dir=DESC");
         WebElement form = findActionForm(id, "hardDelete");
 
         updatePromotionUsedCount(id, 1);
@@ -215,7 +221,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=inactive");
+        driver.get(BASE_URL + "/manager/promotions?view=inactive&dir=DESC");
         WebElement form = findActionForm(id, "hardDelete");
         submitAndAccept(form);
 
@@ -231,7 +237,7 @@ public class PromotionLifecycleSeleniumTest {
 
         driver = newDriver();
         login(driver, MANAGER_EMAIL, PASSWORD);
-        driver.get(BASE_URL + "/manager/promotions?view=inactive");
+        driver.get(BASE_URL + "/manager/promotions?view=inactive&dir=DESC");
         WebElement form = findActionForm(id, "hardDelete");
         submitAndAccept(form);
 

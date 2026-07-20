@@ -6,6 +6,7 @@
     BookingScheduleView schedule = (BookingScheduleView) session.getAttribute("bookingSchedule");
     List<Food> foodList = (List<Food>) request.getAttribute("foodList");
     List<Promotion> promotions = (List<Promotion>) request.getAttribute("promotions");
+    Integer suggestedPromotionId = (Integer) request.getAttribute("suggestedPromotionId");
 
     if (cart == null || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/showtimes");
@@ -115,19 +116,71 @@
                 <% } %>
 
                 <div class="checkout-card">
-                    <h3 class="card-title">Mã khuyến mãi</h3>
-                    <div class="promo-input-wrapper">
-                        <input type="text"
-                               id="promotionInput"
-                               class="promotion-input"
-                               placeholder="Nhập mã khuyến mãi..."
-                               autocomplete="off"
-                               value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
-                        <div id="promotionSuggestions" class="promo-suggestions"></div>
+                    <h3 class="card-title">Chọn khuyến mãi</h3>
+                    <select id="promotionSelect" class="promotion-select">
+                        <option value="">-- Không sử dụng khuyến mãi --</option>
+                        <% if (promotions != null) {
+                            double subtotal = cart.getGrandTotal();
+                            for (Promotion p : promotions) {
+                                boolean suggested = suggestedPromotionId != null && suggestedPromotionId == p.getPromotionId();
+                                String disabled = "";
+                                String note = "";
+                                if (p.getMinOrderAmount() != null && subtotal < p.getMinOrderAmount().doubleValue()) {
+                                    disabled = "disabled";
+                                    note = " (chưa đủ " + String.format("%,.0f", p.getMinOrderAmount()) + " đ)";
+                                }
+                                String discountLabel = p.getDiscountType().equals("Percentage")
+                                    ? p.getDiscountValue().intValue() + "%"
+                                    : String.format("%,.0f", p.getDiscountValue()) + "đ";
+                                if (p.getMaxDiscountAmount() != null && "Percentage".equals(p.getDiscountType())) {
+                                    discountLabel += " (tối đa " + String.format("%,.0f", p.getMaxDiscountAmount()) + "đ)";
+                                }
+                        %>
+                            <option value="<%= p.getPromotionId() %>"
+                                    data-type="<%= p.getDiscountType() %>"
+                                    data-value="<%= p.getDiscountValue() %>"
+                                    data-min-order="<%= p.getMinOrderAmount() != null ? p.getMinOrderAmount() : 0 %>"
+                                    data-max-discount="<%= p.getMaxDiscountAmount() != null ? p.getMaxDiscountAmount() : "" %>"
+                                    <%= disabled %>
+                                    <%= suggested ? "class=\"suggested-promo\"" : "" %>>
+                                <%= p.getPromotionCode() %> - Giảm <%= discountLabel %><%= note %>
+                            </option>
+                        <%  }
+                        } %>
+                    </select>
+                    <div id="suggestionBadge" class="suggestion-badge" style="<%= suggestedPromotionId != null ? "" : "display:none;" %>">
+                        Gợi ý: Mã này giảm nhiều nhất cho đơn hàng của bạn!
                     </div>
                     <div id="promotionInfo" class="promotion-info"></div>
                     <input type="hidden" id="selectedPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
                     <input type="hidden" id="selectedPromotionCode" value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
+                </div>
+
+                <div class="checkout-card">
+                    <h3 class="card-title">Phương thức thanh toán</h3>
+                    <div class="payment-method-list">
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="VNPay" checked>
+                            <span class="payment-method-label">
+                                <strong>VNPay</strong>
+                                <small>Thanh toán qua cổng VNPay (môi trường sandbox demo)</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Card">
+                            <span class="payment-method-label">
+                                <strong>Thẻ ngân hàng</strong>
+                                <small>Thanh toán bằng thẻ tại quầy / demo</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Cash">
+                            <span class="payment-method-label">
+                                <strong>Tiền mặt</strong>
+                                <small>Thanh toán tiền mặt tại quầy / demo</small>
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
             </div>
@@ -157,9 +210,11 @@
                         <span>Tổng cộng</span>
                         <span id="summaryTotal"><%= String.format("%,.0f", cart.getFinalTotal() > 0 ? cart.getFinalTotal() : cart.getGrandTotal()) %> đ</span>
                     </div>
+                    <a href="<%= request.getContextPath() %>/booking?action=food" class="btn btn-back btn-block" style="margin-bottom:10px;">Quay lại</a>
                     <form action="<%= request.getContextPath() %>/booking" method="post">
                         <input type="hidden" name="action" value="confirmPayment">
                         <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
+                        <input type="hidden" name="paymentMethod" id="hiddenPaymentMethod" value="VNPay">
                         <button type="submit" class="btn btn-next btn-block">Xác nhận thanh toán</button>
                     </form>
                 </div>
@@ -183,8 +238,7 @@
     const ticketTotalVal = <%= cart.getTicketTotal() %>;
     const foodTotalVal = <%= cart.getFoodTotal() %>;
 
-    const promoInput = document.getElementById("promotionInput");
-    const suggestionsContainer = document.getElementById("promotionSuggestions");
+    const promoSelect = document.getElementById("promotionSelect");
     const discountRow = document.getElementById("discountRow");
     const summaryDiscount = document.getElementById("summaryDiscount");
     const summaryTotal = document.getElementById("summaryTotal");
@@ -194,46 +248,62 @@
     const selectedPromotionCode = document.getElementById("selectedPromotionCode");
     const hiddenPromotionId = document.getElementById("hiddenPromotionId");
     const discountCodeLabel = document.getElementById("discountCodeLabel");
+    const suggestionBadge = document.getElementById("suggestionBadge");
+    const hiddenPaymentMethod = document.getElementById("hiddenPaymentMethod");
 
-    let selectedPromo = null;
-    let searchTimeout = null;
+    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function(radio) {
+        radio.addEventListener("change", function() {
+            hiddenPaymentMethod.value = this.value;
+        });
+    });
 
     function formatMoney(value) {
         return new Intl.NumberFormat("vi-VN").format(value) + " đ";
     }
 
     function updateTotal() {
+        const option = promoSelect.options[promoSelect.selectedIndex];
         let discount = 0;
         let promoText = "";
 
-        if (selectedPromo) {
-            if (subtotal >= selectedPromo.minOrder) {
-                if (selectedPromo.type === "Percentage") {
-                    discount = subtotal * selectedPromo.value / 100;
-                    if (selectedPromo.maxDiscount && discount > selectedPromo.maxDiscount) {
-                        discount = selectedPromo.maxDiscount;
+        if (option && option.value) {
+            const type = option.dataset.type;
+            const value = parseFloat(option.dataset.value);
+            const minOrder = parseFloat(option.dataset.minOrder) || 0;
+            const maxDiscount = option.dataset.maxDiscount ? parseFloat(option.dataset.maxDiscount) : null;
+
+            if (subtotal >= minOrder) {
+                if (type === "Percentage") {
+                    discount = subtotal * value / 100;
+                    if (maxDiscount && discount > maxDiscount) {
+                        discount = maxDiscount;
                     }
                 } else {
-                    discount = selectedPromo.value;
+                    discount = value;
                 }
-                promoText = "Áp dụng mã " + selectedPromo.code + ": giảm "
-                    + (selectedPromo.type === "Percentage" ? selectedPromo.value + "%" : formatMoney(selectedPromo.value));
-                if (selectedPromo.maxDiscount) {
-                    promoText += " (tối đa " + formatMoney(selectedPromo.maxDiscount) + ")";
+                promoText = "Áp dụng mã " + option.text.split(" - ")[0] + ": giảm "
+                    + (type === "Percentage" ? value + "%" : formatMoney(value));
+                if (maxDiscount) {
+                    promoText += " (tối đa " + formatMoney(maxDiscount) + ")";
                 }
+
+                selectedPromotionId.value = option.value;
+                selectedPromotionCode.value = option.text.split(" - ")[0];
             } else {
-                promoText = "Đơn hàng tối thiểu " + formatMoney(selectedPromo.minOrder) + " để áp dụng mã này.";
-                selectedPromo = null;
-                promoInput.value = "";
+                promoText = "Đơn hàng tối thiểu " + formatMoney(minOrder) + " để áp dụng mã này.";
+                promoSelect.value = "";
                 selectedPromotionId.value = "";
                 selectedPromotionCode.value = "";
             }
+        } else {
+            selectedPromotionId.value = "";
+            selectedPromotionCode.value = "";
         }
 
         if (discount > 0) {
             discountRow.style.display = "flex";
             summaryDiscount.innerText = "-" + formatMoney(discount);
-            discountCodeLabel.innerText = selectedPromo.code;
+            discountCodeLabel.innerText = selectedPromotionCode.value;
         } else {
             discountRow.style.display = "none";
         }
@@ -243,92 +313,29 @@
 
         const total = subtotal - discount;
         summaryTotal.innerText = formatMoney(total);
-    }
 
-    function fetchSuggestions(keyword) {
-        if (!keyword || keyword.length < 1) {
-            suggestionsContainer.style.display = "none";
-            return;
+        if (option && option.value && option.getAttribute("class") === "suggested-promo") {
+            suggestionBadge.style.display = "block";
+        } else {
+            suggestionBadge.style.display = "none";
         }
-
-        fetch("<%= request.getContextPath() %>/booking?action=searchPromotions&q=" + encodeURIComponent(keyword))
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                suggestionsContainer.innerHTML = "";
-                if (data.length === 0) {
-                    suggestionsContainer.style.display = "none";
-                    return;
-                }
-                data.forEach(function(promo) {
-                    var div = document.createElement("div");
-                    div.className = "promo-suggestion-item";
-
-                    var discountText = promo.type === "Percentage"
-                        ? promo.value + "%"
-                        : formatMoney(promo.value);
-                    if (promo.maxDiscount) {
-                        discountText += " (tối đa " + formatMoney(promo.maxDiscount) + ")";
-                    }
-
-                    div.innerHTML = "<div class='promo-suggestion-code'>" + promo.code + "</div>"
-                        + "<div class='promo-suggestion-detail'>Giảm " + discountText
-                        + " &middot; Đơn tối thiểu " + formatMoney(promo.minOrder)
-                        + " &middot; HSD: " + promo.endDate + "</div>";
-
-                    div.addEventListener("click", function() {
-                        promoInput.value = promo.code;
-                        selectedPromotionId.value = promo.id;
-                        selectedPromotionCode.value = promo.code;
-                        selectedPromo = promo;
-                        suggestionsContainer.style.display = "none";
-                        updateTotal();
-                    });
-
-                    suggestionsContainer.appendChild(div);
-                });
-                suggestionsContainer.style.display = "block";
-            })
-            .catch(function() {
-                suggestionsContainer.style.display = "none";
-            });
     }
 
-    promoInput.addEventListener("input", function() {
-        var val = promoInput.value.trim();
+    promoSelect.addEventListener("change", updateTotal);
 
-        if (selectedPromo && selectedPromo.code !== val) {
-            selectedPromo = null;
-            selectedPromotionId.value = "";
-            selectedPromotionCode.value = "";
+    // Auto-select the suggested promotion if none is already selected
+    if (!selectedPromotionId.value) {
+        const suggestedOption = Array.from(promoSelect.options).find(function(opt) {
+            return opt.getAttribute("class") === "suggested-promo";
+        });
+        if (suggestedOption) {
+            promoSelect.value = suggestedOption.value;
             updateTotal();
         }
-
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() { fetchSuggestions(val); }, 300);
-    });
-
-    promoInput.addEventListener("blur", function() {
-        setTimeout(function() { suggestionsContainer.style.display = "none"; }, 200);
-    });
-
-    promoInput.addEventListener("focus", function() {
-        var val = promoInput.value.trim();
-        if (val.length > 0) {
-            fetchSuggestions(val);
-        }
-    });
-
-    // Init with any pre-selected promo from session
-    if (selectedPromotionId.value) {
-        // Rebuild selectedPromo from session data for display
-        fetch("<%= request.getContextPath() %>/booking?action=searchPromotions&q=" + encodeURIComponent(selectedPromotionCode.value))
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                if (data.length > 0) {
-                    selectedPromo = data[0];
-                    updateTotal();
-                }
-            });
+    } else {
+        // Restore previously selected promotion
+        promoSelect.value = selectedPromotionId.value;
+        updateTotal();
     }
 </script>
 
