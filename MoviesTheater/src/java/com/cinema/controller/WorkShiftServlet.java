@@ -291,7 +291,9 @@ public class WorkShiftServlet extends HttpServlet {
     }
 
     // Resolves shift type key from start/end times for redirect after update.
-    private String getShiftTypeKey(LocalTime start, LocalTime end) {
+    // Package-private (not private) so WorkShiftServletShiftTypeKeyTest, in the
+    // same package under test/, can call it directly without reflection.
+    String getShiftTypeKey(LocalTime start, LocalTime end) {
         for (Map.Entry<String, String[]> entry : SHIFT_TIMES.entrySet()) {
             if (LocalTime.parse(entry.getValue()[0]).equals(start)
                     && LocalTime.parse(entry.getValue()[1]).equals(end)) {

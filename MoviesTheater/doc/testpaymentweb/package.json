@@ -1,0 +1,10 @@
+{
+  "name": "vnpay-test-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple local test site for VNPay sandbox (QR payment + return/IPN verification).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

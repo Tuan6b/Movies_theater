@@ -389,14 +389,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
                     return;
                 }
-                if ("Percentage".equalsIgnoreCase(promo.getDiscountType())) {
-                    discountAmount = subtotal * promo.getDiscountValue().doubleValue() / 100.0;
-                    if (promo.getMaxDiscountAmount() != null) {
-                        discountAmount = Math.min(discountAmount, promo.getMaxDiscountAmount().doubleValue());
-                    }
-                } else {
-                    discountAmount = Math.min(promo.getDiscountValue().doubleValue(), subtotal);
-                }
+                discountAmount = computeDiscount(promo, subtotal);
                 promotionId = promo.getPromotionId();
             }
 
@@ -472,6 +465,32 @@ public class EmployeeDashboardServlet extends HttpServlet {
             }
         }
         return total;
+    }
+
+    // Package-private (not private) so EmployeeDashboardServletComputeDiscountTest,
+    // in the same package under test/, can call it directly without reflection.
+    // Assumes promo has already been validated as active and meeting minOrderAmount.
+    double computeDiscount(Promotion promo, double subtotal) {
+        if ("Percentage".equalsIgnoreCase(promo.getDiscountType())) {
+            double discount = subtotal * promo.getDiscountValue().doubleValue() / 100.0;
+            if (promo.getMaxDiscountAmount() != null) {
+                discount = Math.min(discount, promo.getMaxDiscountAmount().doubleValue());
+            }
+            return discount;
+        }
+        return Math.min(promo.getDiscountValue().doubleValue(), subtotal);
+    }
+
+    // Package-private (not private) so EmployeeDashboardServletShiftExchangeEligibilityTest,
+    // in the same package under test/, can call it directly without a live WorkShiftDAO.
+    // Mirrors BR-44.1: only a future, still-Scheduled shift owned by the requester
+    // may be handed off. Self-transfer (targetEmpId == requesterId, BR-44.2) is
+    // checked separately by the caller before this, since it has its own error message.
+    static boolean isShiftExchangeable(WorkShift shift, int requesterId) {
+        return shift != null
+                && shift.getEmployeeId() == requesterId
+                && "Scheduled".equals(shift.getStatus())
+                && !shift.getShiftDate().isBefore(java.time.LocalDate.now());
     }
 
     private void showCheckin(HttpServletRequest request, HttpServletResponse response)
@@ -765,9 +784,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
                         break;
                     }
                     WorkShift targetShift = shiftDAO.getById(shiftId);
-                    if (targetShift == null || targetShift.getEmployeeId() != empId
-                            || !"Scheduled".equals(targetShift.getStatus())
-                            || targetShift.getShiftDate().isBefore(java.time.LocalDate.now())) {
+                    if (!isShiftExchangeable(targetShift, empId)) {
                         session.setAttribute("flashError", "Ca này không thể chuyển (đã qua hoặc không thuộc về bạn).");
                         break;
                     }
