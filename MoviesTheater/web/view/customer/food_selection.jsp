@@ -125,7 +125,7 @@
                 } %>
 
                 <% if (itemList != null && !itemList.isEmpty()) { %>
-                    <div class="food-section-label">ĐỒ ĂN LẺ/COMBO</div>
+                    <div class="food-section-label">ĐỒ ĂN LẺ</div>
                     
                     
                     <% for (Food food : itemList) {
