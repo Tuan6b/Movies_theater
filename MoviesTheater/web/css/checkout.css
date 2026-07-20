@@ -245,13 +245,35 @@ body {
     font-family: var(--font-body);
     background: var(--cgv-surface);
     color: var(--cgv-text);
-    cursor: pointer;
     outline: none;
+    cursor: pointer;
     transition: border-color 0.2s;
 }
 
 .promotion-select:focus {
     border-color: var(--cgv-red);
+}
+
+.promotion-select option.suggested-promo {
+    background-color: #fff3cd;
+    font-weight: 700;
+}
+
+.suggestion-badge {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #ff6b35, #e71a0f);
+    color: white;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
 }
 
 .promotion-info {
@@ -335,6 +357,18 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: var(--font-body);
+}
+
+.btn-back {
+    background: #e2dfcc;
+    color: var(--cgv-dark);
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: #d4d1bc;
+    text-decoration: none;
+    color: var(--cgv-dark);
 }
 
 .btn-next {

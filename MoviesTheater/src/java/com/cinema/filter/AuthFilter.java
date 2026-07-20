@@ -36,7 +36,8 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/Register",
             "/view/common/Error.jsp",
             "/showtimes",
-            "/RoomServlet"
+            "/RoomServlet",
+            "/booking"
     );
 
     // Public resources
