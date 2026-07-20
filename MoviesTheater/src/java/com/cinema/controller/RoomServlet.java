@@ -5,7 +5,6 @@ import com.cinema.dao.SeatDAO;
 import com.cinema.dao.ScheduleDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +37,6 @@ public class RoomServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
 
             String action = request.getParameter("action");
 
@@ -70,7 +68,6 @@ public class RoomServlet extends HttpServlet {
                     listRooms(request, response);
                     break;
             }
-        }
     }
 
     /**

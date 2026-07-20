@@ -52,20 +52,6 @@ public class SeatDAO {
         return list;
     }
 
-    public boolean updateSeat(int seatId, String seatType, boolean active) {
-        String sql = "UPDATE Seat SET SeatType = ?, IsActive = ? WHERE SeatID = ?";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement stm = conn.prepareStatement(sql)) {
-            stm.setString(1, seatType);
-            stm.setBoolean(2, active);
-            stm.setInt(3, seatId);
-            return stm.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
     public boolean deleteSeatsByRoom(int roomId) {
         String sql = "DELETE FROM Seat WHERE RoomID = ?";
         try (Connection conn = DBUtils.getConnection();

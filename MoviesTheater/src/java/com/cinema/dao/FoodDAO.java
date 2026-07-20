@@ -11,21 +11,6 @@ import java.util.List;
 
 public class FoodDAO {
 
-    public List<Food> getAllFoods() {
-        List<Food> list = new ArrayList<>();
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food ORDER BY FoodName";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapRow(rs));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return list;
-    }
-
     public List<Food> getAllActiveFoods() {
         List<Food> list = new ArrayList<>();
         String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsActive = 1 ORDER BY FoodName";

@@ -24,35 +24,6 @@ public class Schedule {
     }
 
     public Schedule(int scheduleID, int movieID, int roomID,
-            String showDate, String startTime,
-            String endTime, String status) {
-
-        this.scheduleID = scheduleID;
-        this.movieID = movieID;
-        this.roomID = roomID;
-        this.showDate = showDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.endDate = showDate;
-        this.status = status;
-    }
-
-    public Schedule(int scheduleID, int movieID, int roomID,
-            double baseTicketPrice, String showDate, String startTime,
-            String endTime, String status) {
-
-        this.scheduleID = scheduleID;
-        this.movieID = movieID;
-        this.roomID = roomID;
-        this.baseTicketPrice = baseTicketPrice;
-        this.showDate = showDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.endDate = showDate;
-        this.status = status;
-    }
-
-    public Schedule(int scheduleID, int movieID, int roomID,
             double baseTicketPrice, String showDate, String startTime,
             String endTime, String endDate, String status) {
 

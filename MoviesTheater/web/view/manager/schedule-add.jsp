@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <% request.setAttribute("activeNav", "schedules"); %>
+<% request.setAttribute("todayDate", java.time.LocalDate.now().toString()); %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,7 +109,8 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">Show Date</label>
-                        <input class="cgv-input" type="date" name="showDate" required>
+                        <input class="cgv-input" type="date" name="showDate" required
+                               min="${todayDate}">
                     </div>
 
                     <!-- Rooms — each with its own time slots -->
