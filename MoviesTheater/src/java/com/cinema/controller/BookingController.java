@@ -364,14 +364,7 @@ public class BookingController extends HttpServlet {
             return;
         }
         if (account == null) {
-            session.setAttribute("redirectAfterLogin",
-                    request.getContextPath() + "/booking?action=checkout");
-
-        // Payment requires a logged-in account so we know where to send the e-ticket
-        Account account = (Account) session.getAttribute("account");
-        if (account == null) {
             session.setAttribute("redirectAfterLogin", request.getContextPath() + "/booking?action=checkout");
-
             response.sendRedirect(request.getContextPath() + "/Login");
             return;
         }
@@ -447,10 +440,6 @@ public class BookingController extends HttpServlet {
         }
 
         session.setAttribute("bookingCart", cart);
-
-
-        // Redirect to VNPAY payment creation
-        response.sendRedirect(request.getContextPath() + "/vnpay?action=create");
 
         String paymentMethod = request.getParameter("paymentMethod");
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {

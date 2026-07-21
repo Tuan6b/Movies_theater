@@ -329,6 +329,8 @@ public class TicketDAO {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
 
     /**
      * Performs a transaction to save a customer self-checkout booking:
