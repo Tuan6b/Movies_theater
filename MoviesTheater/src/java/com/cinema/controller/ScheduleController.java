@@ -2,6 +2,7 @@ package com.cinema.controller;
 
 import com.cinema.dao.RoomDAO;
 import com.cinema.dao.ScheduleDAO;
+import com.cinema.dao.TicketDAO;
 import com.cinema.dao.tbMovie;
 import com.cinema.model.Schedule;
 import com.cinema.model.clsMovie;
@@ -11,16 +12,19 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ScheduleController extends HttpServlet {
 
     private final ScheduleDAO scheduleDAO = new ScheduleDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final tbMovie movieDAO = new tbMovie();
+    private final TicketDAO ticketDAO = new TicketDAO();
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -94,6 +98,9 @@ public class ScheduleController extends HttpServlet {
 
         int totalPages = (int) Math.ceil((double) totalRecords / recordsPerPage);
 
+        Set<Integer> schedulesWithTickets = scheduleDAO.getScheduleIdsWithBookedTickets();
+        request.setAttribute("schedulesWithTickets", schedulesWithTickets);
+
         LocalDateTime now = LocalDateTime.now();
         for (Schedule s : scheduleList) {
             if ("Cancelled".equals(s.getStatus())) continue;
@@ -160,6 +167,11 @@ public class ScheduleController extends HttpServlet {
             movieId = Integer.parseInt(request.getParameter("movieId"));
             String[] roomIdArr = request.getParameterValues("roomIds");
             String showDate = request.getParameter("showDate");
+            if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
+                request.getSession().setAttribute("flashError", "Cannot create a schedule with a past date.");
+                response.sendRedirect("ScheduleController?action=showAddForm&movieId=" + movieId);
+                return;
+            }
             String status = request.getParameter("status");
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
 
@@ -182,12 +194,18 @@ public class ScheduleController extends HttpServlet {
             List<String> errors = new ArrayList<>();
 
             List<Room> allRooms = roomDAO.getAllRooms();
-            java.util.Map<Integer, String> roomMap = new java.util.HashMap<>();
-            for (Room r : allRooms) roomMap.put(r.getRoomId(), r.getRoomNumber());
+            java.util.Map<Integer, Room> roomMap = new java.util.HashMap<>();
+            for (Room r : allRooms) roomMap.put(r.getRoomId(), r);
 
             for (String roomIdStr : roomIdArr) {
                 int roomId = Integer.parseInt(roomIdStr);
-                String roomLabel = roomMap.getOrDefault(roomId, "Room " + roomId);
+                Room currentRoom = roomMap.get(roomId);
+                if (currentRoom == null || !currentRoom.isActive()) {
+                    errors.add("Room " + roomId + " — room is deactivated, skipped.");
+                    skipped++;
+                    continue;
+                }
+                String roomLabel = currentRoom.getRoomNumber();
 
                 String[] startTimes = request.getParameterValues("startTime_" + roomId);
                 if (startTimes == null || startTimes.length == 0) {
@@ -203,6 +221,11 @@ public class ScheduleController extends HttpServlet {
                     if (cleanStart.length() > 5) cleanStart = cleanStart.substring(0, 5);
 
                     LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + cleanStart + ":00");
+                    if (startDT.isBefore(LocalDateTime.now())) {
+                        errors.add(roomLabel + " @ " + cleanStart + " — time has already passed, skipped.");
+                        skipped++;
+                        continue;
+                    }
                     LocalDateTime endDT = startDT.plusMinutes(totalMinutes);
                     String endDate = endDT.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     String endTime = endDT.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -252,9 +275,8 @@ public class ScheduleController extends HttpServlet {
         response.sendRedirect("ScheduleController?movieId=" + movieId);
     }
 
-    /** Check if a schedule can be edited (only Scheduled). */
+    /** Check if a schedule can be edited (Scheduled or Cancelled). */
     private boolean isEditable(Schedule s) {
-        if ("Cancelled".equals(s.getStatus())) return false;
         try {
             String startDt = s.getShowDate() + "T" + s.getStartTime();
             String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
@@ -320,15 +342,29 @@ public class ScheduleController extends HttpServlet {
             }
             if (!isEditable(existing)) {
                 request.getSession().setAttribute("flashError",
-                    "Only scheduled schedules can be edited.");
+                "This schedule cannot be edited.");
                 response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
                 return;
             }
             movieId = Integer.parseInt(request.getParameter("movieId"));
             int roomId = Integer.parseInt(request.getParameter("roomId"));
             String showDate = request.getParameter("showDate");
+            if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
+                request.getSession().setAttribute("flashError", "Cannot set a schedule date in the past.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
             String startTime = request.getParameter("startTime");
             String status = request.getParameter("status");
+
+            if ("Cancelled".equals(status)
+                    && !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty()) {
+                request.getSession().setAttribute("flashError",
+                    "Cannot cancel via Edit — schedule has ticket bookings. Use Delete instead.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
+
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
 
             clsMovie movie = movieDAO.getMovieById(movieId);
@@ -339,6 +375,12 @@ public class ScheduleController extends HttpServlet {
             }
             int totalMinutes = movie.getDuration() + 15;
             LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + startTime + ":00");
+            if (startDT.isBefore(LocalDateTime.now())) {
+                request.getSession().setAttribute("flashError",
+                    "Cannot set a start time in the past.");
+                response.sendRedirect("ScheduleController?movieId=" + movieId);
+                return;
+            }
             LocalDateTime endDT = startDT.plusMinutes(totalMinutes);
             String endDate = endDT.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String endTime = endDT.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -387,13 +429,14 @@ public class ScheduleController extends HttpServlet {
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
                 return;
             }
-            boolean ok = scheduleDAO.deleteSchedule(id);
+            boolean hasTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
 
-            if (ok) {
-                request.getSession().setAttribute("flashSuccess", "Schedule deleted successfully.");
-            } else {
+            if (hasTickets) {
                 scheduleDAO.cancelSchedule(id);
-                request.getSession().setAttribute("flashSuccess", "Schedule has been cancelled (had tickets, cannot be fully deleted).");
+                request.getSession().setAttribute("flashSuccess", "Schedule cancelled (has ticket bookings).");
+            } else {
+                scheduleDAO.deleteSchedule(id);
+                request.getSession().setAttribute("flashSuccess", "Schedule deleted successfully.");
             }
         } catch (NumberFormatException e) {
             request.getSession().setAttribute("flashError", "Invalid schedule ID.");

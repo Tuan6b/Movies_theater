@@ -5,18 +5,17 @@ public class Food {
     private String foodName;
     private double price;
     private String image;
-    private boolean isActive;
     private boolean isCombo;
+    private boolean isActive;
 
     public Food() {
     }
 
-    public Food(int foodId, String foodName, double price, String image, boolean isActive, boolean isCombo) {
+    public Food(int foodId, String foodName, double price, String image, boolean isCombo) {
         this.foodId = foodId;
         this.foodName = foodName;
         this.price = price;
         this.image = image;
-        this.isActive = isActive;
         this.isCombo = isCombo;
     }
 
@@ -52,20 +51,20 @@ public class Food {
         this.image = image;
     }
 
-    public boolean isIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
     public boolean isIsCombo() {
         return isCombo;
     }
 
     public void setIsCombo(boolean isCombo) {
         this.isCombo = isCombo;
+    }
+
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
     @Override

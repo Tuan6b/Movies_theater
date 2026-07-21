@@ -766,7 +766,9 @@ public class PromotionServlet extends HttpServlet {
         }
     }
 
-    private void validateDates(String startDateStr, String endDateStr,
+    // Package-private (not private) so PromotionServletValidateDatesTest, in the
+    // same package under test/, can call it directly without reflection.
+    void validateDates(String startDateStr, String endDateStr,
             Map<String, String> errors) {
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;

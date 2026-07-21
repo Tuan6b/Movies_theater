@@ -10,26 +10,11 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 
 public class ScheduleDAO {
-
-    public List<Schedule> getAllSchedules() {
-        List<Schedule> list = new ArrayList<>();
-        String sql = "SELECT ScheduleID, MovieID, RoomID, BaseTicketPrice, StartTime, EndTime, Status FROM Schedule ORDER BY StartTime";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement stm = conn.prepareStatement(sql);
-             ResultSet rs = stm.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapSchedule(rs));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return list;
-    }
 
     public List<Schedule> getSchedulesByPage(int offset, int noOfRecords) {
         List<Schedule> list = new ArrayList<>();
@@ -96,40 +81,6 @@ public class ScheduleDAO {
             ex.printStackTrace();
         }
         return 0;
-    }
-
-    public Map<String, Integer> getScheduleStatistics(Integer movieId) {
-        Map<String, Integer> stats = new HashMap<>();
-        stats.put("Total", 0);
-        stats.put("Scheduled", 0);
-        stats.put("Ongoing", 0);
-        stats.put("Finished", 0);
-        stats.put("Cancelled", 0);
-
-        String sql = "SELECT Status, COUNT(*) as count FROM Schedule ";
-        if (movieId != null && movieId > 0) {
-            sql += "WHERE MovieID = ? ";
-        }
-        sql += "GROUP BY Status";
-
-        try (Connection conn = DBUtils.getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
-            if (movieId != null && movieId > 0) {
-                stm.setInt(1, movieId);
-            }
-            try (ResultSet rs = stm.executeQuery()) {
-                int total = 0;
-                while (rs.next()) {
-                    String status = rs.getString("Status");
-                    int count = rs.getInt("count");
-                    stats.put(status, count);
-                    total += count;
-                }
-                stats.put("Total", total);
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return stats;
     }
 
     public Schedule getScheduleById(int id) {
@@ -290,5 +241,20 @@ public class ScheduleDAO {
                 endDate,
                 rs.getString("Status")
         );
+    }
+
+    public Set<Integer> getScheduleIdsWithBookedTickets() {
+        Set<Integer> set = new HashSet<>();
+        String sql = "SELECT DISTINCT ScheduleID FROM Ticket";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                set.add(rs.getInt("ScheduleID"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return set;
     }
 }

@@ -55,15 +55,12 @@
                         <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
                     </c:if>
                     <c:if test="${param.error eq 'has_schedules'}">
-                        <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing schedules.</div>
-                    </c:if>
-                    <c:if test="${param.error eq 'cannot_change_layout'}">
-                        <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing bookings.</div>
+                        <div class="cgv-alert cgv-alert-danger">This room has existing schedules — all fields are locked.</div>
                     </c:if>
 
                     <c:if test="${hasSchedules}">
                         <div class="cgv-alert cgv-alert-warning" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
-                            This room has existing schedules. Seat layout (rows/seats) cannot be changed.
+                            This room has existing schedules. All fields are locked and cannot be edited.
                         </div>
                     </c:if>
 
@@ -79,12 +76,14 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Room Number</label>
                                 <input class="cgv-input" type="text" name="roomNumber"
-                                       value="${room.roomNumber}" required>
+                                       value="${room.roomNumber}" required
+                                       ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Room Type</label>
-                                <select class="cgv-select" name="roomType">
+                                <select class="cgv-select" name="roomType"
+                                    ${hasSchedules ? 'disabled style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                                     <option value="2D"   ${room.roomType eq '2D'   ? 'selected' : ''}>2D</option>
                                     <option value="3D"   ${room.roomType eq '3D'   ? 'selected' : ''}>3D</option>
                                     <option value="IMAX" ${room.roomType eq 'IMAX' ? 'selected' : ''}>IMAX</option>
@@ -109,6 +108,7 @@
                             <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
                                 <input type="checkbox" name="active" id="activeCheck"
                                        ${room.active ? 'checked' : ''}
+                                       ${hasSchedules ? 'disabled' : ''}
                                        style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
                                 <label class="cgv-label" for="activeCheck" style="margin-bottom:0;cursor:pointer;">
                                     Active (uncheck to deactivate)

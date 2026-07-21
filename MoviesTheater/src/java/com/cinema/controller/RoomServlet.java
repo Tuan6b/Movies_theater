@@ -5,7 +5,6 @@ import com.cinema.dao.SeatDAO;
 import com.cinema.dao.ScheduleDAO;
 import com.cinema.model.Room;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +37,6 @@ public class RoomServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
 
             String action = request.getParameter("action");
 
@@ -70,7 +68,6 @@ public class RoomServlet extends HttpServlet {
                     listRooms(request, response);
                     break;
             }
-        }
     }
 
     /**
@@ -198,18 +195,15 @@ public class RoomServlet extends HttpServlet {
 
         Room oldRoom = roomDAO.getRoomById(roomId);
 
-        boolean active = request.getParameter("active") != null;
-
-        // If layout changed but room has schedules → reject
-        if (oldRoom != null
-                && (oldRoom.getNumberOfRows() != numberOfRows
-                    || oldRoom.getSeatsPerRow() != seatsPerRow)
-                && scheduleDAO.hasSchedulesForRoom(roomId)) {
+        // Room has schedules → reject all edits
+        if (oldRoom != null && scheduleDAO.hasSchedulesForRoom(roomId)) {
             response.sendRedirect("RoomServlet?action=edit&id="
                     + roomId + "&error=has_schedules&page="
                     + currentPage + "&filter=" + currentFilter);
             return;
         }
+
+        boolean active = request.getParameter("active") != null;
 
         Room room = new Room();
         room.setRoomId(roomId);
@@ -221,19 +215,6 @@ public class RoomServlet extends HttpServlet {
         room.setActive(active);
 
         roomDAO.updateRoom(room);
-
-        if (oldRoom != null
-                && (oldRoom.getNumberOfRows() != numberOfRows
-                    || oldRoom.getSeatsPerRow() != seatsPerRow)) {
-            if (seatDAO.deleteSeatsByRoom(roomId)) {
-                seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
-            } else {
-                response.sendRedirect("RoomServlet?action=edit&id="
-                        + roomId + "&error=cannot_change_layout&page="
-                        + currentPage + "&filter=" + currentFilter);
-                return;
-            }
-        }
 
         response.sendRedirect("RoomServlet?page=" + currentPage
                 + "&filter=" + currentFilter);

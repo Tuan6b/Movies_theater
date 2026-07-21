@@ -5,7 +5,6 @@
 package com.cinema.controller;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +43,6 @@ public class SeatController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
 
             // Get action parameter
             String action = request.getParameter("action");
@@ -66,7 +64,6 @@ public class SeatController extends HttpServlet {
                     viewSeatLayout(request, response);
                     break;
             }
-        }
     }
 
     /**

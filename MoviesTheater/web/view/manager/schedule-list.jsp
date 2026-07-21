@@ -47,26 +47,6 @@
 
         <div class="cgv-table-wrap">
 
-            <!-- Dashboard Statistics -->
-            <div class="cgv-stats-dashboard fade-in" style="display: flex; gap: 16px; margin-bottom: 24px; padding: 16px; background: #fff; border: 1px solid #e1d8d8; border-radius: 8px;">
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Tổng số suất</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats ? scheduleStats['Total'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đang chiếu</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Ongoing'] ? scheduleStats['Ongoing'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Chưa chiếu</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Scheduled'] ? scheduleStats['Scheduled'] : 0}</div>
-                </div>
-                <div class="cgv-stat-card" style="flex: 1; text-align: center;">
-                    <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đã hoàn thành</div>
-                    <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty scheduleStats and not empty scheduleStats['Finished'] ? scheduleStats['Finished'] : 0}</div>
-                </div>
-            </div>
-
             <c:if test="${not empty flashSuccess}">
                 <div style="background:#d4edda;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashSuccess}</div>
             </c:if>
@@ -123,7 +103,7 @@
                                             </c:choose>
                                         </td>
                                         <td>${not empty roomNameMap[s.roomID] ? roomNameMap[s.roomID] : s.roomID}</td>
-                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VND</td>
                                         <td>
                                             <fmt:parseDate value="${s.showDate}" pattern="yyyy-MM-dd" var="parsedDate" type="date"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy"/>
@@ -137,27 +117,39 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <c:if test="${s.status eq 'Scheduled'}">
-                                                    <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline">Edit</a>
-                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline"
-                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete this schedule?')">
-                                                        Delete
-                                                    </a>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Cancelled' or s.status eq 'Finished'}">
-                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline"
-                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete this schedule?')">
-                                                        Delete
-                                                    </a>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Ongoing'}">
-                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
-                                                </c:if>
+                                                <c:choose>
+                                                    <c:when test="${s.status eq 'Scheduled'}">
+                                                        <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline">Edit</a>
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:when test="${s.status eq 'Cancelled'}">
+                                                        <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline">Edit</a>
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:when test="${s.status eq 'Finished'}">
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                         </td>
                                     </tr>
@@ -189,5 +181,24 @@
 
     </div>
 </div>
+
+<script>
+    const scheduleIdsWithTickets = new Set([
+        <c:forEach items="${schedulesWithTickets}" var="sid" varStatus="st">
+            ${sid}${st.last ? '' : ','}
+        </c:forEach>
+    ]);
+
+    function confirmDelete(scheduleId) {
+        if (scheduleIdsWithTickets.has(scheduleId)) {
+            const code = prompt(
+                'This schedule has ticket bookings.\n' +
+                'Type XOALICHCHIEUKHANCAP to confirm cancellation:'
+            );
+            return code === 'XOALICHCHIEUKHANCAP';
+        }
+        return confirm('Delete this schedule?');
+    }
+</script>
 </body>
 </html>

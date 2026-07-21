@@ -156,6 +156,33 @@
                     <input type="hidden" id="selectedPromotionCode" value="<%= cart.getAppliedPromotionCode() != null ? cart.getAppliedPromotionCode() : "" %>">
                 </div>
 
+                <div class="checkout-card">
+                    <h3 class="card-title">Phương thức thanh toán</h3>
+                    <div class="payment-method-list">
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="VNPay" checked>
+                            <span class="payment-method-label">
+                                <strong>VNPay</strong>
+                                <small>Thanh toán qua cổng VNPay (môi trường sandbox demo)</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Card">
+                            <span class="payment-method-label">
+                                <strong>Thẻ ngân hàng</strong>
+                                <small>Thanh toán bằng thẻ tại quầy / demo</small>
+                            </span>
+                        </label>
+                        <label class="payment-method-option">
+                            <input type="radio" name="paymentMethodRadio" value="Cash">
+                            <span class="payment-method-label">
+                                <strong>Tiền mặt</strong>
+                                <small>Thanh toán tiền mặt tại quầy / demo</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
             </div>
 
             <div class="checkout-sidebar">
@@ -187,7 +214,12 @@
                     <form action="<%= request.getContextPath() %>/booking" method="post">
                         <input type="hidden" name="action" value="confirmPayment">
                         <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
+
                         <button type="submit" class="btn btn-next btn-block">Thanh toán qua VNPAY (Thẻ nội địa)</button>
+
+                        <input type="hidden" name="paymentMethod" id="hiddenPaymentMethod" value="VNPay">
+                        <button type="submit" class="btn btn-next btn-block">Xác nhận thanh toán</button>
+
                     </form>
                 </div>
             </div>
@@ -221,6 +253,13 @@
     const hiddenPromotionId = document.getElementById("hiddenPromotionId");
     const discountCodeLabel = document.getElementById("discountCodeLabel");
     const suggestionBadge = document.getElementById("suggestionBadge");
+    const hiddenPaymentMethod = document.getElementById("hiddenPaymentMethod");
+
+    document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function(radio) {
+        radio.addEventListener("change", function() {
+            hiddenPaymentMethod.value = this.value;
+        });
+    });
 
     function formatMoney(value) {
         return new Intl.NumberFormat("vi-VN").format(value) + " đ";
