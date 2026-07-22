@@ -275,8 +275,11 @@ public class ScheduleController extends HttpServlet {
         response.sendRedirect("ScheduleController?movieId=" + movieId);
     }
 
-    /** Check if a schedule can be edited (Scheduled or Cancelled). */
+    /** Check if a schedule can be edited (not Ongoing/Finished). */
     private boolean isEditable(Schedule s) {
+        // Cancelled schedules can always be edited (e.g., reschedule to a new date/time)
+        if ("Cancelled".equals(s.getStatus())) return true;
+
         try {
             String startDt = s.getShowDate() + "T" + s.getStartTime();
             String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
@@ -310,18 +313,25 @@ public class ScheduleController extends HttpServlet {
 
         if (schedule != null && !isEditable(schedule)) {
             request.getSession().setAttribute("flashError",
-                "Only scheduled schedules can be edited.");
+                "This schedule cannot be edited.");
             response.sendRedirect("ScheduleController?movieId=" + schedule.getMovieID());
             return;
         }
 
         List<Room> rooms = roomDAO.getAllRooms();
         String movieName = "";
+        boolean editLocked = false;
+        boolean priceRoomLocked = false;
         if (schedule != null) {
             clsMovie m = movieDAO.getMovieById(schedule.getMovieID());
             if (m != null) movieName = m.getMovieName();
+            boolean hasTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
+            editLocked = hasTickets && "Scheduled".equals(schedule.getStatus());
+            priceRoomLocked = hasTickets && "Cancelled".equals(schedule.getStatus());
         }
 
+        request.setAttribute("editLocked", editLocked);
+        request.setAttribute("priceRoomLocked", priceRoomLocked);
         request.setAttribute("schedule", schedule);
         request.setAttribute("rooms", rooms);
         request.setAttribute("editMovieName", movieName);
@@ -346,8 +356,26 @@ public class ScheduleController extends HttpServlet {
                 response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
                 return;
             }
+
+            boolean hasBookedTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
+
+            if (hasBookedTickets && "Scheduled".equals(existing.getStatus())) {
+                request.getSession().setAttribute("flashError",
+                    "This schedule has ticket bookings and cannot be modified.");
+                response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
+                return;
+            }
+
             movieId = Integer.parseInt(request.getParameter("movieId"));
             int roomId = Integer.parseInt(request.getParameter("roomId"));
+            
+            Room currentRoom = roomDAO.getRoomById(roomId);
+            if (currentRoom == null || !currentRoom.isActive()) {
+                request.getSession().setAttribute("flashError", "Cannot update schedule to an inactive room.");
+                response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
+                return;
+            }
+            
             String showDate = request.getParameter("showDate");
             if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
                 request.getSession().setAttribute("flashError", "Cannot set a schedule date in the past.");
@@ -357,15 +385,17 @@ public class ScheduleController extends HttpServlet {
             String startTime = request.getParameter("startTime");
             String status = request.getParameter("status");
 
-            if ("Cancelled".equals(status)
-                    && !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty()) {
-                request.getSession().setAttribute("flashError",
-                    "Cannot cancel via Edit — schedule has ticket bookings. Use Delete instead.");
-                response.sendRedirect("ScheduleController?movieId=" + movieId);
-                return;
-            }
-
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
+
+            if (hasBookedTickets && "Cancelled".equals(existing.getStatus())) {
+                if (roomId != existing.getRoomID()
+                        || Math.abs(baseTicketPrice - existing.getBaseTicketPrice()) > 0.001) {
+                    request.getSession().setAttribute("flashError",
+                        "Room and price cannot be changed for a schedule with ticket bookings.");
+                    response.sendRedirect("ScheduleController?movieId=" + movieId);
+                    return;
+                }
+            }
 
             clsMovie movie = movieDAO.getMovieById(movieId);
             if (movie == null) {

@@ -49,13 +49,7 @@
                     <input type="hidden" name="action" value="edit">
                     <input type="hidden" name="id" value="${food.foodId}">
 
-                    <div class="cgv-field">
-                        <label class="cgv-label">Type</label>
-                        <select name="type" class="cgv-select">
-                            <option value="retail" ${currentType eq 'retail' ? 'selected' : ''}>Retail</option>
-                            <option value="combo" ${currentType eq 'combo' ? 'selected' : ''}>Combo</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="type" value="${currentType}">
 
                     <div class="cgv-field">
                         <label class="cgv-label">Item Name</label>

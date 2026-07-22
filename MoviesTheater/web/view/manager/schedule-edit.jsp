@@ -46,6 +46,16 @@
             </c:if>
 
             <c:if test="${not empty schedule}">
+            <c:if test="${editLocked}">
+                <div class="cgv-alert" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                    This schedule has ticket bookings and is view-only. Use <strong>Delete</strong> to cancel it.
+                </div>
+            </c:if>
+            <c:if test="${priceRoomLocked}">
+                <div class="cgv-alert" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                    Room and Price are locked because this schedule has ticket bookings.
+                </div>
+            </c:if>
             <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
                 <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
                     SCHEDULE DETAILS
@@ -63,44 +73,71 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">Room</label>
-                        <select class="cgv-select" name="roomId" required>
+                        <select class="cgv-select" name="roomId" required
+                            ${editLocked or priceRoomLocked ? 'disabled' : ''}>
                             <option value="">-- Select Room --</option>
                             <c:forEach var="r" items="${rooms}">
                                 <option value="${r.roomId}" ${r.roomId eq schedule.roomID ? 'selected' : ''}>${r.roomNumber}</option>
                             </c:forEach>
                         </select>
+                        <c:if test="${editLocked or priceRoomLocked}">
+                            <input type="hidden" name="roomId" value="${schedule.roomID}">
+                        </c:if>
                     </div>
 
                     <div class="cgv-field">
                         <label class="cgv-label">Base Ticket Price</label>
                         <input class="cgv-input" type="number" name="baseTicketPrice"
-                               step="0.01" min="0" value="${schedule.baseTicketPrice}" required>
+                               step="0.01" min="0" value="${schedule.baseTicketPrice}" required
+                               ${editLocked or priceRoomLocked ? 'disabled' : ''}>
+                        <c:if test="${editLocked or priceRoomLocked}">
+                            <input type="hidden" name="baseTicketPrice" value="${schedule.baseTicketPrice}">
+                        </c:if>
                     </div>
 
                     <div class="cgv-field">
                         <label class="cgv-label">Show Date</label>
                         <input class="cgv-input" type="date" name="showDate"
-                               value="${schedule.showDate}" required>
+                               value="${schedule.showDate}" required
+                               ${editLocked ? 'disabled' : ''}>
+                        <c:if test="${editLocked}">
+                            <input type="hidden" name="showDate" value="${schedule.showDate}">
+                        </c:if>
                     </div>
 
                     <div class="cgv-field">
                         <label class="cgv-label">Start Time</label>
                         <input class="cgv-input" type="time" name="startTime"
-                               value="${schedule.startTime}" required>
+                               value="${schedule.startTime}" required
+                               ${editLocked ? 'disabled' : ''}>
+                        <c:if test="${editLocked}">
+                            <input type="hidden" name="startTime" value="${schedule.startTime}">
+                        </c:if>
                     </div>
 
                     <div class="cgv-field">
                         <label class="cgv-label">Status</label>
-                        <select class="cgv-select" name="status">
+                        <select class="cgv-select" name="status" ${editLocked ? 'disabled' : ''}>
                             <option value="Scheduled" ${schedule.status eq 'Scheduled' ? 'selected' : ''}>Scheduled</option>
                             <option value="Cancelled" ${schedule.status eq 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                         </select>
+                        <c:if test="${editLocked}">
+                            <input type="hidden" name="status" value="${schedule.status}">
+                        </c:if>
                     </div>
 
                     <div style="display:flex;gap:12px;margin-top:24px;">
-                        <button type="submit" class="btn--cgv">Save Changes</button>
-                        <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
-                           class="btn--cgv-outline">Cancel</a>
+                        <c:choose>
+                            <c:when test="${editLocked}">
+                                <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
+                                   class="btn--cgv">Back to Schedules</a>
+                            </c:when>
+                            <c:otherwise>
+                                <button type="submit" class="btn--cgv">Save Changes</button>
+                                <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
+                                   class="btn--cgv-outline">Cancel</a>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </form>
             </div>

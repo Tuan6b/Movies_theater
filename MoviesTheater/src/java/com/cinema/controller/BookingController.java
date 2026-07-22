@@ -245,7 +245,7 @@ public class BookingController extends HttpServlet {
             int foodId = entry.getKey();
             int qty = entry.getValue();
             Food food = validFoodMap.get(foodId);
-            if (food != null && food.isIsActive()) {
+            if (food != null && food.isActive()) {
                 foodQuantities.put(foodId, qty);
                 foodTotal += food.getPrice() * qty;
             }

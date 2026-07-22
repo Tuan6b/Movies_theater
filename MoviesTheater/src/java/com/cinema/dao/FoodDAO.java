@@ -123,8 +123,8 @@ public class FoodDAO {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isIsCombo());
-            ps.setBoolean(5, true);
+            ps.setBoolean(4, food.isCombo());
+            ps.setBoolean(5, food.isActive());
             ps.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -138,7 +138,7 @@ public class FoodDAO {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isIsCombo());
+            ps.setBoolean(4, food.isCombo());
             ps.setInt(5, food.getFoodId());
             ps.executeUpdate();
         } catch (SQLException ex) {
@@ -174,8 +174,8 @@ public class FoodDAO {
         food.setFoodName(rs.getNString("FoodName"));
         food.setPrice(rs.getDouble("Price"));
         food.setImage(rs.getString("Image"));
-        food.setIsCombo(rs.getBoolean("IsCombo"));
-        food.setIsActive(rs.getBoolean("IsActive"));
+        food.setCombo(rs.getBoolean("IsCombo"));
+        food.setActive(rs.getBoolean("IsActive"));
         return food;
     }
 }
