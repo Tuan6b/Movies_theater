@@ -277,6 +277,9 @@ public class ScheduleController extends HttpServlet {
 
     /** Check if a schedule can be edited (not Ongoing/Finished). */
     private boolean isEditable(Schedule s) {
+        // Cancelled schedules can always be edited (e.g., reschedule to a new date/time)
+        if ("Cancelled".equals(s.getStatus())) return true;
+
         try {
             String startDt = s.getShowDate() + "T" + s.getStartTime();
             String endDt = (s.getEndDate() != null ? s.getEndDate() : s.getShowDate()) + "T" + s.getEndTime();
@@ -365,6 +368,14 @@ public class ScheduleController extends HttpServlet {
 
             movieId = Integer.parseInt(request.getParameter("movieId"));
             int roomId = Integer.parseInt(request.getParameter("roomId"));
+            
+            Room currentRoom = roomDAO.getRoomById(roomId);
+            if (currentRoom == null || !currentRoom.isActive()) {
+                request.getSession().setAttribute("flashError", "Cannot update schedule to an inactive room.");
+                response.sendRedirect("ScheduleController?movieId=" + existing.getMovieID());
+                return;
+            }
+            
             String showDate = request.getParameter("showDate");
             if (showDate != null && LocalDate.parse(showDate).isBefore(LocalDate.now())) {
                 request.getSession().setAttribute("flashError", "Cannot set a schedule date in the past.");

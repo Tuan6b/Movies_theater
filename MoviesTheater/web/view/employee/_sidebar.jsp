@@ -44,7 +44,7 @@
                 <line x1="10" y1="1" x2="10" y2="4"/>
                 <line x1="14" y1="1" x2="14" y2="4"/>
             </svg>
-            Đồ ăn
+            Foods
         </a>
 
         <a href="${pageContext.request.contextPath}/employee/checkin"

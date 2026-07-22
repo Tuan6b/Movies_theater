@@ -90,7 +90,7 @@
                                         <td style="font-weight:600;">${item.foodName}</td>
                                         <td><fmt:formatNumber value="${item.price}" pattern="#,###"/> VND</td>
                                         <td>
-                                            <span class="cgv-badge ${item.isActive ? 'active' : 'inactive'}">${item.isActive ? 'Active' : 'Inactive'}</span>
+                                            <span class="cgv-badge ${item.active ? 'active' : 'inactive'}">${item.active ? 'Active' : 'Inactive'}</span>
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
@@ -98,7 +98,7 @@
                                                     Edit
                                                 </a>
                                                 <c:choose>
-                                                    <c:when test="${item.isActive}">
+                                                    <c:when test="${item.active}">
                                                         <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="id" value="${item.foodId}">

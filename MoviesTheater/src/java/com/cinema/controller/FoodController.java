@@ -49,6 +49,7 @@ public class FoodController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
 
         switch (action != null ? action : "") {
@@ -97,7 +98,7 @@ public class FoodController extends HttpServlet {
                 Food food = foodDAO.getFoodById(id);
                 if (food != null) {
                     request.setAttribute("food", food);
-                    request.setAttribute("currentType", food.isIsCombo() ? "combo" : "retail");
+                    request.setAttribute("currentType", food.isCombo() ? "combo" : "retail");
                 }
             } catch (NumberFormatException ignored) {
             }
@@ -107,7 +108,6 @@ public class FoodController extends HttpServlet {
 
     private void add(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
         String foodName = request.getParameter("foodName");
         String priceStr = request.getParameter("price");
         String image = request.getParameter("image");
@@ -136,8 +136,8 @@ public class FoodController extends HttpServlet {
         food.setFoodName(foodName.trim());
         food.setPrice(price);
         food.setImage(image != null ? image.trim() : null);
-        food.setIsCombo(isCombo);
-        food.setIsActive(true);
+        food.setCombo(isCombo);
+        food.setActive(true);
         foodDAO.addFood(food);
 
         request.getSession().setAttribute("flashSuccess", "Food item added successfully.");
@@ -146,7 +146,6 @@ public class FoodController extends HttpServlet {
 
     private void edit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
         String idStr = request.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/FoodController");
@@ -195,7 +194,7 @@ public class FoodController extends HttpServlet {
         if (image != null) {
             food.setImage(image.trim());
         }
-        food.setIsCombo(isCombo);
+        food.setCombo(isCombo);
         foodDAO.updateFood(food);
 
         request.getSession().setAttribute("flashSuccess", "Food item updated successfully.");

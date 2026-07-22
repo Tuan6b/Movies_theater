@@ -216,6 +216,14 @@ public class RoomServlet extends HttpServlet {
 
         roomDAO.updateRoom(room);
 
+        // Regenerate seats if layout changed
+        if (oldRoom != null
+                && (oldRoom.getNumberOfRows() != numberOfRows
+                    || oldRoom.getSeatsPerRow() != seatsPerRow)) {
+            seatDAO.deleteSeatsByRoom(roomId);
+            seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
+        }
+
         response.sendRedirect("RoomServlet?page=" + currentPage
                 + "&filter=" + currentFilter);
     }
