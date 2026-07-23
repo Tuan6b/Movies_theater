@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <% request.setAttribute("activeNav", "schedules"); %>
 <!DOCTYPE html>
 <html lang="en">
@@ -87,11 +88,12 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">Base Ticket Price</label>
+                        <fmt:formatNumber value="${schedule.baseTicketPrice}" pattern="#" var="formattedBasePrice" />
                         <input class="cgv-input" type="number" name="baseTicketPrice"
-                               step="0.01" min="0" value="${schedule.baseTicketPrice}" required
+                               step="1000" min="0" value="${formattedBasePrice}" required
                                ${editLocked or priceRoomLocked ? 'disabled' : ''}>
                         <c:if test="${editLocked or priceRoomLocked}">
-                            <input type="hidden" name="baseTicketPrice" value="${schedule.baseTicketPrice}">
+                            <input type="hidden" name="baseTicketPrice" value="${formattedBasePrice}">
                         </c:if>
                     </div>
 

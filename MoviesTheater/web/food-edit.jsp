@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <% request.setAttribute("activeNav", "food"); %>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,8 +60,9 @@
 
                     <div class="cgv-field">
                         <label class="cgv-label">Price (VND)</label>
+                        <fmt:formatNumber value="${food.price}" pattern="#" var="formattedPrice" />
                         <input class="cgv-input" type="number" name="price" required min="0" step="1000"
-                               value="${food.price}">
+                               value="${formattedPrice}">
                     </div>
 
                     <div class="cgv-field">
