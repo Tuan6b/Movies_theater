@@ -42,10 +42,6 @@
             <div class="meta-role"><%= acc != null ? acc.getRoleName() : "Khách" %></div>
             <div class="meta-email"><%= acc != null ? acc.getEmail() : "" %></div>
         </div>
-        <nav class="profile-nav">
-            <a href="${pageContext.request.contextPath}/change-password" class="nav-link">Đổi mật khẩu</a>
-            <a href="${pageContext.request.contextPath}/unlock-request" class="nav-link">Yêu cầu mở khóa</a>
-        </nav>
     </div>
 
     <div class="profile-main">

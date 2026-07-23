@@ -36,7 +36,7 @@ public class MailUtil {
     // that would bypass the caller's best-effort try/catch.
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
-    private static final String SMTP_USERNAME = envOrDefault("SMTP_USERNAME", "doantuan2006qc@gmail.com");
+    private static final String SMTP_USERNAME = envOrDefault("SMTP_USERNAME", "huylmhe@fpt.edu.vn");
     private static final String SENDER_NAME = "CGV Cinema";
 
     private static String requireEnv(String envVar) throws MessagingException {
