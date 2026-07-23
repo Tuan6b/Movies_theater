@@ -355,7 +355,7 @@ body {
     transition: border-color 0.2s, background 0.2s;
 }
 
-.payment-method-option:has(input:checked) {
+.payment-method-option.checked {
     border-color: var(--cgv-red);
     background: rgba(231, 26, 15, 0.04);
 }

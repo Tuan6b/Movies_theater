@@ -51,6 +51,9 @@
                 </label>
                 <a href="${pageContext.request.contextPath}/forgot-password" class="auth-forgot">Quên mật khẩu?</a>
             </div>
+            <div style="text-align:right;margin-top:-10px;">
+                <a href="${pageContext.request.contextPath}/unlock-request" style="font-size:12px;color:var(--cgv-text-dim);text-decoration:none;">Tài khoản bị khóa?</a>
+            </div>
 
             <button type="submit" class="auth-btn">Đăng nhập</button>
         </form>
