@@ -20,7 +20,6 @@ public class Account {
     private boolean needsSetup;
     private String resetToken;
     private LocalDateTime resetTokenExpiry;
-    private String avatarUrl;
 
     public Account() {
     }
@@ -141,13 +140,5 @@ public class Account {
 
     public void setWorkingDays(int workingDays) {
         this.workingDays = workingDays;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
     }
 }

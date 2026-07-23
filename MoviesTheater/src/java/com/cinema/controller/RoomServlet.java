@@ -195,15 +195,18 @@ public class RoomServlet extends HttpServlet {
 
         Room oldRoom = roomDAO.getRoomById(roomId);
 
-        // Room has schedules → reject all edits
-        if (oldRoom != null && scheduleDAO.hasSchedulesForRoom(roomId)) {
+        boolean active = request.getParameter("active") != null;
+
+        // If layout changed but room has schedules → reject
+        if (oldRoom != null
+                && (oldRoom.getNumberOfRows() != numberOfRows
+                    || oldRoom.getSeatsPerRow() != seatsPerRow)
+                && scheduleDAO.hasSchedulesForRoom(roomId)) {
             response.sendRedirect("RoomServlet?action=edit&id="
                     + roomId + "&error=has_schedules&page="
                     + currentPage + "&filter=" + currentFilter);
             return;
         }
-
-        boolean active = request.getParameter("active") != null;
 
         Room room = new Room();
         room.setRoomId(roomId);
@@ -216,12 +219,17 @@ public class RoomServlet extends HttpServlet {
 
         roomDAO.updateRoom(room);
 
-        // Regenerate seats if layout changed
         if (oldRoom != null
                 && (oldRoom.getNumberOfRows() != numberOfRows
                     || oldRoom.getSeatsPerRow() != seatsPerRow)) {
-            seatDAO.deleteSeatsByRoom(roomId);
-            seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
+            if (seatDAO.deleteSeatsByRoom(roomId)) {
+                seatDAO.generateSeats(roomId, numberOfRows, seatsPerRow);
+            } else {
+                response.sendRedirect("RoomServlet?action=edit&id="
+                        + roomId + "&error=cannot_change_layout&page="
+                        + currentPage + "&filter=" + currentFilter);
+                return;
+            }
         }
 
         response.sendRedirect("RoomServlet?page=" + currentPage

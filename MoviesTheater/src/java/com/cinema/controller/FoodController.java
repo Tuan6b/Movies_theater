@@ -49,7 +49,6 @@ public class FoodController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
 
         switch (action != null ? action : "") {
@@ -61,9 +60,6 @@ public class FoodController extends HttpServlet {
                 break;
             case "delete":
                 delete(request, response);
-                break;
-            case "restore":
-                restore(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/FoodController");
@@ -98,7 +94,7 @@ public class FoodController extends HttpServlet {
                 Food food = foodDAO.getFoodById(id);
                 if (food != null) {
                     request.setAttribute("food", food);
-                    request.setAttribute("currentType", food.isCombo() ? "combo" : "retail");
+                    request.setAttribute("currentType", food.isIsCombo() ? "combo" : "retail");
                 }
             } catch (NumberFormatException ignored) {
             }
@@ -108,6 +104,7 @@ public class FoodController extends HttpServlet {
 
     private void add(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         String foodName = request.getParameter("foodName");
         String priceStr = request.getParameter("price");
         String image = request.getParameter("image");
@@ -116,7 +113,7 @@ public class FoodController extends HttpServlet {
         boolean isCombo = type.equals("combo");
 
         if (foodName == null || foodName.trim().isEmpty()) {
-            request.getSession().setAttribute("flashError", "Please enter a food name.");
+            request.getSession().setAttribute("flashError", "Vui lòng nhập tên món ăn.");
             response.sendRedirect(request.getContextPath() + "/FoodController?action=add&type=" + type);
             return;
         }
@@ -127,7 +124,7 @@ public class FoodController extends HttpServlet {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException e) {
-            request.getSession().setAttribute("flashError", "Invalid price.");
+            request.getSession().setAttribute("flashError", "Giá không hợp lệ.");
             response.sendRedirect(request.getContextPath() + "/FoodController?action=add&type=" + type);
             return;
         }
@@ -136,16 +133,17 @@ public class FoodController extends HttpServlet {
         food.setFoodName(foodName.trim());
         food.setPrice(price);
         food.setImage(image != null ? image.trim() : null);
-        food.setCombo(isCombo);
-        food.setActive(true);
+        food.setIsActive(true);
+        food.setIsCombo(isCombo);
         foodDAO.addFood(food);
 
-        request.getSession().setAttribute("flashSuccess", "Food item added successfully.");
+        request.getSession().setAttribute("flashSuccess", "Đã thêm món ăn thành công.");
         response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
     }
 
     private void edit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         String idStr = request.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/FoodController");
@@ -168,7 +166,7 @@ public class FoodController extends HttpServlet {
         boolean isCombo = type.equals("combo");
 
         if (foodName == null || foodName.trim().isEmpty()) {
-            request.getSession().setAttribute("flashError", "Please enter a food name.");
+            request.getSession().setAttribute("flashError", "Vui lòng nhập tên món ăn.");
             response.sendRedirect(request.getContextPath() + "/FoodController?action=edit&id=" + id + "&type=" + type);
             return;
         }
@@ -179,7 +177,7 @@ public class FoodController extends HttpServlet {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException e) {
-            request.getSession().setAttribute("flashError", "Invalid price.");
+            request.getSession().setAttribute("flashError", "Giá không hợp lệ.");
             response.sendRedirect(request.getContextPath() + "/FoodController?action=edit&id=" + id + "&type=" + type);
             return;
         }
@@ -194,10 +192,10 @@ public class FoodController extends HttpServlet {
         if (image != null) {
             food.setImage(image.trim());
         }
-        food.setCombo(isCombo);
+        food.setIsCombo(isCombo);
         foodDAO.updateFood(food);
 
-        request.getSession().setAttribute("flashSuccess", "Food item updated successfully.");
+        request.getSession().setAttribute("flashSuccess", "Đã cập nhật món ăn thành công.");
         response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
     }
 
@@ -208,23 +206,7 @@ public class FoodController extends HttpServlet {
             try {
                 int id = Integer.parseInt(idStr);
                 foodDAO.deleteFood(id);
-                request.getSession().setAttribute("flashSuccess", "Food item deactivated.");
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        String type = request.getParameter("type");
-        if (type == null) type = "retail";
-        response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
-    }
-
-    private void restore(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String idStr = request.getParameter("id");
-        if (idStr != null && !idStr.trim().isEmpty()) {
-            try {
-                int id = Integer.parseInt(idStr);
-                foodDAO.restoreFood(id);
-                request.getSession().setAttribute("flashSuccess", "Food item restored.");
+                request.getSession().setAttribute("flashSuccess", "Đã xóa món ăn.");
             } catch (NumberFormatException ignored) {
             }
         }

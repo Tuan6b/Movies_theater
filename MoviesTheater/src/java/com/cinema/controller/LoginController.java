@@ -62,17 +62,7 @@ public class LoginController extends HttpServlet {
                 return;
             }
 
-            Account account = null;
-            try {
-                account = accountDAO.login(email.trim(), password.trim());
-            } catch (Exception e) {
-                System.err.println("[LOGIN_ERROR] Unexpected exception: " + e.getMessage());
-                e.printStackTrace();
-                request.setAttribute("error", "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.");
-                request.setAttribute("email", email);
-                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
-                return;
-            }
+            Account account = accountDAO.login(email.trim(), password.trim());
 
             if (account == null) {
                 SystemLogService.log(null, "LOGIN_FAILED",
