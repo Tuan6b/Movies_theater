@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hồ sơ cá nhân — Nhân viên CGV</title>
+    <title>Hồ sơ cá nhân — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body class="cgv-body">
@@ -14,9 +14,7 @@
 <div class="cgv-main">
     <header class="cgv-header">
         <h1 class="cgv-header-title">Hồ sơ cá nhân</h1>
-        <div class="cgv-header-right">
-            <%@ include file="_notifications.jsp" %>
-        </div>
+        <div class="cgv-header-right"></div>
     </header>
     <div class="cgv-page">
         <%@ include file="/view/common/profile-content.jsp" %>

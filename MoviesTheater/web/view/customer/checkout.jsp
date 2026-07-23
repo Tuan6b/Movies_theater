@@ -251,11 +251,24 @@
     const suggestionBadge = document.getElementById("suggestionBadge");
     const hiddenPaymentMethod = document.getElementById("hiddenPaymentMethod");
 
+    function updatePaymentMethodStyle() {
+        document.querySelectorAll('.payment-method-option').forEach(function(opt) {
+            opt.classList.remove('checked');
+        });
+        var checkedRadio = document.querySelector('input[name="paymentMethodRadio"]:checked');
+        if (checkedRadio) {
+            checkedRadio.closest('.payment-method-option').classList.add('checked');
+        }
+    }
+
     document.querySelectorAll('input[name="paymentMethodRadio"]').forEach(function(radio) {
         radio.addEventListener("change", function() {
             hiddenPaymentMethod.value = this.value;
+            updatePaymentMethodStyle();
         });
     });
+
+    updatePaymentMethodStyle();
 
     function formatMoney(value) {
         return new Intl.NumberFormat("vi-VN").format(value) + " đ";
