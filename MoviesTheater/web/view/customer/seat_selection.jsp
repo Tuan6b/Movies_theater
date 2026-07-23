@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.cinema.model.BookingScheduleView" %>
+<%@ page import="com.cinema.model.BookingCart" %>
 <%@ page import="com.cinema.model.SeatView" %>
 <%@ page import="java.util.List" %>
 
@@ -14,6 +15,11 @@
         response.sendRedirect(request.getContextPath() + "/showtimes");
         return;
     }
+
+    BookingCart currentCart = (BookingCart) session.getAttribute("bookingCart");
+    boolean sameScheduleCart = currentCart != null
+            && currentCart.getScheduleId() == schedule.getScheduleId()
+            && currentCart.getSeatIds() != null;
 
     int totalSeats = seats.size();
     int bookedSeats = 0;
@@ -90,6 +96,8 @@
 
     <link rel="stylesheet"
           href="<%= request.getContextPath() %>/css/seat-selection.css">
+    <link rel="stylesheet"
+          href="<%= request.getContextPath() %>/css/booking-step-navigation.css">
 </head>
 
 <body>
@@ -123,30 +131,45 @@
 
     <main class="seat-container">
 
-        <section class="booking-step">
+        <section class="booking-step" aria-label="Các bước đặt vé">
 
-            <div class="step active">
+            <button type="button"
+                    class="step step-button active"
+                    aria-current="step"
+                    title="Bạn đang ở bước chọn ghế">
                 <span>1</span>
                 <p>Chọn ghế</p>
-            </div>
+            </button>
 
             <div class="step-line"></div>
 
-            <div class="step">
+            <button type="submit"
+                    class="step step-button"
+                    form="seatForm"
+                    name="targetStep"
+                    value="food"
+                    title="Lưu ghế đã chọn và chuyển sang chọn đồ ăn">
                 <span>2</span>
                 <p>Chọn đồ ăn</p>
-            </div>
+            </button>
 
             <div class="step-line"></div>
 
-            <div class="step">
+            <button type="submit"
+                    class="step step-button"
+                    form="seatForm"
+                    name="targetStep"
+                    value="checkout"
+                    title="Lưu ghế đã chọn và chuyển sang thanh toán">
                 <span>3</span>
                 <p>Thanh toán</p>
-            </div>
+            </button>
 
             <div class="step-line"></div>
 
-            <div class="step">
+            <div class="step step-disabled"
+                 aria-disabled="true"
+                 title="Bạn cần hoàn tất thanh toán trước khi nhận vé">
                 <span>4</span>
                 <p>Nhận vé</p>
             </div>
@@ -241,6 +264,7 @@
                                        data-seat-name="<%= seatName %>"
                                        data-price="<%= (int) seatPrice %>"
                                        data-seat-type="<%= seatType %>"
+                                       <%= sameScheduleCart && currentCart.getSeatIds().contains(seat.getSeatId()) && !seat.isBooked() ? "checked" : "" %>
                                        <%= seat.isBooked() ? "disabled" : "" %>>
 
                                 <span><%= seatName %></span>

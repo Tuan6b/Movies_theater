@@ -1,15 +1,18 @@
 package com.cinema.util;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.Code128Writer;
-import java.awt.Color;
-import java.awt.Graphics2D;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class BarcodeUtil {
 
@@ -17,19 +20,12 @@ public class BarcodeUtil {
             throws WriterException {
         Code128Writer writer = new Code128Writer();
         BitMatrix matrix = writer.encode(code, BarcodeFormat.CODE_128, width, height);
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
-        Graphics2D g = image.createGraphics();
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, width, height);
-        g.setColor(Color.BLACK);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (matrix.get(x, y)) {
-                    g.fillRect(x, y, 1, 1);
-                }
+                image.setRGB(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
             }
         }
-        g.dispose();
         return image;
     }
 
@@ -48,6 +44,46 @@ public class BarcodeUtil {
     public static String generateBarcodeDataUri(String code, int width, int height)
             throws WriterException {
         byte[] bytes = generateBarcodeBytes(code, width, height);
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
+    }
+
+    public static BufferedImage generateQrCodeImage(String content, int width, int height)
+            throws WriterException {
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("QR content must not be empty");
+        }
+
+        Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
+        hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
+        hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
+        hints.put(EncodeHintType.MARGIN, 1);
+
+        QRCodeWriter writer = new QRCodeWriter();
+        BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                image.setRGB(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return image;
+    }
+
+    public static byte[] generateQrCodeBytes(String content, int width, int height)
+            throws WriterException {
+        BufferedImage image = generateQrCodeImage(content, width, height);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            javax.imageio.ImageIO.write(image, "png", baos);
+        } catch (IOException e) {
+            writeMinimalPng(image, baos);
+        }
+        return baos.toByteArray();
+    }
+
+    public static String generateQrCodeDataUri(String content, int width, int height)
+            throws WriterException {
+        byte[] bytes = generateQrCodeBytes(content, width, height);
         return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
     }
 

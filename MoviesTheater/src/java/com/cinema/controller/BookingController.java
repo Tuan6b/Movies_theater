@@ -16,7 +16,9 @@ import com.cinema.model.Food;
 import com.cinema.model.Promotion;
 import com.cinema.model.SeatView;
 import com.cinema.model.Ticket;
+import com.cinema.util.BarcodeUtil;
 import com.cinema.util.MailUtil;
+import com.cinema.util.TicketQrUtil;
 import com.cinema.util.VNPayUtil;
 
 import com.google.gson.Gson;
@@ -497,11 +499,20 @@ public class BookingController extends HttpServlet {
         Map<Integer, Food> foodMap = foodDAO.getFoodMapByIds(new ArrayList<>(cart.getFoodQuantities().keySet()));
         double finalTotal = cart.getFinalTotal();
 
+        String bookingCode = TicketQrUtil.getPrimaryTicketCode(tickets);
+        String bookingQrPayload = TicketQrUtil.buildBookingPayload(tickets, cart.getSeatNames());
+        String bookingQrDataUri = null;
+        try {
+            bookingQrDataUri = BarcodeUtil.generateQrCodeDataUri(bookingQrPayload, 240, 240);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         boolean emailSent = false;
         try {
             MailUtil.sendTicketEmail(account.getEmail(), account.getFullName(), schedule, tickets,
-                    cart.getSeatIds(), cart.getSeatNames(), cart.getFoodQuantities(), foodMap,
-                    finalTotal, paymentMethod);
+                    cart.getSeatNames(), cart.getFoodQuantities(), foodMap,
+                    finalTotal, paymentMethod, bookingCode, bookingQrPayload);
             emailSent = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -517,6 +528,8 @@ public class BookingController extends HttpServlet {
         session.setAttribute("flashPaymentMethod", paymentMethod);
         session.setAttribute("flashEmailSent", emailSent);
         session.setAttribute("flashEmail", account.getEmail());
+        session.setAttribute("flashBookingCode", bookingCode);
+        session.setAttribute("flashBookingQrDataUri", bookingQrDataUri);
 
         session.removeAttribute("bookingCart");
         session.removeAttribute("bookingSchedule");
@@ -551,6 +564,8 @@ public class BookingController extends HttpServlet {
         request.setAttribute("paymentMethod", session.getAttribute("flashPaymentMethod"));
         request.setAttribute("emailSent", session.getAttribute("flashEmailSent"));
         request.setAttribute("email", session.getAttribute("flashEmail"));
+        request.setAttribute("bookingCode", session.getAttribute("flashBookingCode"));
+        request.setAttribute("bookingQrDataUri", session.getAttribute("flashBookingQrDataUri"));
 
         session.removeAttribute("flashTickets");
         session.removeAttribute("flashSchedule");
@@ -562,6 +577,8 @@ public class BookingController extends HttpServlet {
         session.removeAttribute("flashPaymentMethod");
         session.removeAttribute("flashEmailSent");
         session.removeAttribute("flashEmail");
+        session.removeAttribute("flashBookingCode");
+        session.removeAttribute("flashBookingQrDataUri");
 
         request.getRequestDispatcher("/view/customer/ticket_confirmation.jsp").forward(request, response);
     }

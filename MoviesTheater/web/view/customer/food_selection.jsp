@@ -30,6 +30,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CGV CINEMA - Chọn bắp nước</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/food-selection.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/booking-step-navigation.css">
 </head>
 <body>
 
@@ -49,29 +50,39 @@
 
     <main class="food-container">
 
-        <section class="booking-step">
-            <div class="step">
+        <section class="booking-step" aria-label="Các bước đặt vé">
+            <a class="step step-link"
+               href="<%= request.getContextPath() %>/booking?action=seat&amp;scheduleId=<%= schedule.getScheduleId() %>"
+               title="Quay lại bước chọn ghế">
                 <span>1</span>
                 <p>Chọn ghế</p>
-            </div>
+            </a>
 
             <div class="step-line"></div>
 
-            <div class="step active">
+            <button type="button"
+                    class="step step-button active"
+                    aria-current="step"
+                    title="Bạn đang ở bước chọn đồ ăn">
                 <span>2</span>
                 <p>Chọn đồ ăn</p>
-            </div>
+            </button>
 
             <div class="step-line"></div>
 
-            <div class="step">
+            <button type="submit"
+                    class="step step-button"
+                    form="foodForm"
+                    title="Lưu đồ ăn đã chọn và chuyển sang thanh toán">
                 <span>3</span>
                 <p>Thanh toán</p>
-            </div>
+            </button>
 
             <div class="step-line"></div>
 
-            <div class="step">
+            <div class="step step-disabled"
+                 aria-disabled="true"
+                 title="Bạn cần hoàn tất thanh toán trước khi nhận vé">
                 <span>4</span>
                 <p>Nhận vé</p>
             </div>
@@ -115,7 +126,7 @@
                                 <span class="food-price"><%= String.format("%,.0f", food.getPrice()) %> đ</span>
                                 <div class="quantity-control">
                                     <button type="button" class="qty-btn dec-btn" data-food-id="<%= food.getFoodId() %>">-</button>
-                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="0" data-price="<%= (int) food.getPrice() %>">
+                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="<%= cart.getFoodQuantities() != null && cart.getFoodQuantities().get(food.getFoodId()) != null ? cart.getFoodQuantities().get(food.getFoodId()) : 0 %>" data-price="<%= (int) food.getPrice() %>">
                                     <button type="button" class="qty-btn inc-btn" data-food-id="<%= food.getFoodId() %>">+</button>
                                 </div>
                             </div>
@@ -153,7 +164,7 @@
                                 <span class="food-price"><%= String.format("%,.0f", food.getPrice()) %> đ</span>
                                 <div class="quantity-control">
                                     <button type="button" class="qty-btn dec-btn" data-food-id="<%= food.getFoodId() %>">-</button>
-                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="0" data-price="<%= (int) food.getPrice() %>">
+                                    <input type="text" class="qty-val" name="qty_<%= food.getFoodId() %>" id="qty_<%= food.getFoodId() %>" value="<%= cart.getFoodQuantities() != null && cart.getFoodQuantities().get(food.getFoodId()) != null ? cart.getFoodQuantities().get(food.getFoodId()) : 0 %>" data-price="<%= (int) food.getPrice() %>">
                                     <button type="button" class="qty-btn inc-btn" data-food-id="<%= food.getFoodId() %>">+</button>
                                 </div>
                             </div>
@@ -262,6 +273,8 @@
             }
         });
     });
+
+    calculateTotal();
 </script>
 
 </body>

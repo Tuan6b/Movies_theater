@@ -29,6 +29,7 @@
     <title>CGV CINEMA - Thanh toán</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/main.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/checkout.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/booking-step-navigation.css">
 </head>
 <body>
 
@@ -47,26 +48,36 @@
 
     <main class="checkout-container">
 
-        <section class="booking-step">
-            <div class="step">
+        <section class="booking-step" aria-label="Các bước đặt vé">
+            <a class="step step-link"
+               href="<%= request.getContextPath() %>/booking?action=seat&amp;scheduleId=<%= schedule.getScheduleId() %>"
+               title="Quay lại bước chọn ghế">
                 <span>1</span>
                 <p>Chọn ghế</p>
-            </div>
+            </a>
             <div class="step-line"></div>
-            <div class="step">
+            <a class="step step-link"
+               href="<%= request.getContextPath() %>/booking?action=food"
+               title="Quay lại bước chọn đồ ăn">
                 <span>2</span>
                 <p>Chọn đồ ăn</p>
-            </div>
+            </a>
             <div class="step-line"></div>
-            <div class="step active">
+            <button type="button"
+                    class="step step-button active"
+                    aria-current="step"
+                    title="Bạn đang ở bước thanh toán">
                 <span>3</span>
                 <p>Thanh toán</p>
-            </div>
+            </button>
             <div class="step-line"></div>
-            <div class="step">
+            <button type="submit"
+                    class="step step-button"
+                    form="paymentForm"
+                    title="Xác nhận thanh toán để nhận vé">
                 <span>4</span>
                 <p>Nhận vé</p>
-            </div>
+            </button>
         </section>
 
         <section class="section-title">
@@ -211,7 +222,7 @@
                         <span id="summaryTotal"><%= String.format("%,.0f", cart.getFinalTotal() > 0 ? cart.getFinalTotal() : cart.getGrandTotal()) %> đ</span>
                     </div>
                     <a href="<%= request.getContextPath() %>/booking?action=food" class="btn btn-back btn-block" style="margin-bottom:10px;">Quay lại</a>
-                    <form action="<%= request.getContextPath() %>/booking" method="post">
+                    <form action="<%= request.getContextPath() %>/booking" method="post" id="paymentForm">
                         <input type="hidden" name="action" value="confirmPayment">
                         <input type="hidden" name="promotionId" id="hiddenPromotionId" value="<%= cart.getAppliedPromotionId() != null ? cart.getAppliedPromotionId() : "" %>">
 

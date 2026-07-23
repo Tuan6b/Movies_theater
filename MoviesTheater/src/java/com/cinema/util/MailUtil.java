@@ -8,6 +8,8 @@ import com.cinema.model.BookingScheduleView;
 import com.cinema.model.Food;
 import com.cinema.model.Ticket;
 
+import com.google.zxing.WriterException;
+import jakarta.activation.DataHandler;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -15,7 +17,10 @@ import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -29,15 +34,14 @@ import java.util.Properties;
  */
 public class MailUtil {
 
-    // SMTP parameters — the password has no source fallback: set the
-    // SMTP_APP_PASSWORD environment variable before booking a ticket.
-    // Read lazily (not as a static final) so a missing var surfaces as a
-    // normal MessagingException from sendTicketEmail, not a class-init Error
-    // that would bypass the caller's best-effort try/catch.
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
     private static final String SMTP_USERNAME = envOrDefault("SMTP_USERNAME", "doantuan2006qc@gmail.com");
     private static final String SENDER_NAME = "CGV Cinema";
+    private static final String BOOKING_QR_CONTENT_ID = "cgv-booking-qr";
+
+    private MailUtil() {
+    }
 
     private static String requireEnv(String envVar) throws MessagingException {
         String value = System.getenv(envVar);
@@ -53,28 +57,57 @@ public class MailUtil {
     }
 
     /**
-     * Sends the e-ticket email for a completed booking to the customer.
+     * Sends one booking QR for the whole booking. The QR resolves the invoice
+     * that owns every selected seat, while Ticket rows remain separate in the
+     * database for seat availability and reporting.
      *
-     * @throws MessagingException if the SMTP send fails (e.g. credentials not configured yet)
+     * @throws MessagingException if the QR cannot be generated or SMTP fails
      */
     public static void sendTicketEmail(String toEmail, String toName, BookingScheduleView schedule,
-            List<Ticket> tickets, List<Integer> seatIds, List<String> seatNames,
+            List<Ticket> tickets, List<String> seatNames,
             Map<Integer, Integer> foodQuantities, Map<Integer, Food> foodMap,
-            double totalAmount, String paymentMethod) throws MessagingException {
+            double totalAmount, String paymentMethod, String bookingCode,
+            String bookingQrPayload) throws MessagingException {
+
+        if (bookingCode == null || bookingCode.trim().isEmpty()
+                || bookingQrPayload == null || bookingQrPayload.trim().isEmpty()) {
+            throw new MessagingException("Booking QR information is missing");
+        }
+
+        byte[] qrBytes;
+        try {
+            qrBytes = BarcodeUtil.generateQrCodeBytes(bookingQrPayload, 280, 280);
+        } catch (WriterException | RuntimeException e) {
+            throw new MessagingException("Unable to generate booking QR code", e);
+        }
 
         Session session = buildSession(requireEnv("SMTP_APP_PASSWORD"));
-
         MimeMessage message = new MimeMessage(session);
         try {
             message.setFrom(new InternetAddress(SMTP_USERNAME, SENDER_NAME));
         } catch (UnsupportedEncodingException e) {
-            message.setFrom(new InternetAddress());
+            message.setFrom(new InternetAddress(SMTP_USERNAME));
         }
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject("Vé xem phim CGV Cinema - " + schedule.getMovieName(), "UTF-8");
-        message.setContent(buildTicketEmailHtml(toName, schedule, tickets, seatIds, seatNames,
-                foodQuantities, foodMap, totalAmount, paymentMethod), "text/html; charset=UTF-8");
 
+        MimeMultipart relatedContent = new MimeMultipart("related");
+
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(buildTicketEmailHtml(toName, schedule, tickets, seatNames,
+                foodQuantities, foodMap, totalAmount, paymentMethod, bookingCode),
+                "text/html; charset=UTF-8");
+        relatedContent.addBodyPart(htmlPart);
+
+        MimeBodyPart qrPart = new MimeBodyPart();
+        qrPart.setDataHandler(new DataHandler(new ByteArrayDataSource(qrBytes, "image/png")));
+        qrPart.setHeader("Content-ID", "<" + BOOKING_QR_CONTENT_ID + ">");
+        qrPart.setHeader("Content-Transfer-Encoding", "base64");
+        qrPart.setFileName("CGV-booking-QR.png");
+        qrPart.setDisposition(MimeBodyPart.INLINE);
+        relatedContent.addBodyPart(qrPart);
+
+        message.setContent(relatedContent);
         Transport.send(message);
     }
 
@@ -94,35 +127,45 @@ public class MailUtil {
     }
 
     private static String buildTicketEmailHtml(String toName, BookingScheduleView schedule,
-            List<Ticket> tickets, List<Integer> seatIds, List<String> seatNames,
+            List<Ticket> tickets, List<String> seatNames,
             Map<Integer, Integer> foodQuantities, Map<Integer, Food> foodMap,
-            double totalAmount, String paymentMethod) {
+            double totalAmount, String paymentMethod, String bookingCode) {
+
+        String seats = seatNames == null || seatNames.isEmpty()
+                ? ""
+                : String.join(", ", seatNames);
+        int ticketCount = tickets == null ? 0 : tickets.size();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;\">");
+        sb.append("<div style=\"font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#222;\">");
         sb.append("<div style=\"background:#151515;padding:20px;text-align:center;\">");
         sb.append("<span style=\"color:#e71a0f;font-size:24px;font-weight:bold;letter-spacing:1px;\">CGV CINEMA</span>");
         sb.append("</div>");
         sb.append("<div style=\"padding:24px;border:1px solid #e2dfcc;\">");
         sb.append("<p>Xin chào ").append(escape(toName)).append(",</p>");
-        sb.append("<p>Cảm ơn bạn đã đặt vé tại CGV Cinema. Dưới đây là thông tin vé của bạn:</p>");
+        sb.append("<p>Cảm ơn bạn đã đặt vé tại CGV Cinema. Một mã QR bên dưới đại diện cho toàn bộ ")
+                .append(ticketCount).append(" vé trong lần đặt này.</p>");
 
         sb.append("<table style=\"width:100%;border-collapse:collapse;margin:16px 0;\">");
         appendInfoRow(sb, "Phim", schedule.getMovieName());
         appendInfoRow(sb, "Suất chiếu", schedule.getStartTime() + " - " + schedule.getShowDate());
         appendInfoRow(sb, "Phòng", schedule.getRoomNumber() + " (" + schedule.getRoomType() + ")");
+        appendInfoRow(sb, "Ghế", seats);
+        appendInfoRow(sb, "Số lượng vé", ticketCount + " vé");
         appendInfoRow(sb, "Phương thức thanh toán", paymentMethod);
         sb.append("</table>");
 
-        sb.append("<h3 style=\"color:#e71a0f;border-bottom:2px solid #151515;padding-bottom:6px;\">Mã vé của bạn</h3>");
-        for (Ticket ticket : tickets) {
-            String seatLabel = findSeatName(seatIds, seatNames, ticket.getSeatId());
-            sb.append("<div style=\"border:1px dashed #e71a0f;border-radius:8px;padding:12px 16px;margin-bottom:10px;\">");
-            sb.append("<div>Ghế: <strong>").append(escape(seatLabel)).append("</strong></div>");
-            sb.append("<div>Mã vé: <strong style=\"font-family:monospace;font-size:16px;letter-spacing:1px;\">")
-                    .append(escape(ticket.getCode())).append("</strong></div>");
-            sb.append("</div>");
-        }
+        sb.append("<div style=\"border:1px dashed #e71a0f;border-radius:12px;padding:20px;text-align:center;background:#fffdf7;margin:20px 0;\">");
+        sb.append("<h3 style=\"color:#e71a0f;margin:0 0 12px;\">MÃ QR NHẬN VÉ</h3>");
+        sb.append("<img src=\"cid:").append(BOOKING_QR_CONTENT_ID)
+                .append("\" width=\"220\" height=\"220\" alt=\"Mã QR nhận vé CGV\" ")
+                .append("style=\"display:block;margin:0 auto 12px;background:#fff;padding:8px;border:1px solid #eee;border-radius:8px;\">");
+        sb.append("<div style=\"font-size:13px;color:#666;margin-bottom:5px;\">Mã đặt vé</div>");
+        sb.append("<div style=\"font-family:monospace;font-size:17px;font-weight:bold;letter-spacing:1px;word-break:break-all;\">")
+                .append(escape(bookingCode)).append("</div>");
+        sb.append("<div style=\"margin-top:10px;font-weight:bold;\">Ghế: ")
+                .append(escape(seats)).append("</div>");
+        sb.append("</div>");
 
         if (foodQuantities != null && !foodQuantities.isEmpty()) {
             sb.append("<h3 style=\"color:#e71a0f;border-bottom:2px solid #151515;padding-bottom:6px;\">Bắp nước</h3>");
@@ -131,7 +174,8 @@ public class MailUtil {
                 if (food == null) {
                     continue;
                 }
-                sb.append("<div>").append(entry.getValue()).append(" x ").append(escape(food.getFoodName())).append("</div>");
+                sb.append("<div>").append(entry.getValue()).append(" x ")
+                        .append(escape(food.getFoodName())).append("</div>");
             }
         }
 
@@ -139,7 +183,7 @@ public class MailUtil {
                 .append(String.format("%,.0f", totalAmount)).append(" đ</p>");
 
         sb.append("<div style=\"background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-top:20px;\">");
-        sb.append("<strong>Lưu ý:</strong> Vui lòng lưu lại email này hoặc chụp màn hình mã vé/QR code để xuất trình tại quầy vé khi đến rạp.");
+        sb.append("<strong>Lưu ý:</strong> Xuất trình một mã QR này hoặc mã đặt vé tại quầy. Nhân viên sẽ xác nhận toàn bộ các ghế trong đơn cùng lúc.");
         sb.append("</div>");
 
         sb.append("</div>");
@@ -151,27 +195,19 @@ public class MailUtil {
     }
 
     private static void appendInfoRow(StringBuilder sb, String label, String value) {
-        sb.append("<tr><td style=\"padding:4px 8px 4px 0;color:#666;white-space:nowrap;\">")
-                .append(escape(label)).append("</td><td style=\"padding:4px 0;font-weight:bold;\">")
+        sb.append("<tr><td style=\"padding:5px 8px 5px 0;color:#666;white-space:nowrap;vertical-align:top;\">")
+                .append(escape(label)).append("</td><td style=\"padding:5px 0;font-weight:bold;\">")
                 .append(escape(value)).append("</td></tr>");
-    }
-
-    private static String findSeatName(List<Integer> seatIds, List<String> seatNames, int seatId) {
-        if (seatIds == null || seatNames == null) {
-            return "";
-        }
-        for (int i = 0; i < seatIds.size(); i++) {
-            if (seatIds.get(i) == seatId) {
-                return seatNames.get(i);
-            }
-        }
-        return "";
     }
 
     private static String escape(String value) {
         if (value == null) {
             return "";
         }
-        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

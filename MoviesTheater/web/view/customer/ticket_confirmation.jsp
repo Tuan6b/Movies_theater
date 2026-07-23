@@ -12,10 +12,20 @@
     String paymentMethod = (String) request.getAttribute("paymentMethod");
     Boolean emailSent = (Boolean) request.getAttribute("emailSent");
     String email = (String) request.getAttribute("email");
+    String bookingCode = (String) request.getAttribute("bookingCode");
+    String bookingQrDataUri = (String) request.getAttribute("bookingQrDataUri");
 
-    if (tickets == null || schedule == null) {
+    if (tickets == null || tickets.isEmpty() || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/index.jsp");
         return;
+    }
+
+    String allSeatNames = seatNames == null || seatNames.isEmpty()
+            ? ""
+            : String.join(", ", seatNames);
+    double ticketTotal = 0;
+    for (Ticket ticket : tickets) {
+        ticketTotal += ticket.getPriceAtBooking();
     }
 %>
 <!DOCTYPE html>
@@ -74,11 +84,12 @@
 
         <div class="reminder-banner">
             <strong>Vui lòng lưu lại vé!</strong>
-            Hãy chụp màn hình hoặc lưu mã vé / QR code bên dưới để xuất trình tại quầy vé khi đến rạp.
+            Một mã QR bên dưới đại diện cho toàn bộ <%= tickets.size() %> vé và các ghế <strong><%= allSeatNames %></strong>.
+            Xuất trình mã QR hoặc mã đặt vé tại quầy để nhân viên xác nhận tất cả ghế cùng lúc.
             <% if (Boolean.TRUE.equals(emailSent)) { %>
-                Vé cũng đã được gửi tới email <strong><%= email %></strong>.
+                Vé có kèm mã QR cũng đã được gửi tới email <strong><%= email %></strong>.
             <% } else { %>
-                Không thể gửi email vé lúc này — vui lòng lưu lại thông tin bên dưới để đảm bảo an toàn.
+                Không thể gửi email vé lúc này — vui lòng lưu lại mã QR và mã đặt vé bên dưới.
             <% } %>
         </div>
 
@@ -97,25 +108,43 @@
 
                 <div class="checkout-card">
                     <h3 class="card-title">Vé của bạn (<%= tickets.size() %> vé)</h3>
-                    <div class="ticket-grid">
-                        <% for (Ticket ticket : tickets) {
-                            String seatLabel = "";
-                            if (seatIds != null && seatNames != null) {
-                                for (int i = 0; i < seatIds.size(); i++) {
-                                    if (seatIds.get(i) == ticket.getSeatId()) {
-                                        seatLabel = seatNames.get(i);
-                                        break;
+                    <div class="ticket-grid single-ticket-grid">
+                        <div class="ticket-card booking-ticket-card">
+                            <% if (bookingQrDataUri != null && !bookingQrDataUri.isEmpty()) { %>
+                                <div class="ticket-qr booking-qr">
+                                    <img src="<%= bookingQrDataUri %>" alt="Mã QR nhận toàn bộ vé">
+                                </div>
+                            <% } else { %>
+                                <div class="qr-fallback">Không thể tạo ảnh QR. Vui lòng dùng mã đặt vé bên dưới.</div>
+                            <% } %>
+
+                            <div class="booking-code-label">Mã đặt vé</div>
+                            <div class="ticket-code booking-code"><%= bookingCode %></div>
+                            <div class="ticket-seat booking-seats">Ghế: <%= allSeatNames %></div>
+
+                            <div class="ticket-seat-list">
+                                <% for (Ticket ticket : tickets) {
+                                    String seatLabel = "";
+                                    if (seatIds != null && seatNames != null) {
+                                        for (int i = 0; i < seatIds.size(); i++) {
+                                            if (seatIds.get(i) == ticket.getSeatId()) {
+                                                seatLabel = seatNames.get(i);
+                                                break;
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        %>
-                        <div class="ticket-card">
-                            <div class="ticket-qr" data-code="<%= ticket.getCode() %>"></div>
-                            <div class="ticket-seat">Ghế <%= seatLabel %></div>
-                            <div class="ticket-code"><%= ticket.getCode() %></div>
-                            <div class="ticket-price"><%= String.format("%,.0f", ticket.getPriceAtBooking()) %> đ</div>
+                                %>
+                                <div class="ticket-seat-row">
+                                    <span>Ghế <strong><%= seatLabel %></strong></span>
+                                    <span><%= String.format("%,.0f", ticket.getPriceAtBooking()) %> đ</span>
+                                </div>
+                                <% } %>
+                            </div>
+
+                            <div class="ticket-price booking-ticket-total">
+                                Tổng tiền vé: <%= String.format("%,.0f", ticketTotal) %> đ
+                            </div>
                         </div>
-                        <% } %>
                     </div>
                 </div>
 
@@ -165,20 +194,6 @@
     </footer>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"
-        integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU"
-        crossorigin="anonymous"></script>
-<script>
-    document.querySelectorAll(".ticket-qr").forEach(function (el) {
-        new QRCode(el, {
-            text: el.dataset.code,
-            width: 140,
-            height: 140,
-            correctLevel: QRCode.CorrectLevel.M
-        });
-    });
-</script>
 
 </body>
 </html>
