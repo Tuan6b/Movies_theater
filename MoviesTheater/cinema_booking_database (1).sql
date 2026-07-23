@@ -258,15 +258,6 @@ CREATE TABLE Notification (
 CREATE INDEX IDX_Notification_AccountID ON Notification(AccountID);
 CREATE INDEX IDX_Notification_AccountID_IsRead ON Notification(AccountID, IsRead);
 
-CREATE TABLE SystemConfig (
-    ConfigKey   VARCHAR(100)   NOT NULL PRIMARY KEY,
-    ConfigValue NVARCHAR(MAX)  NULL,
-    Description NVARCHAR(255)  NULL,
-    UpdatedAt   DATETIME       NOT NULL DEFAULT GETDATE(),
-    UpdatedBy   INT            NULL,
-    CONSTRAINT FK_SystemConfig_Account FOREIGN KEY (UpdatedBy) REFERENCES Account(AccountID)
-);
-
 CREATE INDEX IDX_Account_Email ON Account(Email);
 CREATE INDEX IDX_Account_RoleID ON Account(RoleID);
 CREATE INDEX IDX_Schedule_StartTime ON Schedule(StartTime);
@@ -463,18 +454,6 @@ UPDATE Promotion SET
         WHEN StartDate <= GETDATE() AND EndDate >= GETDATE() THEN 1
         ELSE 0
     END;
-
--- System config defaults
-INSERT INTO SystemConfig (ConfigKey, ConfigValue, Description) VALUES
-    ('cinema_name',           N'CGV Cinema',        N'Tên rạp chiếu phim'),
-    ('cinema_address',        N'Hà Nội, Việt Nam',  N'Địa chỉ rạp'),
-    ('cinema_phone',          '1900 6017',           N'Số điện thoại liên hệ'),
-    ('cinema_email',          'hotro@cgv.vn',        N'Email liên hệ'),
-    ('banner_url',            '',                    N'URL ảnh banner trang chủ'),
-    ('max_seats_per_booking', '8',                   N'Số ghế tối đa mỗi lần đặt'),
-    ('cancel_hours_before',   '2',                   N'Số giờ tối thiểu trước suất chiếu để hủy'),
-    ('base_ticket_price',     '90000',               N'Giá vé cơ bản mặc định (VND)');
-GO -- THÊM LỆNH GO TẠI ĐÂY ĐỂ NGẮT LÔ THỰC THI
 
 -- Available seats for a given schedule
 CREATE VIEW vw_AvailableSeats AS

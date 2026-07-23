@@ -1,13 +1,10 @@
 package com.cinema.controller;
 
-import com.cinema.model.Account;
 import com.cinema.util.DBUtils;
-import com.cinema.util.SystemLogService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -16,7 +13,6 @@ public class AdminServlet extends HttpServlet {
 
     private static final String DASHBOARD_JSP = "/view/admin/dashboard.jsp";
     private static final String LOGS_JSP      = "/view/admin/logs/index.jsp";
-    private static final String CONFIG_JSP    = "/view/admin/config/index.jsp";
 
     private static final int PAGE_SIZE = 50;
 
@@ -32,13 +28,6 @@ public class AdminServlet extends HttpServlet {
         switch (path) {
             case "/logs":
                 showLogs(request, response);
-                break;
-            case "/config":
-                if ("POST".equalsIgnoreCase(request.getMethod())) {
-                    saveConfig(request, response);
-                } else {
-                    showConfig(request, response);
-                }
                 break;
             default:
                 showDashboard(request, response);
@@ -196,92 +185,6 @@ public class AdminServlet extends HttpServlet {
         request.setAttribute("searchQuery",  searchQuery);
         request.setAttribute("actionTypes",  actionTypes);
         request.getRequestDispatcher(LOGS_JSP).forward(request, response);
-    }
-
-    // ─── UC 50: System Config ────────────────────────────────────────────────
-
-    private void showConfig(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            String ok  = (String) session.getAttribute("flashSuccess");
-            String err = (String) session.getAttribute("flashError");
-            if (ok  != null) { request.setAttribute("flashSuccess", ok);  session.removeAttribute("flashSuccess"); }
-            if (err != null) { request.setAttribute("flashError",   err); session.removeAttribute("flashError"); }
-        }
-
-        Map<String, String> config = loadConfig();
-        request.setAttribute("config", config);
-        request.getRequestDispatcher(CONFIG_JSP).forward(request, response);
-    }
-
-    private void saveConfig(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-
-        String[] keys = {
-            "cinema_name", "cinema_address", "cinema_phone", "cinema_email",
-            "banner_url", "max_seats_per_booking", "cancel_hours_before", "base_ticket_price"
-        };
-
-        Account actor = (Account) request.getSession().getAttribute("account");
-        Integer updatedBy = actor != null ? actor.getAccountId() : null;
-
-        // SQL Server MERGE for upsert
-        String mergeSql =
-            "MERGE SystemConfig AS t "
-            + "USING (VALUES (?, ?, ?)) AS s(ConfigKey, ConfigValue, UpdatedBy) ON t.ConfigKey = s.ConfigKey "
-            + "WHEN MATCHED THEN "
-            + "  UPDATE SET ConfigValue = s.ConfigValue, UpdatedAt = GETDATE(), UpdatedBy = s.UpdatedBy "
-            + "WHEN NOT MATCHED THEN "
-            + "  INSERT (ConfigKey, ConfigValue, UpdatedAt, UpdatedBy) "
-            + "  VALUES (s.ConfigKey, s.ConfigValue, GETDATE(), s.UpdatedBy);";
-
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(mergeSql)) {
-            for (String key : keys) {
-                String value = request.getParameter(key);
-                if (value == null) value = "";
-                ps.setString(1, key);
-                ps.setString(2, value.trim());
-                if (updatedBy != null) ps.setInt(3, updatedBy); else ps.setNull(3, Types.INTEGER);
-                ps.addBatch();
-            }
-            ps.executeBatch();
-
-            SystemLogService.log(updatedBy, "CONFIG_UPDATE",
-                    "System configuration updated", request.getRemoteAddr());
-
-            request.getSession().setAttribute("flashSuccess", "Cấu hình hệ thống đã được lưu.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            request.getSession().setAttribute("flashError", "Lỗi khi lưu cấu hình: " + e.getMessage());
-        }
-
-        response.sendRedirect(request.getContextPath() + "/admin/config");
-    }
-
-    private Map<String, String> loadConfig() {
-        Map<String, String> cfg = new LinkedHashMap<>();
-        cfg.put("cinema_name",           "CGV Cinema");
-        cfg.put("cinema_address",        "Hà Nội, Việt Nam");
-        cfg.put("cinema_phone",          "1900 6017");
-        cfg.put("cinema_email",          "hotro@cgv.vn");
-        cfg.put("banner_url",            "");
-        cfg.put("max_seats_per_booking", "8");
-        cfg.put("cancel_hours_before",   "2");
-        cfg.put("base_ticket_price",     "90000");
-
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT ConfigKey, ConfigValue FROM SystemConfig");
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) cfg.put(rs.getString("ConfigKey"), rs.getString("ConfigValue"));
-        } catch (SQLException e) {
-            // SystemConfig table may not exist yet — defaults are used
-            e.printStackTrace();
-        }
-        return cfg;
     }
 
     @Override
