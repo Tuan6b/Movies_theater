@@ -86,7 +86,9 @@ public class LoginController extends HttpServlet {
             if (account.isIsBlocked()) {
                 SystemLogService.log(account.getAccountId(), "LOGIN_BLOCKED",
                         "Blocked account login attempt: " + email.trim(), request.getRemoteAddr());
-                request.setAttribute("error", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+                request.setAttribute("isBlocked", true);
+                request.setAttribute("blockedEmail", email.trim());
+                request.setAttribute("blockedName", account.getFullName());
                 request.setAttribute("email", email);
                 request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                 return;
