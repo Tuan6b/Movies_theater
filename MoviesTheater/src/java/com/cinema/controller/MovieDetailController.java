@@ -46,11 +46,6 @@ public class MovieDetailController extends HttpServlet {
                 schedules = scheduleDAO.getSchedulesByMovieAndDate(movieId, selectedDate);
             }
 
-            // Fetch genres for the movie
-            com.cinema.dao.GenreDAO genreDAO = new com.cinema.dao.GenreDAO();
-            List<com.cinema.model.Genre> genres = genreDAO.getGenresByMovieId(movieId);
-            request.setAttribute("genres", genres);
-
             request.setAttribute("movie", movie);
             request.setAttribute("availableDates", availableDates);
             request.setAttribute("selectedDate", selectedDate);
@@ -96,9 +91,7 @@ public class MovieDetailController extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.setContentType("text/plain");
-            response.getWriter().print("Error in MovieDetailController: " + e.getMessage());
-            e.printStackTrace(response.getWriter());
+            response.sendRedirect(request.getContextPath() + "/HomeController");
         }
     }
 }

@@ -40,30 +40,6 @@ public class GenreDAO extends DBContext {
     }
     
     /**
-     * Retrieves all genres assigned to a specific movie.
-     *
-     * @param movieId The ID of the movie.
-     * @return A list of Genre objects.
-     */
-    public List<Genre> getGenresByMovieId(int movieId) {
-        List<Genre> list = new ArrayList<>();
-        String sql = "SELECT g.GenreID, g.GenreName FROM Genre g JOIN MovieGenre mg ON g.GenreID = mg.GenreID WHERE mg.MovieID = ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, movieId);
-            ResultSet rs = st.executeQuery();
-            while (rs.next()) {
-                int genreID = rs.getInt("GenreID");
-                String genreName = rs.getString("GenreName");
-                list.add(new Genre(genreID, genreName));
-            }
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-        return list;
-    }
-    
-    /**
      * Inserts a new genre into the database.
      *
      * @param genreName The name of the new genre to be added.

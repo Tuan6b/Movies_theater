@@ -118,14 +118,6 @@ public class RegisterController extends HttpServlet {
                 return;
             }
 
-            if (phoneNumber != null && !phoneNumber.trim().isEmpty() && accountDAO.isPhoneExist(phoneNumber.trim())) {
-                Map<String, String> phoneErr = new HashMap<>();
-                phoneErr.put("phoneNumber", "Số điện thoại này đã được sử dụng.");
-                setFormAttributes(request, fullName, email, phoneNumber, phoneErr, "Số điện thoại này đã được sử dụng.");
-                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
-                return;
-            }
-
             Account account = new Account();
             account.setFullName(fullName.trim());
             account.setEmail(email.trim());
