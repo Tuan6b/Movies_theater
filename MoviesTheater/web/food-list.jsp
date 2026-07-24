@@ -53,7 +53,7 @@
                        class="cgv-pill ${currentType eq 'combo' ? 'active' : ''}">Combo</a>
                 </div>
                 <a href="${pageContext.request.contextPath}/FoodController?action=add&amp;type=${currentType}" class="btn--cgv" style="margin-left:auto;">
-                    + Add Item
+                    + Add Food
                 </a>
             </div>
 
