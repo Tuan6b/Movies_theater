@@ -153,8 +153,7 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-        </script>
+
 
         <script>
             // Hàm hiển thị Form Sửa
@@ -171,21 +170,9 @@
 
             // Hàm Xác nhận Xóa thể loại
             function confirmDeleteGenre(id, name) {
-                Swal.fire({
-                    title: 'Cảnh báo xóa!',
-                    html: `Bạn có chắc chắn muốn xóa thể loại <b>${name}</b> không?<br>Hành động này không thể hoàn tác!`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e50914',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Đồng ý Xóa!',
-                    cancelButtonText: 'Hủy bỏ'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Submit cái form Xóa tương ứng
-                        document.getElementById('delete-form-' + id).submit();
-                    }
-                });
+                if (confirm('Bạn có chắc chắn muốn xóa thể loại "' + name + '" không?\nHành động này không thể hoàn tác!')) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
             }
         </script>
 
