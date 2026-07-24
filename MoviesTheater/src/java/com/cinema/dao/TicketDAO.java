@@ -1,6 +1,7 @@
 package com.cinema.dao;
 
 import com.cinema.model.Account;
+import com.cinema.model.Food;
 import com.cinema.model.Invoice;
 import com.cinema.model.Seat;
 import com.cinema.model.Ticket;
@@ -15,6 +16,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -220,6 +222,158 @@ public class TicketDAO {
 
             conn.commit();
             return codes;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            return new ArrayList<>();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Performs a transaction to save a customer self-checkout booking:
+     * 1. Inserts an Invoice with discount, payment method and status 'Paid'.
+     * 2. Inserts a Ticket for each seat (with pre-computed per-seat price).
+     * 3. Inserts an InvoiceFood row for each selected food item.
+     * 4. Increments promotion UsedCount if a promotion was applied.
+     * Returns the list of created Ticket rows (with generated codes), in the
+     * same order as seatIds, or an empty list on failure (e.g. a seat was
+     * booked by someone else in the meantime).
+     */
+    public List<Ticket> createCustomerBooking(int scheduleId, List<Integer> seatIds, List<Double> seatPrices,
+            int accountId, String paymentMethod, Integer promotionId, double discountAmount,
+            Map<Integer, Integer> foodQuantities, Map<Integer, Food> foodMap) {
+        String sqlInvoice = """
+                            INSERT INTO Invoice (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount, PaymentMethod, PaymentStatus, CreatedAt)
+                            VALUES (?, ?, ?, ?, ?, ?, 'Paid', GETDATE())
+                            """;
+        String sqlTicket = """
+                           INSERT INTO Ticket (ScheduleID, SeatID, InvoiceID, PriceAtBooking, Code, IsCheckedIn, CheckedInAt)
+                           VALUES (?, ?, ?, ?, ?, 0, NULL)
+                           """;
+        String sqlInvoiceFood = """
+                                INSERT INTO InvoiceFood (InvoiceID, FoodID, Quantity, PriceAtBooking)
+                                VALUES (?, ?, ?, ?)
+                                """;
+
+        Connection conn = null;
+        try {
+            conn = DBUtils.getConnection();
+            conn.setAutoCommit(false);
+
+            double ticketSubtotal = 0.0;
+            for (double price : seatPrices) {
+                ticketSubtotal += price;
+            }
+
+            double foodSubtotal = 0.0;
+            if (foodQuantities != null) {
+                for (Map.Entry<Integer, Integer> entry : foodQuantities.entrySet()) {
+                    Food food = foodMap != null ? foodMap.get(entry.getKey()) : null;
+                    if (food != null) {
+                        foodSubtotal += food.getPrice() * entry.getValue();
+                    }
+                }
+            }
+
+            double subtotal = ticketSubtotal + foodSubtotal;
+            double totalAmount = Math.max(0.0, subtotal - discountAmount);
+
+            // 1. Insert Invoice
+            int invoiceId = -1;
+            try (PreparedStatement psInvoice = conn.prepareStatement(sqlInvoice, Statement.RETURN_GENERATED_KEYS)) {
+                psInvoice.setInt(1, accountId);
+                if (promotionId != null) {
+                    psInvoice.setInt(2, promotionId);
+                } else {
+                    psInvoice.setNull(2, Types.INTEGER);
+                }
+                psInvoice.setDouble(3, subtotal);
+                psInvoice.setDouble(4, discountAmount);
+                psInvoice.setDouble(5, totalAmount);
+                psInvoice.setString(6, paymentMethod);
+                psInvoice.executeUpdate();
+
+                try (ResultSet keys = psInvoice.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        invoiceId = keys.getInt(1);
+                    }
+                }
+            }
+
+            if (invoiceId == -1) {
+                throw new SQLException("Failed to retrieve generated Invoice ID");
+            }
+
+            // 2. Insert Tickets and collect the created rows (with codes)
+            List<Ticket> tickets = new ArrayList<>();
+            try (PreparedStatement psTicket = conn.prepareStatement(sqlTicket)) {
+                for (int i = 0; i < seatIds.size(); i++) {
+                    int seatId = seatIds.get(i);
+                    double seatPrice = seatPrices.get(i);
+                    String ticketCode = "TK-" + scheduleId + "-" + seatId + "-"
+                            + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+                    psTicket.setInt(1, scheduleId);
+                    psTicket.setInt(2, seatId);
+                    psTicket.setInt(3, invoiceId);
+                    psTicket.setDouble(4, seatPrice);
+                    psTicket.setString(5, ticketCode);
+                    psTicket.addBatch();
+
+                    Ticket ticket = new Ticket();
+                    ticket.setScheduleId(scheduleId);
+                    ticket.setSeatId(seatId);
+                    ticket.setInvoiceId(invoiceId);
+                    ticket.setPriceAtBooking(seatPrice);
+                    ticket.setCode(ticketCode);
+                    tickets.add(ticket);
+                }
+                psTicket.executeBatch();
+            }
+
+            // 3. Insert InvoiceFood rows for selected food items
+            if (foodQuantities != null && !foodQuantities.isEmpty()) {
+                try (PreparedStatement psFood = conn.prepareStatement(sqlInvoiceFood)) {
+                    for (Map.Entry<Integer, Integer> entry : foodQuantities.entrySet()) {
+                        Food food = foodMap != null ? foodMap.get(entry.getKey()) : null;
+                        if (food == null) {
+                            continue;
+                        }
+                        psFood.setInt(1, invoiceId);
+                        psFood.setInt(2, entry.getKey());
+                        psFood.setInt(3, entry.getValue());
+                        psFood.setDouble(4, food.getPrice());
+                        psFood.addBatch();
+                    }
+                    psFood.executeBatch();
+                }
+            }
+
+            // 4. Increment promotion usage counter
+            if (promotionId != null) {
+                try (PreparedStatement psPromo = conn.prepareStatement(
+                        "UPDATE Promotion SET UsedCount = UsedCount + 1 WHERE PromotionID = ?")) {
+                    psPromo.setInt(1, promotionId);
+                    psPromo.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return tickets;
         } catch (SQLException ex) {
             ex.printStackTrace();
             if (conn != null) {

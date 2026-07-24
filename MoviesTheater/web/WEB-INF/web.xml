@@ -230,6 +230,62 @@
         <servlet-name>FoodController</servlet-name>
         <url-pattern>/FoodController</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>BookingController</servlet-name>
+        <servlet-class>com.cinema.controller.BookingController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BookingController</servlet-name>
+        <url-pattern>/booking</url-pattern>
+    </servlet-mapping>
+    <!-- Profile -->
+    <servlet>
+        <servlet-name>ProfileController</servlet-name>
+        <servlet-class>com.cinema.controller.ProfileController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileController</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <!-- Avatar Upload -->
+    <servlet>
+        <servlet-name>AvatarUploadServlet</servlet-name>
+        <servlet-class>com.cinema.controller.AvatarUploadServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AvatarUploadServlet</servlet-name>
+        <url-pattern>/avatar-upload</url-pattern>
+    </servlet-mapping>
+
+    <!-- Unlock Request -->
+    <servlet>
+        <servlet-name>UnlockRequestServlet</servlet-name>
+        <servlet-class>com.cinema.controller.UnlockRequestServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UnlockRequestServlet</servlet-name>
+        <url-pattern>/unlock-request</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UnlockRequestServlet</servlet-name>
+        <url-pattern>/unlock-request/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- Deletion Request -->
+    <servlet>
+        <servlet-name>DeletionRequestServlet</servlet-name>
+        <servlet-class>com.cinema.controller.DeletionRequestServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestServlet</servlet-name>
+        <url-pattern>/deletion-request</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DeletionRequestServlet</servlet-name>
+        <url-pattern>/deletion-request/*</url-pattern>
+    </servlet-mapping>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

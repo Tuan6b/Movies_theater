@@ -15,9 +15,9 @@ public class AccountDAO {
 
     public Account login(String email, String password) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
                 + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.Email = ?";
 
@@ -33,7 +33,7 @@ public class AccountDAO {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("[LOGIN_DEBUG] SQLException: " + e.getMessage());
+            System.err.println("[LOGIN_DB_ERROR] SQLException: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -90,9 +90,9 @@ public class AccountDAO {
 
     public Account getAccountById(int accountId) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
                 + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.AccountID = ?";
 
@@ -112,9 +112,9 @@ public class AccountDAO {
 
     public Account getAccountByEmail(String email) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
                 + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.Email = ?";
 
@@ -161,9 +161,9 @@ public class AccountDAO {
 
     public Account getAccountByResetToken(String token) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
                 + "FROM Account a "
-                + "JOIN Role r ON a.RoleID = r.RoleID "
+                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.ResetToken = ? AND a.ResetTokenExpiry > GETDATE()";
         try (Connection conn = DBUtils.getConnection();
@@ -192,6 +192,19 @@ public class AccountDAO {
         return false;
     }
 
+    public boolean setBlocked(int accountId, boolean blocked) {
+        String sql = "UPDATE Account SET IsBlocked = ? WHERE AccountID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, blocked);
+            ps.setInt(2, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean clearNeedsSetup(int accountId) {
         String sql = "UPDATE Account SET AccountStatus = 'active' WHERE AccountID = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -210,7 +223,8 @@ public class AccountDAO {
         account.setEmail(rs.getString("Email"));
         account.setPassword(rs.getString("Password").trim());
         account.setRoleId(rs.getInt("RoleID"));
-        account.setRoleName(rs.getNString("RoleName"));
+        String rn = rs.getNString("RoleName");
+        account.setRoleName(rn != null ? rn : "Unknown");
         account.setIsBlocked(rs.getBoolean("IsBlocked"));
         account.setNeedsSetup("pending".equals(rs.getString("AccountStatus")));
 
@@ -221,6 +235,7 @@ public class AccountDAO {
 
         account.setFullName(rs.getNString("FullName"));
         account.setPhoneNumber(rs.getString("PhoneNumber"));
+        account.setAvatarUrl(rs.getString("AvatarURL"));
         return account;
     }
 }
