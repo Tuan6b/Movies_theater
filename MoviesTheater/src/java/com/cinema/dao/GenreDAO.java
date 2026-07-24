@@ -1,5 +1,6 @@
 package com.cinema.dao;
 
+import com.cinema.util.DBUtils;
 import com.cinema.model.Genre;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

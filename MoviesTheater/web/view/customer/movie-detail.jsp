@@ -327,7 +327,6 @@
             <div class="md-cast">
                 <div class="md-cast-header">
                     <h2 class="md-section-title" style="margin:0;">Diễn Viên Chính</h2>
-                    <a href="#" class="md-view-all">XEM TẤT CẢ</a>
                 </div>
                 <div class="md-cast-grid">
                     <c:set var="castList" value="${fn:split(movie.cast, ',')}" />
