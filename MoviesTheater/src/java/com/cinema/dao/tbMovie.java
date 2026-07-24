@@ -230,14 +230,12 @@ public class tbMovie {
 
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
+            int paramIndex = 1;
+            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+                ps.setString(paramIndex++, "%" + searchKeyword.trim() + "%");
+            }
             if (genreId != null && !genreId.trim().isEmpty()) {
-                int paramIndex = 1;
-                if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                    ps.setString(paramIndex++, "%" + searchKeyword.trim() + "%");
-                }
-                if (genreId != null && !genreId.trim().isEmpty()) {
-                    ps.setInt(paramIndex, Integer.parseInt(genreId));
-                }
+                ps.setInt(paramIndex, Integer.parseInt(genreId));
             }
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -369,21 +367,32 @@ public class tbMovie {
     // Cập nhật bảng MovieGenre (Xóa thể loại cũ, chèn thể loại mới vào)
     public void updateMovieGenres(int movieId, String[] genreIds) {
         try (Connection conn = DBUtils.getConnection()) {
-            String deleteSql = "DELETE FROM MovieGenre WHERE MovieID = ?";
-            try (PreparedStatement psDel = conn.prepareStatement(deleteSql)) {
-                psDel.setInt(1, movieId);
-                psDel.executeUpdate();
-            }
-            if (genreIds != null && genreIds.length > 0) {
-                String insertSql = "INSERT INTO MovieGenre (MovieID, GenreID) VALUES (?, ?)";
-                try (PreparedStatement psIns = conn.prepareStatement(insertSql)) {
-                    for (String gId : genreIds) {
-                        psIns.setInt(1, movieId);
-                        psIns.setInt(2, Integer.parseInt(gId));
-                        psIns.addBatch();
-                    }
-                    psIns.executeBatch();
+            conn.setAutoCommit(false); // Bắt đầu transaction
+            try {
+                String deleteSql = "DELETE FROM MovieGenre WHERE MovieID = ?";
+                try (PreparedStatement psDel = conn.prepareStatement(deleteSql)) {
+                    psDel.setInt(1, movieId);
+                    psDel.executeUpdate();
                 }
+                if (genreIds != null && genreIds.length > 0) {
+                    String insertSql = "INSERT INTO MovieGenre (MovieID, GenreID) VALUES (?, ?)";
+                    try (PreparedStatement psIns = conn.prepareStatement(insertSql)) {
+                        for (String gId : genreIds) {
+                            psIns.setInt(1, movieId);
+                            try {
+                                psIns.setInt(2, Integer.parseInt(gId.trim()));
+                                psIns.addBatch();
+                            } catch (NumberFormatException ignored) {}
+                        }
+                        psIns.executeBatch();
+                    }
+                }
+                conn.commit(); // Commit transaction
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback nếu có lỗi
+                e.printStackTrace();
+            } finally {
+                conn.setAutoCommit(true); // Trả lại trạng thái mặc định
             }
         } catch (SQLException e) {
             e.printStackTrace();

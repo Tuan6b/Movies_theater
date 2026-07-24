@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.tbMovie;
+import com.cinema.model.Account;
 import com.cinema.model.clsMovie;
 import java.io.IOException;
 import java.sql.Date;
@@ -9,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -16,9 +18,30 @@ public class MovieController extends HttpServlet {
 
     private final tbMovie movieDAO = new tbMovie();
 
+    /**
+     * Kiểm tra quyền Manager (roleId >= 4).
+     * Trả về true nếu KHÔNG có quyền (cần chặn lại).
+     */
+    private boolean isNotManager(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("account") == null) {
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return true;
+        }
+        Account account = (Account) session.getAttribute("account");
+        if (account.getRoleId() < 4) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        if (isNotManager(request, response)) return;
 
         String action = request.getParameter("action");
 
@@ -29,8 +52,28 @@ public class MovieController extends HttpServlet {
                 request.getRequestDispatcher("/view/manager/add_movie.jsp").forward(request, response);
 
             } else if ("edit".equals(action)) {
-                int movieId = Integer.parseInt(request.getParameter("id"));
+                String idStr = request.getParameter("id");
+                if (idStr == null || idStr.trim().isEmpty()) {
+                    request.setAttribute("error", "Lỗi: ID phim không được để trống!");
+                    request.getRequestDispatcher("/view/manager/manage_movie.jsp").forward(request, response);
+                    return;
+                }
+                
+                int movieId;
+                try {
+                    movieId = Integer.parseInt(idStr);
+                } catch (NumberFormatException e) {
+                    request.setAttribute("error", "Lỗi: ID phim không hợp lệ!");
+                    request.getRequestDispatcher("/view/manager/manage_movie.jsp").forward(request, response);
+                    return;
+                }
+
                 clsMovie movie = movieDAO.getMovieById(movieId);
+                if (movie == null) {
+                    request.setAttribute("error", "Lỗi: Không tìm thấy phim với ID đã cho!");
+                    request.getRequestDispatcher("/view/manager/manage_movie.jsp").forward(request, response);
+                    return;
+                }
                 request.setAttribute("movie", movie);
 
                 // Đẩy list thể loại và các thể loại phim đang có sẵn ra JSP
@@ -61,13 +104,29 @@ public class MovieController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        if (isNotManager(request, response)) return;
+
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
 
         try {
             if ("toggleStatus".equals(action)) {
                 // UC-16: Toggle enable - disable movie
-                int movieId = Integer.parseInt(request.getParameter("movieId"));
+                String movieIdStr = request.getParameter("movieId");
+                if (movieIdStr == null || movieIdStr.trim().isEmpty()) {
+                    request.getSession().setAttribute("error", "Lỗi: ID phim không hợp lệ.");
+                    response.sendRedirect(request.getContextPath() + "/MovieController");
+                    return;
+                }
+                
+                int movieId;
+                try {
+                    movieId = Integer.parseInt(movieIdStr);
+                } catch (NumberFormatException e) {
+                    request.getSession().setAttribute("error", "Lỗi: ID phim không đúng định dạng.");
+                    response.sendRedirect(request.getContextPath() + "/MovieController");
+                    return;
+                }
                 
                 boolean isSuccess = movieDAO.toggleMovieStatus(movieId);
 
@@ -100,10 +159,21 @@ public class MovieController extends HttpServlet {
                             weeklyRevenueRank = oldMovie.getWeeklyRevenueRank();
                             ticketsSoldMilestone = oldMovie.getTicketsSoldMilestone();
                         }
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        System.out.println("Lỗi lấy thông tin phim cũ: " + e.getMessage());
+                    }
                 }
-                int duration = Integer.parseInt(request.getParameter("duration"));
-                int ageRestriction = Integer.parseInt(request.getParameter("ageRestriction"));
+                int duration = 0;
+                int ageRestriction = 0;
+                try {
+                    duration = Integer.parseInt(request.getParameter("duration"));
+                    ageRestriction = Integer.parseInt(request.getParameter("ageRestriction"));
+                } catch (NumberFormatException e) {
+                    request.setAttribute("error", "Lỗi: Thời lượng hoặc Giới hạn độ tuổi không hợp lệ!");
+                    String targetJSP = "add".equals(action) ? "/view/manager/add_movie.jsp" : "/view/manager/edit_movie.jsp";
+                    request.getRequestDispatcher(targetJSP).forward(request, response);
+                    return;
+                }
                 String language = request.getParameter("language");
                 String subtitle = request.getParameter("subtitle");
                 String director = request.getParameter("director");
@@ -132,7 +202,14 @@ public class MovieController extends HttpServlet {
                         isSuccess = false;
                     }
                 } else {
-                    int movieIdToUpdate = Integer.parseInt(request.getParameter("movieId"));
+                    int movieIdToUpdate;
+                    try {
+                        movieIdToUpdate = Integer.parseInt(request.getParameter("movieId"));
+                    } catch (NumberFormatException e) {
+                        request.setAttribute("error", "Lỗi: ID phim không hợp lệ!");
+                        request.getRequestDispatcher("/view/manager/edit_movie.jsp").forward(request, response);
+                        return;
+                    }
                     movie.setMovieId(movieIdToUpdate);
                     
                     clsMovie existingMovie = movieDAO.getMovieById(movieIdToUpdate);

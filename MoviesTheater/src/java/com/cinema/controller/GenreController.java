@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.GenreDAO;
+import com.cinema.model.Account;
 import com.cinema.model.Genre;
 import java.util.List;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Controller servlet handling all HTTP requests related to Genre management.
@@ -17,6 +19,25 @@ import jakarta.servlet.http.HttpServletResponse;
  * @version 1.0 24/05/2026
  */
 public class GenreController extends HttpServlet {
+
+    /**
+     * Kiểm tra quyền Manager (roleId >= 4).
+     * Trả về true nếu KHÔNG có quyền (cần chặn lại).
+     */
+    private boolean isNotManager(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("account") == null) {
+            response.sendRedirect(request.getContextPath() + "/Login");
+            return true;
+        }
+        Account account = (Account) session.getAttribute("account");
+        if (account.getRoleId() < 4) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            return true;
+        }
+        return false;
+    }
    
     /** 
      * Handles the HTTP <code>GET</code> method.
@@ -31,6 +52,7 @@ public class GenreController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         
+        if (isNotManager(request, response)) return;
         // Initialize the DAO object to interact with the database.
         GenreDAO dao = new GenreDAO();
         
@@ -56,6 +78,7 @@ public class GenreController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (isNotManager(request, response)) return;
         request.setCharacterEncoding("UTF-8");
         
         // Retrieve the "action" paramenter from the hidden input field.
@@ -82,8 +105,12 @@ public class GenreController extends HttpServlet {
             // "edit" case.
             } else if ("edit".equals(action)) {
                 
-                // Parse ID from String to integer.
-                int genreID = Integer.parseInt(request.getParameter("genreID"));
+                int genreID;
+                try {
+                    genreID = Integer.parseInt(request.getParameter("genreID"));
+                } catch (NumberFormatException e) {
+                    throw new Exception("ID thể loại không hợp lệ!");
+                }
                 String newName = request.getParameter("genreName");
                 
                 // Check the validility of the new name.
@@ -96,7 +123,12 @@ public class GenreController extends HttpServlet {
                 
             // "delete" case.
             } else if ("delete".equals(action)) {
-                int genreID = Integer.parseInt(request.getParameter("genreID"));
+                int genreID;
+                try {
+                    genreID = Integer.parseInt(request.getParameter("genreID"));
+                } catch (NumberFormatException e) {
+                    throw new Exception("ID thể loại không hợp lệ!");
+                }
                 dao.deleteGenre(genreID);
                 request.setAttribute("success", "Thể loại đã được xoá thành công");
             }
