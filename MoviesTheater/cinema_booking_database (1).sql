@@ -56,8 +56,8 @@ CREATE TABLE Movie (
     AgeRestriction INT NOT NULL DEFAULT 0,
     IsActive BIT NOT NULL DEFAULT 1,
     DateAdded DATETIME NULL,
-    Budget VARCHAR(50) NULL,
-    GlobalBoxOffice VARCHAR(50) NULL,
+    Budget NVARCHAR(50) NULL,
+    GlobalBoxOffice NVARCHAR(50) NULL,
     WeeklyRevenueRank INT NULL DEFAULT 0,
     TicketsSoldMilestone INT NULL DEFAULT 0
 );

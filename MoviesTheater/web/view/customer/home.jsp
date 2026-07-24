@@ -20,10 +20,9 @@
                 </a>
 
                 <nav class="site-nav">
-                    <a href="${pageContext.request.contextPath}/HomeController?status=showing" class="${currentStatus == 'showing' ? 'active' : ''}">Phim Đang Chiếu</a>
-                    <a href="${pageContext.request.contextPath}/HomeController?status=upcoming" class="${currentStatus == 'upcoming' ? 'active' : ''}">Phim Sắp Chiếu</a>
-                    <a href="#">Rạp & Giá Vé</a>
-                    <a href="#">Thành Viên</a>
+                    <a href="${pageContext.request.contextPath}/HomeController" class="${empty currentStatus ? 'active' : ''}">Trang Chủ</a>
+                    <a href="${pageContext.request.contextPath}/HomeController#now-showing">Phim Đang Chiếu</a>
+                    <a href="${pageContext.request.contextPath}/HomeController#upcoming">Phim Sắp Chiếu</a>
                 </nav>
 
                 <div class="site-header-actions">
@@ -126,7 +125,7 @@
 
                 <!-- update: Showing and Upcoming sections -->
                 <!-- ================= PHẦN PHIM ĐANG CHIẾU ================= -->
-                <section class="section" style="padding-top: 0;">
+                <section class="section" id="now-showing" style="padding-top: 0;">
                     <div class="section-inner" style="padding: 0;">
                         <div class="section-eyebrow">Đang chiếu rạp</div>
                         <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; margin-bottom: 32px;">
@@ -191,7 +190,7 @@
                 </section>
 
                 <!-- ================= PHẦN PHIM SẮP CHIẾU ================= -->
-                <section class="section" style="padding-top: 40px;">
+                <section class="section" id="upcoming" style="padding-top: 40px;">
                     <div class="section-inner" style="padding: 0;">
                         <div class="section-eyebrow">Sắp ra mắt</div>
                         <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; margin-bottom: 32px;">
