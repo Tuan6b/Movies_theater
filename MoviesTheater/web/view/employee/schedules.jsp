@@ -2,11 +2,11 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <% request.setAttribute("activeNav", "schedules"); %>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lịch chiếu phim — Nhân viên CGV</title>
+    <title>Show Schedule — CGV Staff</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
 </head>
 <body class="cgv-body">
@@ -16,7 +16,7 @@
 <div class="cgv-main">
 
     <header class="cgv-header">
-        <h1 class="cgv-header-title">Quản lý Lịch chiếu &amp; Vé tại quầy</h1>
+        <h1 class="cgv-header-title">Schedule &amp; Counter Ticket Management</h1>
         <div class="cgv-header-right">
             <%@ include file="_notifications.jsp" %>
             <div class="cgv-user-wrap">
@@ -40,14 +40,14 @@
                 <div class="cgv-data-toolbar" style="padding: 20px; background: #fafafb; border-bottom: 1px solid var(--cgv-border); border-radius: 12px 12px 0 0;">
                     <form method="get" action="${pageContext.request.contextPath}/employee/schedules" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
                         <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">NGÀY CHIẾU</label>
+                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">SHOW DATE</label>
                             <input class="cgv-input" style="width:180px;height:38px;" type="date" name="date" value="${selectedDate}">
                         </div>
 
                         <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">PHIM</label>
+                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">MOVIE</label>
                             <select class="cgv-select" style="width:240px;height:38px;" name="movieId">
-                                <option value="">Tất cả phim</option>
+                                <option value="">All movies</option>
                                 <c:forEach var="m" items="${movieList}">
                                     <option value="${m.movieId}" ${selectedMovieId eq m.movieId ? 'selected' : ''}>${m.movieName}</option>
                                 </c:forEach>
@@ -55,16 +55,16 @@
                         </div>
 
                         <div style="display:flex; flex-direction:column; gap:4px;">
-                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">PHÒNG CHIẾU</label>
+                            <label style="font-size:11px; font-weight:700; color:rgba(94,63,58,0.5);">ROOM</label>
                             <select class="cgv-select" style="width:160px;height:38px;" name="roomId">
-                                <option value="">Tất cả phòng</option>
+                                <option value="">All rooms</option>
                                 <c:forEach var="r" items="${roomList}">
                                     <option value="${r.roomId}" ${selectedRoomId eq r.roomId ? 'selected' : ''}>${r.roomNumber} (${r.roomType})</option>
                                 </c:forEach>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn--cgv" style="height:38px; align-self:flex-end;">Lọc kết quả</button>
+                        <button type="submit" class="btn--cgv" style="height:38px; align-self:flex-end;">Filter</button>
                     </form>
                 </div>
 
@@ -72,14 +72,14 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Phim</th>
-                            <th>Phòng</th>
-                            <th>Giờ bắt đầu</th>
-                            <th>Giờ kết thúc</th>
-                            <th>Vé đã bán</th>
-                            <th>Giá vé cơ bản</th>
-                            <th>Trạng thái</th>
-                            <th style="text-align:right;">Thao tác</th>
+                            <th>Movie</th>
+                            <th>Room</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Tickets Sold</th>
+                            <th>Base Price</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,7 +93,7 @@
                                         <td style="font-weight:700; color:var(--cgv-primary);">${s.startTime}</td>
                                         <td style="color:rgba(94,63,58,0.6);">${s.endTime}</td>
                                         <td>
-                                            <strong style="color:var(--cgv-dark);">${seatsSoldList[st.index]}</strong> / ${s.room.capacity} ghế
+                                            <strong style="color:var(--cgv-dark);">${seatsSoldList[st.index]}</strong> / ${s.room.capacity} seats
                                         </td>
                                         <td style="font-weight:600; color:var(--cgv-dark);">${s.baseTicketPrice} VND</td>
                                         <td>
@@ -104,10 +104,10 @@
                                         <td style="text-align:right;">
                                             <div style="display:inline-flex; gap:8px; justify-content:flex-end;">
                                                 <a href="${pageContext.request.contextPath}/employee/tickets?scheduleId=${s.scheduleId}" class="btn--cgv-outline" style="font-size:12px; padding:6px 12px;">
-                                                    Xem Vé Đã Đặt
+                                                    View Tickets
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/employee/book?scheduleId=${s.scheduleId}" class="btn--cgv" style="font-size:12px; padding:6px 12px; background:var(--cgv-primary);">
-                                                    Bán Vé Quầy
+                                                    Counter Sale
                                                 </a>
                                             </div>
                                         </td>
@@ -117,7 +117,7 @@
                             <c:otherwise>
                                 <tr>
                                     <td colspan="9" style="text-align:center;padding:64px;color:rgba(94,63,58,0.4);">
-                                        Không tìm thấy suất chiếu nào cho ngày được chọn.
+                                        No showtimes found for the selected date.
                                     </td>
                                 </tr>
                             </c:otherwise>

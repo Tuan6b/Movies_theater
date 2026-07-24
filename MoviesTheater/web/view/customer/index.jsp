@@ -40,6 +40,7 @@
                     <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
                         Xin chào, <strong>${sessionScope.account.fullName}</strong>
                     </span>
+                    <a href="${pageContext.request.contextPath}/profile" class="btn btn-ghost" style="margin-right: 8px;">Trang cá nhân</a>
                     <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost" style="margin-right: 8px;">Đăng xuất</a>
                     <c:choose>
                         <c:when test="${sessionScope.account.roleId == 5}">

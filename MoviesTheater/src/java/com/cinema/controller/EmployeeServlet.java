@@ -222,13 +222,19 @@ public class EmployeeServlet extends HttpServlet {
             errors.put("email", "Email is required");
             return;
         }
-        if (!email.trim().matches("^[^@]+@[^@]+\\.[^@]+$")) {
+        if (!isValidEmailFormat(email)) {
             errors.put("email", "Invalid email format");
             return;
         }
         if (employeeDAO.isEmailExist(email.trim(), excludeId)) {
             errors.put("email", "Email already in use");
         }
+    }
+
+    // Package-private (not private) so EmployeeServletValidateEmailTest, in the
+    // same package under test/, can call it directly without reflection.
+    static boolean isValidEmailFormat(String email) {
+        return email != null && email.trim().matches("^[^@]+@[^@]+\\.[^@]+$");
     }
 
     private void validateFullName(String fullName, Map<String, String> errors) {

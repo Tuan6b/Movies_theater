@@ -3,6 +3,7 @@ package com.cinema.controller;
 import com.cinema.dao.AccountDAO;
 import com.cinema.model.Account;
 import com.cinema.util.GoogleOAuthConfig;
+import com.cinema.util.MailUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import jakarta.servlet.ServletException;
@@ -43,20 +44,23 @@ public class LoginGoogleController extends HttpServlet {
             String error = request.getParameter("error");
 
             if (error != null || code == null) {
-                response.sendRedirect(request.getContextPath() + "/Login");
+                request.setAttribute("error", "Đăng nhập Google bị hủy hoặc thất bại.");
+                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                 return;
             }
 
             try {
                 String accessToken = exchangeCodeForToken(code);
                 if (accessToken == null) {
-                    response.sendRedirect(request.getContextPath() + "/Login");
+                    request.setAttribute("error", "Không thể lấy mã xác thực từ Google. Vui lòng thử lại.");
+                    request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                     return;
                 }
 
                 JsonObject userInfo = getUserInfo(accessToken);
                 if (userInfo == null || !userInfo.has("email")) {
-                    response.sendRedirect(request.getContextPath() + "/Login");
+                    request.setAttribute("error", "Không thể lấy thông tin người dùng từ Google.");
+                    request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                     return;
                 }
 
@@ -70,11 +74,26 @@ public class LoginGoogleController extends HttpServlet {
                     account.setPassword("");
                     account.setRoleId(2);
                     account.setFullName(fullName);
-                    int id = accountDAO.register(account);
-                    if (id > 0) {
-                        account = accountDAO.getAccountById(id);
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/Register");
+                    try {
+                        int id = accountDAO.register(account);
+                        if (id > 0) {
+                            account = accountDAO.getAccountById(id);
+                            try {
+                                MailUtil.sendWelcomeEmail(account.getEmail(), account.getFullName());
+                            } catch (Exception mailEx) {
+                                System.err.println("[GoogleLogin] Welcome email failed: " + mailEx.getMessage());
+                            }
+                        } else {
+                            System.err.println("[GoogleLogin] register() returned -1 for email: " + email);
+                            request.setAttribute("error", "Đăng nhập Google thất bại. Vui lòng kiểm tra kết nối database và thử lại.");
+                            request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
+                            return;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[GoogleLogin] Exception during register: " + e.getMessage());
+                        e.printStackTrace();
+                        request.setAttribute("error", "Đăng nhập Google thất bại: " + e.getMessage());
+                        request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
                         return;
                     }
                 }
@@ -82,11 +101,20 @@ public class LoginGoogleController extends HttpServlet {
                 HttpSession session = request.getSession();
                 session.setAttribute("account", account);
                 session.setMaxInactiveInterval(30 * 60);
-                response.sendRedirect(request.getContextPath() + "/");
+
+                String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
+                if (redirectAfterLogin != null && !redirectAfterLogin.trim().isEmpty()) {
+                    session.removeAttribute("redirectAfterLogin");
+                    response.sendRedirect(redirectAfterLogin);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/");
+                }
 
             } catch (Exception e) {
+                System.err.println("[GoogleLogin] Unhandled exception: " + e.getMessage());
                 e.printStackTrace();
-                response.sendRedirect(request.getContextPath() + "/Login");
+                request.setAttribute("error", "Đăng nhập Google thất bại: lỗi hệ thống. Vui lòng thử lại sau.");
+                request.getRequestDispatcher("/view/auth/login.jsp").forward(request, response);
             }
 
         } else {

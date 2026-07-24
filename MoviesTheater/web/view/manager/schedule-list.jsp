@@ -103,7 +103,7 @@
                                             </c:choose>
                                         </td>
                                         <td>${not empty roomNameMap[s.roomID] ? roomNameMap[s.roomID] : s.roomID}</td>
-                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
+                                        <td><fmt:formatNumber value="${s.baseTicketPrice}" type="number" maxFractionDigits="0"/> VND</td>
                                         <td>
                                             <fmt:parseDate value="${s.showDate}" pattern="yyyy-MM-dd" var="parsedDate" type="date"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy"/>
@@ -117,27 +117,39 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <c:if test="${s.status eq 'Scheduled'}">
-                                                    <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline">Edit</a>
-                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline"
-                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete this schedule?')">
-                                                        Delete
-                                                    </a>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Cancelled' or s.status eq 'Finished'}">
-                                                    <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                       class="btn--cgv-outline"
-                                                       style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                       onclick="return confirm('Delete this schedule?')">
-                                                        Delete
-                                                    </a>
-                                                </c:if>
-                                                <c:if test="${s.status eq 'Ongoing'}">
-                                                    <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
-                                                </c:if>
+                                                <c:choose>
+                                                    <c:when test="${s.status eq 'Scheduled'}">
+                                                        <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline">Edit</a>
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:when test="${s.status eq 'Cancelled'}">
+                                                        <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline">Edit</a>
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:when test="${s.status eq 'Finished'}">
+                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
+                                                           class="btn--cgv-outline"
+                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           onclick="return confirmDelete(${s.scheduleID})">
+                                                            Delete
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                         </td>
                                     </tr>
@@ -169,5 +181,24 @@
 
     </div>
 </div>
+
+<script>
+    const scheduleIdsWithTickets = new Set([
+        <c:forEach items="${schedulesWithTickets}" var="sid" varStatus="st">
+            ${sid}${st.last ? '' : ','}
+        </c:forEach>
+    ]);
+
+    function confirmDelete(scheduleId) {
+        if (scheduleIdsWithTickets.has(scheduleId)) {
+            const code = prompt(
+                'This schedule has ticket bookings.\n' +
+                'Type XOALICHCHIEUKHANCAP to confirm cancellation:'
+            );
+            return code === 'XOALICHCHIEUKHANCAP';
+        }
+        return confirm('Delete this schedule?');
+    }
+</script>
 </body>
 </html>

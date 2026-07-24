@@ -17,6 +17,7 @@
     String errEmail = fieldErrors.getOrDefault("email", "");
     String errPassword = fieldErrors.getOrDefault("password", "");
     String errConfirm = fieldErrors.getOrDefault("confirmPassword", "");
+    String errCaptcha = fieldErrors.getOrDefault("captcha", "");
     String generalError = (String) request.getAttribute("error");
 %>
 
@@ -110,6 +111,36 @@
                 </span>
             </div>
 
+<%
+    String captchaText = (String) request.getAttribute("captchaText");
+    if (captchaText == null) captchaText = "";
+    String[] captchaChars = captchaText.split("");
+    java.util.Random rnd = new java.util.Random();
+%>
+            <div class="auth-field<%= !errCaptcha.isEmpty() ? " has-error" : "" %>" id="captchaGroup">
+                <label for="captcha">Mã xác nhận <span class="required">*</span></label>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <div style="display:flex;gap:4px;align-items:center;padding:6px 12px;background:#f3f4f6;border-radius:6px;border:1px solid #d1d5db;user-select:none;font-size:24px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:4px;height:42px;box-sizing:border-box;">
+                        <% for (String ch : captchaChars) {
+                            int r = 50 + rnd.nextInt(150);
+                            int g = 50 + rnd.nextInt(150);
+                            int b = 50 + rnd.nextInt(150);
+                            double rot = (rnd.nextDouble() - 0.5) * 0.3;
+                        %>
+                        <span style="display:inline-block;transform:rotate(<%= rot %>rad);color:rgb(<%= r %>,<%= g %>,<%= b %>);"><%= ch %></span>
+                        <% } %>
+                    </div>
+                    <input type="text" id="captcha" name="captcha" placeholder="Nhập mã" required maxlength="5"
+                           style="flex:1;min-width:100px;padding:10px 12px;text-transform:uppercase;letter-spacing:3px;font-weight:bold;border:1px solid var(--cgv-border);border-radius:6px;font-size:14px;outline:none;"
+                           data-error="Vui lòng nhập mã xác nhận.">
+                    <button type="button" onclick="refreshCaptcha()" style="padding:8px 12px;border:1px solid var(--cgv-border);border-radius:6px;background:#fff;cursor:pointer;font-size:13px;white-space:nowrap;">Làm mới</button>
+                </div>
+                <span class="field-error<%= !errCaptcha.isEmpty() ? " show" : "" %>" id="captchaError">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <span><%= !errCaptcha.isEmpty() ? errCaptcha : "" %></span>
+                </span>
+            </div>
+
             <button type="submit" class="auth-btn">Đăng ký</button>
         </form>
 
@@ -196,6 +227,14 @@ function validateField(input) {
                 showError(fieldId, errorId, null);
             }
             break;
+        case "captcha":
+            // Client-side only checks emptiness; server validates actual value
+            if (isEmpty) {
+                showError(fieldId, errorId, input.getAttribute("data-error"));
+            } else {
+                showError(fieldId, errorId, null);
+            }
+            break;
     }
 }
 
@@ -242,6 +281,34 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
         if (firstErr) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 });
+
+function refreshCaptcha() {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var txt = xhr.responseText;
+            var container = document.querySelector("#captchaGroup > div > div:first-child");
+            if (container) {
+                var chars = txt.split("");
+                container.innerHTML = "";
+                for (var i = 0; i < chars.length; i++) {
+                    var r = 50 + Math.floor(Math.random() * 150);
+                    var g = 50 + Math.floor(Math.random() * 150);
+                    var b = 50 + Math.floor(Math.random() * 150);
+                    var rot = (Math.random() - 0.5) * 0.3;
+                    var span = document.createElement("span");
+                    span.style.cssText = "display:inline-block;transform:rotate(" + rot + "rad);color:rgb(" + r + "," + g + "," + b + ");";
+                    span.textContent = chars[i];
+                    container.appendChild(span);
+                }
+            }
+            document.getElementById("captcha").value = "";
+            document.getElementById("captcha").focus();
+        }
+    };
+    xhr.open("GET", "${pageContext.request.contextPath}/Register?refreshCaptcha=1", true);
+    xhr.send();
+}
 </script>
 
 </body>
