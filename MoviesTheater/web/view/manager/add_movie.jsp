@@ -207,7 +207,7 @@
                                         return;
                                     }
 
-                                    // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
+                                    // Chỉ cập nhật số liệu về kinh tế
                                     let hasUpdate = false;
 
                                     if (data.Budget && data.Budget !== "0") {

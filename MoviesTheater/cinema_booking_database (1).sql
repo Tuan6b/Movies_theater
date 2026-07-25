@@ -56,8 +56,8 @@ CREATE TABLE Movie (
     AgeRestriction INT NOT NULL DEFAULT 0,
     IsActive BIT NOT NULL DEFAULT 1,
     DateAdded DATETIME NULL,
-    Budget VARCHAR(50) NULL,
-    GlobalBoxOffice VARCHAR(50) NULL,
+    Budget NVARCHAR(50) NULL,
+    GlobalBoxOffice NVARCHAR(50) NULL,
     WeeklyRevenueRank INT NULL DEFAULT 0,
     TicketsSoldMilestone INT NULL DEFAULT 0
 );
@@ -568,4 +568,16 @@ CREATE TABLE UnlockRequest (
     ReviewedAt DATETIME NULL,
     CONSTRAINT FK_UnlockRequest_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
     CONSTRAINT FK_UnlockRequest_ReviewedBy FOREIGN KEY (ReviewedBy) REFERENCES Account(AccountID)
+);
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('DeletionRequest') AND type = 'U')
+CREATE TABLE DeletionRequest (
+    RequestID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountID INT NOT NULL,
+    Reason NVARCHAR(MAX) NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    ReviewedBy INT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ReviewedAt DATETIME NULL,
+    CONSTRAINT FK_DeletionRequest_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
+    CONSTRAINT FK_DeletionRequest_ReviewedBy FOREIGN KEY (ReviewedBy) REFERENCES Account(AccountID)
 );

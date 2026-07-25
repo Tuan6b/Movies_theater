@@ -211,6 +211,7 @@
                             <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
                                 Xin chào, <strong>${sessionScope.account.fullName}</strong>
                             </span>
+                            <a href="${pageContext.request.contextPath}/profile" class="btn btn-ghost" style="margin-right: 8px;">Trang cá nhân</a>
                             <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost" style="margin-right: 8px;">Đăng xuất</a>
                             <c:if test="${sessionScope.account.roleId >= 3}">
                                 <a href="${pageContext.request.contextPath}/manager" class="btn btn-primary">Quản Lý</a>
@@ -249,6 +250,17 @@
                 <span>${movie.duration} PHÚT</span>
                 <span><fmt:formatDate value="${movie.dateAdded}" pattern="dd 'THÁNG' MM, yyyy"/></span>
                 <span>C-${movie.ageRestriction}</span>
+                <c:if test="${not empty genres}">
+                    <span style="border-left: 2px solid var(--cgv-border); padding-left: 15px; margin-left: 5px;">
+                        <c:forEach var="genre" items="${genres}" varStatus="status">
+                            ${genre.genreName}${not status.last ? ', ' : ''}
+                        </c:forEach>
+                    </span>
+                </c:if>
+                <span id="tmdb-user-score-badge" style="display:none; align-items:center; gap:5px; border-left: 2px solid var(--cgv-border); padding-left: 15px; margin-left: 5px;">
+                    <i class="fa-solid fa-face-smile" style="color: #ffb400;"></i> 
+                    Điểm số trên TMDB: <strong id="tmdb-user-score-value"></strong>
+                </span>
             </div>
 
             <div class="md-actions">
@@ -263,7 +275,7 @@
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
                                 <c:when test="${not empty movie.budget and movie.budget ne '0' and movie.budget ne ''}">
-                                    <fmt:formatNumber value="${movie.budget}" type="number"/> USD
+                                    <c:out value="${movie.budget}"/>
                                 </c:when>
                                 <c:otherwise>--</c:otherwise>
                             </c:choose>
@@ -274,7 +286,7 @@
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
                                 <c:when test="${not empty movie.globalBoxOffice and movie.globalBoxOffice ne '0' and movie.globalBoxOffice ne ''}">
-                                    <fmt:formatNumber value="${movie.globalBoxOffice}" type="number"/> USD
+                                    <c:out value="${movie.globalBoxOffice}"/>
                                 </c:when>
                                 <c:otherwise>--</c:otherwise>
                             </c:choose>
@@ -355,7 +367,7 @@
                                 <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; font-weight: 500;">
                                     <span>${i} <i class="fa-solid fa-star" style="color: #ffb400; font-size: 10px;"></i></span>
                                     <div style="flex-grow: 1; background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
-                                        <div class="rating-bar-fill" data-width="${(starCounts[i] / totalReviews) * 100}%" style="width: 0%; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);"></div>
+                                        <div class="rating-bar-fill" data-width="${totalReviews > 0 ? (starCounts[i] * 100.0 / totalReviews) : 0}%" style="background-color: #ffb400; height: 100%; width: 0%; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);"></div>
                                     </div>
                                     <span style="min-width: 30px; text-align: right; color: #666;">${starCounts[i]}</span>
                                 </div>
@@ -428,7 +440,16 @@
 
                         <%-- ĐÃ CÓ ĐÁNH GIÁ -> FORM SỬA / XÓA --%>
                         <c:otherwise>
-                            <h3 style="margin-bottom: 15px;">Đánh giá của bạn</h3>
+                            <h3 style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                Đánh giá của bạn
+                                <div style="position: relative; display: inline-block;">
+                                    <button type="button" onclick="toggleEditMenu()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666; padding: 0 10px;"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                    <div id="edit-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: #fff; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 4px; z-index: 100; min-width: 150px; text-align: left;">
+                                        <button type="button" onclick="showEditForm()" style="width: 100%; padding: 10px 15px; background: none; border: none; text-align: left; cursor: pointer; border-bottom: 1px solid #eee; font-family: inherit; font-size: 14px;"><i class="fa-solid fa-pen" style="margin-right: 8px; color: #28a745;"></i> Chỉnh sửa</button>
+                                        <button type="button" onclick="submitDeleteReview()" style="width: 100%; padding: 10px 15px; background: none; border: none; text-align: left; cursor: pointer; color: #dc3545; font-family: inherit; font-size: 14px;"><i class="fa-solid fa-trash" style="margin-right: 8px;"></i> Xóa</button>
+                                    </div>
+                                </div>
+                            </h3>
 
                             <%-- Báo lỗi nếu quá 30 ngày --%>
                             <c:if test="${not empty sessionScope.flashError}">
@@ -436,48 +457,69 @@
                                 <c:remove var="flashError" scope="session" />
                             </c:if>
 
-                            <form action="ReviewController" method="POST" style="margin-bottom: 10px;">
-                                <input type="hidden" name="action" value="update">
-                                <input type="hidden" name="movieId" value="${movie.movieId}">
-                                <input type="hidden" name="reviewId" value="${userReview.reviewId}">
-
-                                <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
-                                <div class="star-rating">
-                                    <input type="radio" id="edit_star5" name="rating" value="5" ${userReview.ratingValue == 5 ? 'checked' : ''} required />
-                                    <label for="edit_star5" title="Tuyệt vời">
-                                        <i class="fa-solid fa-star"></i>
-                                    </label>
-
-                                    <input type="radio" id="edit_star4" name="rating" value="4" ${userReview.ratingValue == 4 ? 'checked' : ''} />
-                                    <label for="edit_star4" title="Hay">
-                                        <i class="fa-solid fa-star"></i>
-                                    </label>
-
-                                    <input type="radio" id="edit_star3" name="rating" value="3" ${userReview.ratingValue == 3 ? 'checked' : ''} />
-                                    <label for="edit_star3" title="Bình thường">
-                                        <i class="fa-solid fa-star"></i>
-                                    </label>
-
-                                    <input type="radio" id="edit_star2" name="rating" value="2" ${userReview.ratingValue == 2 ? 'checked' : ''} />
-                                    <label for="edit_star2" title="Tệ">
-                                        <i class="fa-solid fa-star"></i>
-                                    </label>
-
-                                    <input type="radio" id="edit_star1" name="rating" value="1" ${userReview.ratingValue == 1 ? 'checked' : ''} />
-                                    <label for="edit_star1" title="Rất tệ">
-                                        <i class="fa-solid fa-star"></i>
-                                    </label>
+                            <!-- READ-ONLY VIEW OF USER'S REVIEW -->
+                            <div id="user-review-display">
+                                <div style="display: flex; gap: 15px;">
+                                    <div style="width: 50px; height: 50px; background: #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #666; font-size: 24px;">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <div style="flex-grow: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                            <h4 style="margin: 0; font-size: 16px; color: #333;">${sessionScope.account.fullName}</h4>
+                                        </div>
+                                        <div style="color: #ffb400; font-size: 12px; margin: 5px 0;">
+                                            <c:forEach begin="1" end="5" var="i">
+                                                <c:choose>
+                                                    <c:when test="${i <= userReview.ratingValue}"><i class="fa-solid fa-star"></i></c:when>
+                                                    <c:otherwise><i class="fa-regular fa-star"></i></c:otherwise>
+                                                </c:choose>
+                                            </c:forEach>
+                                        </div>
+                                        <div style="color: #888; font-size: 12px; margin-bottom: 8px;">
+                                            <fmt:formatDate value="${userReview.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                                        </div>
+                                        <p style="color: #444; font-size: 15px; line-height: 1.5; margin: 0; white-space: pre-wrap;"><c:out value="${userReview.comment}" /></p>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;">${userReview.comment}</textarea>
-                                <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Lưu Thay Đổi</button>
-                            </form>
+                            <!-- EDIT FORM (HIDDEN BY DEFAULT) -->
+                            <div id="user-review-edit-form" style="display: none; margin-top: 15px;">
+                                <form action="ReviewController" method="POST" style="margin-bottom: 10px;">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="movieId" value="${movie.movieId}">
+                                    <input type="hidden" name="reviewId" value="${userReview.reviewId}">
 
-                            <form id="delete-review-form" action="ReviewController" method="POST" onsubmit="confirmDeleteReview(event, this);">
+                                    <label style="display: block; margin-bottom: 10px;">Chấm điểm (1-5 sao):</label>
+                                    <div class="star-rating">
+                                        <input type="radio" id="edit_star5" name="rating" value="5" ${userReview.ratingValue == 5 ? 'checked' : ''} required />
+                                        <label for="edit_star5" title="Tuyệt vời"><i class="fa-solid fa-star"></i></label>
+
+                                        <input type="radio" id="edit_star4" name="rating" value="4" ${userReview.ratingValue == 4 ? 'checked' : ''} />
+                                        <label for="edit_star4" title="Hay"><i class="fa-solid fa-star"></i></label>
+
+                                        <input type="radio" id="edit_star3" name="rating" value="3" ${userReview.ratingValue == 3 ? 'checked' : ''} />
+                                        <label for="edit_star3" title="Bình thường"><i class="fa-solid fa-star"></i></label>
+
+                                        <input type="radio" id="edit_star2" name="rating" value="2" ${userReview.ratingValue == 2 ? 'checked' : ''} />
+                                        <label for="edit_star2" title="Tệ"><i class="fa-solid fa-star"></i></label>
+
+                                        <input type="radio" id="edit_star1" name="rating" value="1" ${userReview.ratingValue == 1 ? 'checked' : ''} />
+                                        <label for="edit_star1" title="Rất tệ"><i class="fa-solid fa-star"></i></label>
+                                    </div>
+
+                                    <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; color: #333; margin-bottom: 15px; font-family: inherit; resize: vertical;">${userReview.comment}</textarea>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Lưu Thay Đổi</button>
+                                        <button type="button" onclick="cancelEditForm()" style="background: #e0e0e0; color: #333; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Hủy</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <form id="delete-review-form" action="ReviewController" method="POST" style="display: none;">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="movieId" value="${movie.movieId}">
                                 <input type="hidden" name="reviewId" value="${userReview.reviewId}">
-                                <button type="submit" style="background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Xóa Đánh Giá</button>
                             </form>
                         </c:otherwise>
                     </c:choose>
@@ -527,25 +569,14 @@
             <!-- ================= END RATING & REVIEW ================= -->
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         <script>
             // Xử lý xác nhận xóa đánh giá
             function confirmDeleteReview(event, formElement) {
                 event.preventDefault();
-                Swal.fire({
-                    title: 'Chắc chắn xóa?',
-                    text: 'Bài đánh giá của bạn sẽ bị xóa vĩnh viễn khỏi phim này!',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e50914',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Đồng ý xóa',
-                    cancelButtonText: 'Giữ lại'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        formElement.submit();
-                    }
-                });
+                if (confirm('Bài đánh giá của bạn sẽ bị xóa vĩnh viễn khỏi phim này! Bạn có chắc chắn?')) {
+                    formElement.submit();
+                }
             }
 
             // Xử lý bộ lọc từ ngữ không phù hợp cho form gửi Review
@@ -571,17 +602,57 @@
 
                                 if (containsBadWord) {
                                     e.preventDefault();
-                                    Swal.fire({
-                                        title: 'Ngôn từ không phù hợp!',
-                                        text: 'Bình luận của bạn chứa từ ngữ vi phạm tiêu chuẩn cộng đồng. Vui lòng sửa lại.',
-                                        icon: 'error',
-                                        confirmButtonColor: '#e50914'
-                                    });
+                                    alert('Ngôn từ không phù hợp! Bình luận của bạn chứa từ ngữ vi phạm tiêu chuẩn cộng đồng. Vui lòng sửa lại.');
                                 }
                             }
                         });
                     }
                 });
+            });
+
+            // Fetch TMDB User Score dynamically for this movie
+            const movieName = "${fn:escapeXml(movie.movieName)}";
+            if (movieName) {
+                console.log("Đang lấy User Score cho phim:", movieName);
+                fetch('${pageContext.request.contextPath}/TMDBController?query=' + encodeURIComponent(movieName))
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Kết quả từ TMDB:", data);
+                        if (!data.error && data.UserScore) {
+                            document.getElementById('tmdb-user-score-value').innerText = data.UserScore;
+                            document.getElementById('tmdb-user-score-badge').style.display = 'inline-flex';
+                        }
+                    })
+                    .catch(err => console.error("TMDB fetch error:", err));
+            }
+
+            function toggleEditMenu() {
+                var menu = document.getElementById("edit-dropdown-menu");
+                menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "block" : "none";
+            }
+            function showEditForm() {
+                document.getElementById("edit-dropdown-menu").style.display = "none";
+                document.getElementById("user-review-display").style.display = "none";
+                document.getElementById("user-review-edit-form").style.display = "block";
+            }
+            function cancelEditForm() {
+                document.getElementById("user-review-display").style.display = "block";
+                document.getElementById("user-review-edit-form").style.display = "none";
+            }
+            function submitDeleteReview() {
+                document.getElementById("edit-dropdown-menu").style.display = "none";
+                var formElement = document.getElementById("delete-review-form");
+                if (confirm('Bạn có chắc chắn muốn xóa đánh giá này không? Hành động này không thể hoàn tác.')) {
+                    formElement.submit();
+                }
+            }
+            window.addEventListener('click', function(e) {
+                var menu = document.getElementById("edit-dropdown-menu");
+                if (menu && menu.style.display === 'block') {
+                    if (!e.target.closest('h3') && !e.target.closest('#edit-dropdown-menu')) {
+                        menu.style.display = 'none';
+                    }
+                }
             });
         </script>
     </body>
