@@ -161,3 +161,36 @@
         display: none;
     }
 }
+
+
+.ticket-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.save-ticket-form {
+    margin: 0;
+}
+
+.ticket-actions .btn {
+    width: 100%;
+    margin: 0;
+}
+
+.ticket-actions .btn-secondary {
+    border: 1px solid var(--cgv-red);
+    background: #fff;
+    color: var(--cgv-red);
+}
+
+.ticket-actions .btn-secondary:hover {
+    background: #fff5f4;
+}
+
+@media print {
+    .ticket-actions {
+        display: none;
+    }
+}

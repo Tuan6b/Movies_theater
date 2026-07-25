@@ -118,6 +118,12 @@
 
         <div class="txn-ref">Mã giao dịch VNPAY: <%= invoice.getTransactionRef() != null ? invoice.getTransactionRef() : "N/A" %></div>
 
+        <form method="post" action="<%= request.getContextPath() %>/my-tickets" style="margin-top: 15px;">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="invoiceId" value="<%= invoice.getInvoiceId() %>">
+            <button type="submit" class="btn-home" style="border: none; width: 100%; cursor: pointer; background: #28a745;">Lưu vào Vé của tôi</button>
+        </form>
+
         <a href="<%= request.getContextPath() %>/" class="btn-home">Về trang chủ</a>
     </div>
 </div>

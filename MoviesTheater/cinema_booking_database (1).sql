@@ -152,6 +152,10 @@ CREATE TABLE Invoice (
     PaymentMethod VARCHAR(50) NOT NULL,  -- 'Cash','VNPay','MoMo','ZaloPay'
     PaymentStatus VARCHAR(20) NOT NULL DEFAULT 'Pending',
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    SavedAt DATETIME NULL,
+    TransactionRef VARCHAR(50) NULL,
+    BankCode VARCHAR(20) NULL,
+    PayDate VARCHAR(14) NULL,
     CONSTRAINT FK_Invoice_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
     CONSTRAINT FK_Invoice_Promotion FOREIGN KEY (PromotionID) REFERENCES Promotion(PromotionID),
     CONSTRAINT CHK_Invoice_Status CHECK (PaymentStatus IN ('Pending','Paid','Failed','Refunded'))

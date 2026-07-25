@@ -38,7 +38,9 @@ public class InvoiceDAO {
     }
 
     public int updateStatusAtomic(int invoiceId, String newStatus, String expectedCurrentStatus) {
-        String sql = "UPDATE Invoice SET PaymentStatus = ? WHERE InvoiceID = ? AND PaymentStatus = ?";
+        String sql = "Paid".equals(newStatus)
+                ? "UPDATE Invoice SET PaymentStatus = ?, SavedAt = COALESCE(SavedAt, GETDATE()) WHERE InvoiceID = ? AND PaymentStatus = ?"
+                : "UPDATE Invoice SET PaymentStatus = ? WHERE InvoiceID = ? AND PaymentStatus = ?";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
@@ -52,7 +54,9 @@ public class InvoiceDAO {
     }
 
     public int updateStatusAtomic(Connection conn, int invoiceId, String newStatus, String expectedCurrentStatus) throws SQLException {
-        String sql = "UPDATE Invoice SET PaymentStatus = ? WHERE InvoiceID = ? AND PaymentStatus = ?";
+        String sql = "Paid".equals(newStatus)
+                ? "UPDATE Invoice SET PaymentStatus = ?, SavedAt = COALESCE(SavedAt, GETDATE()) WHERE InvoiceID = ? AND PaymentStatus = ?"
+                : "UPDATE Invoice SET PaymentStatus = ? WHERE InvoiceID = ? AND PaymentStatus = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, invoiceId);
@@ -98,6 +102,34 @@ public class InvoiceDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    /**
+     * Marks a paid invoice as saved in the authenticated customer's
+     * "Vé của tôi" history. The update is idempotent: saving the same invoice
+     * again keeps the original saved time and still succeeds. Also claims the
+     * invoice if it was created under an unassigned AccountID (<= 0).
+     */
+    public boolean saveToMyTickets(int invoiceId, int accountId) {
+        String sql = """
+                UPDATE Invoice
+                SET SavedAt = COALESCE(SavedAt, GETDATE()),
+                    AccountID = CASE WHEN AccountID <= 0 OR AccountID IS NULL THEN ? ELSE AccountID END
+                WHERE InvoiceID = ?
+                  AND (AccountID = ? OR AccountID <= 0 OR AccountID IS NULL)
+                  AND PaymentStatus = 'Paid'
+                """;
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, accountId);
+            ps.setInt(2, invoiceId);
+            ps.setInt(3, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public Invoice findByInvoiceId(int invoiceId) {

@@ -24,6 +24,9 @@
                     <a href="${pageContext.request.contextPath}/HomeController?status=upcoming" class="${currentStatus == 'upcoming' ? 'active' : ''}">Phim Sắp Chiếu</a>
                     <a href="#">Rạp & Giá Vé</a>
                     <a href="#">Thành Viên</a>
+                    <c:if test="${not empty sessionScope.account && sessionScope.account.roleId == 2}">
+                        <a href="${pageContext.request.contextPath}/my-tickets">Vé của tôi</a>
+                    </c:if>
                 </nav>
 
                 <div class="site-header-actions">

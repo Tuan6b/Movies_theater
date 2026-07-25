@@ -14,6 +14,7 @@
     String email = (String) request.getAttribute("email");
     String bookingCode = (String) request.getAttribute("bookingCode");
     String bookingQrDataUri = (String) request.getAttribute("bookingQrDataUri");
+    int invoiceId = tickets != null && !tickets.isEmpty() ? tickets.get(0).getInvoiceId() : -1;
 
     if (tickets == null || tickets.isEmpty() || schedule == null) {
         response.sendRedirect(request.getContextPath() + "/index.jsp");
@@ -86,6 +87,7 @@
             <strong>Vui lòng lưu lại vé!</strong>
             Một mã QR bên dưới đại diện cho toàn bộ <%= tickets.size() %> vé và các ghế <strong><%= allSeatNames %></strong>.
             Xuất trình mã QR hoặc mã đặt vé tại quầy để nhân viên xác nhận tất cả ghế cùng lúc.
+            Vé chỉ xuất hiện trong mục <strong>Vé của tôi</strong> sau khi bạn bấm <strong>Lưu vào Vé của tôi</strong>.
             <% if (Boolean.TRUE.equals(emailSent)) { %>
                 Vé có kèm mã QR cũng đã được gửi tới email <strong><%= email %></strong>.
             <% } else { %>
@@ -177,8 +179,17 @@
                         <span>Tổng đã thanh toán</span>
                         <span><%= String.format("%,.0f", total != null ? total : 0) %> đ</span>
                     </div>
-                    <button type="button" class="btn btn-next btn-block" onclick="window.print()">In / Lưu vé</button>
-                    <a href="<%= request.getContextPath() %>/index.jsp" class="btn btn-back btn-block" style="margin-top:10px;">Về trang chủ</a>
+                    <div class="ticket-actions">
+                        <% if (invoiceId > 0) { %>
+                        <form method="post" action="<%= request.getContextPath() %>/my-tickets" class="save-ticket-form">
+                            <input type="hidden" name="action" value="save">
+                            <input type="hidden" name="invoiceId" value="<%= invoiceId %>">
+                            <button type="submit" class="btn btn-next btn-block">Lưu vào Vé của tôi</button>
+                        </form>
+                        <% } %>
+                        <button type="button" class="btn btn-secondary btn-block" onclick="window.print()">In / Tải vé</button>
+                        <a href="<%= request.getContextPath() %>/index.jsp" class="btn btn-back btn-block">Về trang chủ</a>
+                    </div>
                 </div>
             </div>
 
