@@ -39,20 +39,6 @@ public class AccountDAO {
         return null;
     }
 
-    public boolean isPhoneExist(String phone) {
-        String sql = "SELECT COUNT(*) FROM UserProfile WHERE PhoneNumber = ?";
-        try (Connection conn = DBUtils.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, phone);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public boolean isEmailExist(String email) {
         String sql = "SELECT COUNT(*) FROM Account WHERE Email = ?";
         try (Connection conn = DBUtils.getConnection();

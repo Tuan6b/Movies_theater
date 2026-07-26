@@ -55,13 +55,6 @@ public class TMDBService {
             // Kinh phí và Doanh thu (TMDB tính bằng USD)
             result.put("Budget", details.has("budget") ? String.valueOf(details.get("budget").getAsLong()) : "0");
             result.put("GlobalBoxOffice", details.has("revenue") ? String.valueOf(details.get("revenue").getAsLong()) : "0");
-            // User Score (vote_average * 10)
-            if (details.has("vote_average")) {
-                int userScore = (int) (details.get("vote_average").getAsDouble() * 10);
-                result.put("UserScore", String.valueOf(userScore) + "%");
-            } else {
-                result.put("UserScore", "N/A");
-            }
             // Ngôn ngữ và Quốc gia
             if (details.has("original_language") && !details.get("original_language").isJsonNull()) {
                 result.put("Language", details.get("original_language").getAsString().toUpperCase());

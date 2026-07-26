@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class PromotionLifecycleSeleniumTest {
 
-    private static final String BASE_URL = "http://localhost:9999/MoviesTheater";
+    private static final String BASE_URL = "http://localhost:8088/MoviesTheater";
     private static final String MANAGER_EMAIL = "manager@cinema.vn";
     private static final String PASSWORD = "123456";
     private static final int ANY_ACCOUNT_ID = 3; // FK owner for seeded Invoice rows

@@ -598,21 +598,6 @@ public class AdminServlet extends HttpServlet {
                 return;
             }
 
-            if (phoneNumber != null && !phoneNumber.trim().isEmpty() && adminDAO.isPhoneExist(phoneNumber.trim())) {
-                Map<String, String> err = new HashMap<>();
-                err.put("phoneNumber", "Số điện thoại này đã được sử dụng.");
-                String newCaptcha = generateCaptchaText();
-                session.setAttribute("captcha", newCaptcha);
-                request.setAttribute("captchaText", newCaptcha);
-                request.setAttribute("errors", err);
-                request.setAttribute("fullName", fullName);
-                request.setAttribute("email", email);
-                request.setAttribute("phoneNumber", phoneNumber);
-                request.setAttribute("selectedRole", roleId);
-                request.getRequestDispatcher(CREATE_ACCOUNT_JSP).forward(request, response);
-                return;
-            }
-
             int accountId = adminDAO.createAccount(email, password, fullName, phoneNumber, roleId);
             if (accountId > 0) {
                 int adminId = admin != null ? admin.getAccountId() : 0;
