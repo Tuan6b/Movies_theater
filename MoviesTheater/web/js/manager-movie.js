@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+﻿document.addEventListener("DOMContentLoaded", function() {
     // TMDB Fetch for Add and Edit Movie
     var btnFetch = document.getElementById('btnFetchTMDB');
     if (btnFetch) {
