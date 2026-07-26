@@ -9,16 +9,7 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            .cgv-form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0 24px;
-            }
-            .cgv-form-full {
-                grid-column: span 2;
-            }
-        </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager-movie.css">
     </head>
     <body class="cgv-body">
 
@@ -92,6 +83,11 @@
                             </div>
 
                             <div class="cgv-field">
+                                <label class="cgv-label">Ngày khởi chiếu *</label>
+                                <input type="date" name="releaseDate" value="${movie.releaseDate}" class="cgv-input" required>
+                            </div>
+
+                            <div class="cgv-field">
                                 <label class="cgv-label">Giới hạn độ tuổi</label>
                                 <select name="ageRestriction" class="cgv-select">
                                     <option value="0" ${movie.ageRestriction == 0 ? 'selected' : ''}>P - Phổ biến</option>
@@ -103,12 +99,24 @@
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngôn ngữ</label>
-                                <input type="text" name="language" class="cgv-input" value="${movie.language}" placeholder="VD: Tiếng Anh">
+                                <select name="language" class="cgv-select">
+                                    <option value="Tiếng Anh" ${movie.language == 'Tiếng Anh' ? 'selected' : ''}>Tiếng Anh</option>
+                                    <option value="Tiếng Việt" ${movie.language == 'Tiếng Việt' ? 'selected' : ''}>Tiếng Việt</option>
+                                    <option value="Tiếng Hàn" ${movie.language == 'Tiếng Hàn' ? 'selected' : ''}>Tiếng Hàn</option>
+                                    <option value="Tiếng Nhật" ${movie.language == 'Tiếng Nhật' ? 'selected' : ''}>Tiếng Nhật</option>
+                                    <option value="Tiếng Trung" ${movie.language == 'Tiếng Trung' ? 'selected' : ''}>Tiếng Trung</option>
+                                    <option value="Khác" ${movie.language == 'Khác' ? 'selected' : ''}>Khác</option>
+                                </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
-                                <input type="text" name="subtitle" class="cgv-input" value="${movie.subtitle}" placeholder="VD: Phụ đề Tiếng Việt">
+                                <select name="subtitle" class="cgv-select">
+                                    <option value="Phụ đề Tiếng Việt" ${movie.subtitle == 'Phụ đề Tiếng Việt' ? 'selected' : ''}>Phụ đề Tiếng Việt</option>
+                                    <option value="Lồng Tiếng Việt" ${movie.subtitle == 'Lồng Tiếng Việt' ? 'selected' : ''}>Lồng Tiếng Việt</option>
+                                    <option value="Phụ đề Tiếng Anh" ${movie.subtitle == 'Phụ đề Tiếng Anh' ? 'selected' : ''}>Phụ đề Tiếng Anh</option>
+                                    <option value="Không phụ đề" ${movie.subtitle == 'Không phụ đề' ? 'selected' : ''}>Không phụ đề</option>
+                                </select>
                             </div>
 
                             <div class="cgv-field cgv-form-full">
@@ -132,7 +140,14 @@
 
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Quốc gia</label>
-                                <input type="text" name="country" class="cgv-input" value="${movie.country}">
+                                <select name="country" class="cgv-select">
+                                    <option value="Mỹ" ${movie.country == 'Mỹ' ? 'selected' : ''}>Mỹ</option>
+                                    <option value="Việt Nam" ${movie.country == 'Việt Nam' ? 'selected' : ''}>Việt Nam</option>
+                                    <option value="Hàn Quốc" ${movie.country == 'Hàn Quốc' ? 'selected' : ''}>Hàn Quốc</option>
+                                    <option value="Nhật Bản" ${movie.country == 'Nhật Bản' ? 'selected' : ''}>Nhật Bản</option>
+                                    <option value="Trung Quốc" ${movie.country == 'Trung Quốc' ? 'selected' : ''}>Trung Quốc</option>
+                                    <option value="Khác" ${movie.country == 'Khác' ? 'selected' : ''}>Khác</option>
+                                </select>
                             </div>
 
                             <div class="cgv-field cgv-form-full">
@@ -180,72 +195,6 @@
 
 
 
-        <script>
-            document.getElementById('btnFetchTMDB').addEventListener('click', function () {
-                // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
-                var movieName = document.querySelector('input[name="movieName"]').value;
-                if (!movieName) {
-                    alert("Vui lòng nhập Tên phim trước để hệ thống biết cần tra cứu số liệu của phim nào!");
-                    return;
-                }
-
-                var btn = this;
-                btn.innerText = "Đang tra cứu số liệu...";
-                btn.disabled = true;
-
-                fetch('TMDBController?query=' + encodeURIComponent(movieName))
-                        .then(response => response.json())
-                        .then(data => {
-                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
-                            btn.disabled = false;
-
-                            if (data.error) {
-                                alert("Không tìm thấy dữ liệu số của phim này trên TMDB!");
-                                return;
-                            }
-
-                            // [SỰ KHÁC BIỆT]: Bỏ qua toàn bộ Tên phim, Poster, Trailer, Mô tả...
-                            // CHỈ CẬP NHẬT ĐÚNG SỐ LIỆU KINH TẾ!
-
-                            let hasUpdate = false;
-
-                            if (data.Budget && data.Budget !== "0") {
-                                let budgetInput = document.querySelector('input[name="budget"]');
-                                if (budgetInput) {
-                                    budgetInput.value = data.Budget;
-                                    hasUpdate = true;
-                                }
-                            }
-
-                            if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
-                                let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
-                                if (boxOfficeInput) {
-                                    boxOfficeInput.value = data.GlobalBoxOffice;
-                                    hasUpdate = true;
-                                }
-                            }
-
-                            if (hasUpdate) {
-                                alert("Đã tải xong số liệu Kinh phí & Doanh thu thành công!");
-                            } else {
-                                alert("TMDB không có sẵn số liệu kinh tế của phim này.");
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            btn.innerText = "Cập nhật số liệu kinh phí & doanh thu từ TMDB";
-                            btn.disabled = false;
-                            alert("Có lỗi mạng xảy ra khi tra cứu!");
-                        });
-            });
-
-            document.querySelector('form').addEventListener('submit', function(e) {
-                var checkedGenres = document.querySelectorAll('input[name="genreIds"]:checked');
-                if (checkedGenres.length === 0) {
-                    alert("Vui lòng chọn ít nhất một thể loại phim!");
-                    e.preventDefault();
-                }
-            });
-        </script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
     </body>
 </html>

@@ -185,7 +185,17 @@ public class MovieController extends HttpServlet {
                 boolean isActive = request.getParameter("isActive") != null; // Có tick là true, không tick là false
                 String[] genreIds = request.getParameterValues("genreIds");
 
-                clsMovie movie = new clsMovie(0, movieName, description, duration, null,
+                java.sql.Date releaseDate = null;
+                try {
+                    String rdParam = request.getParameter("releaseDate");
+                    if (rdParam != null && !rdParam.trim().isEmpty()) {
+                        releaseDate = java.sql.Date.valueOf(rdParam);
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid release date format: " + request.getParameter("releaseDate"));
+                }
+
+                clsMovie movie = new clsMovie(0, movieName, description, duration, null, releaseDate,
                         budget, globalBoxOffice, weeklyRevenueRank, ticketsSoldMilestone,
                         poster, trailer, language, subtitle, director,
                         cast, country, ageRestriction, isActive);

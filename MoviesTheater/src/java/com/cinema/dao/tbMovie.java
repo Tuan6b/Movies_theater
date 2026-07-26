@@ -38,6 +38,7 @@ public class tbMovie {
         movie.setDescription(rs.getString("Description"));
         movie.setDuration(rs.getInt("Duration"));
         movie.setDateAdded(rs.getTimestamp("DateAdded"));
+        movie.setReleaseDate(rs.getDate("ReleaseDate"));
         movie.setBudget(rs.getString("Budget"));
         movie.setGlobalBoxOffice(rs.getString("GlobalBoxOffice"));
         movie.setWeeklyRevenueRank(rs.getInt("WeeklyRevenueRank"));
@@ -148,7 +149,7 @@ public class tbMovie {
     }
 
     public boolean updateMovie(clsMovie movie) {
-        String sql = "UPDATE Movie SET MovieName=?, Description=?, Duration=?, DateAdded=?, Budget=?, GlobalBoxOffice=?, WeeklyRevenueRank=?, TicketsSoldMilestone=?, Poster=?, Trailer=?, Language=?, "
+        String sql = "UPDATE Movie SET MovieName=?, Description=?, Duration=?, DateAdded=?, ReleaseDate=?, Budget=?, GlobalBoxOffice=?, WeeklyRevenueRank=?, TicketsSoldMilestone=?, Poster=?, Trailer=?, Language=?, "
                 + "Subtitle=?, Director=?, Cast=?, Country=?, AgeRestriction=?, IsActive=? WHERE MovieID=?";
 
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -157,20 +158,21 @@ public class tbMovie {
             ps.setString(2, movie.getDescription());
             ps.setInt(3, movie.getDuration());
             ps.setTimestamp(4, movie.getDateAdded() != null ? new Timestamp(movie.getDateAdded().getTime()) : new Timestamp(System.currentTimeMillis()));
-            ps.setString(5, movie.getBudget());
-            ps.setString(6, movie.getGlobalBoxOffice());
-            ps.setInt(7, movie.getWeeklyRevenueRank());
-            ps.setInt(8, movie.getTicketsSoldMilestone());
-            ps.setString(9, movie.getPoster());
-            ps.setString(10, movie.getTrailer());
-            ps.setString(11, movie.getLanguage());
-            ps.setString(12, movie.getSubtitle());
-            ps.setString(13, movie.getDirector());
-            ps.setString(14, movie.getCast());
-            ps.setString(15, movie.getCountry());
-            ps.setInt(16, movie.getAgeRestriction());
-            ps.setBoolean(17, movie.isIsActive());
-            ps.setInt(18, movie.getMovieId());
+            ps.setDate(5, movie.getReleaseDate());
+            ps.setString(6, movie.getBudget());
+            ps.setString(7, movie.getGlobalBoxOffice());
+            ps.setInt(8, movie.getWeeklyRevenueRank());
+            ps.setInt(9, movie.getTicketsSoldMilestone());
+            ps.setString(10, movie.getPoster());
+            ps.setString(11, movie.getTrailer());
+            ps.setString(12, movie.getLanguage());
+            ps.setString(13, movie.getSubtitle());
+            ps.setString(14, movie.getDirector());
+            ps.setString(15, movie.getCast());
+            ps.setString(16, movie.getCountry());
+            ps.setInt(17, movie.getAgeRestriction());
+            ps.setBoolean(18, movie.isIsActive());
+            ps.setInt(19, movie.getMovieId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -327,9 +329,9 @@ public class tbMovie {
     }
 
     public int insertMovieAndGetId(clsMovie movie) {
-        String sql = "INSERT INTO Movie (MovieName, Description, Duration, DateAdded, Budget, GlobalBoxOffice, WeeklyRevenueRank, TicketsSoldMilestone, Poster, Trailer, "
+        String sql = "INSERT INTO Movie (MovieName, Description, Duration, DateAdded, ReleaseDate, Budget, GlobalBoxOffice, WeeklyRevenueRank, TicketsSoldMilestone, Poster, Trailer, "
                 + "Language, Subtitle, Director, Cast, Country, AgeRestriction, IsActive) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = DBUtils.getConnection(); // Yêu cầu trả về ID tự tăng
                  PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -337,19 +339,20 @@ public class tbMovie {
             ps.setString(2, movie.getDescription());
             ps.setInt(3, movie.getDuration());
             ps.setTimestamp(4, movie.getDateAdded() != null ? new Timestamp(movie.getDateAdded().getTime()) : new Timestamp(System.currentTimeMillis()));
-            ps.setString(5, movie.getBudget());
-            ps.setString(6, movie.getGlobalBoxOffice());
-            ps.setInt(7, movie.getWeeklyRevenueRank());
-            ps.setInt(8, movie.getTicketsSoldMilestone());
-            ps.setString(9, movie.getPoster());
-            ps.setString(10, movie.getTrailer());
-            ps.setString(11, movie.getLanguage());
-            ps.setString(12, movie.getSubtitle());
-            ps.setString(13, movie.getDirector());
-            ps.setString(14, movie.getCast());
-            ps.setString(15, movie.getCountry());
-            ps.setInt(16, movie.getAgeRestriction());
-            ps.setBoolean(17, movie.isIsActive());
+            ps.setDate(5, movie.getReleaseDate());
+            ps.setString(6, movie.getBudget());
+            ps.setString(7, movie.getGlobalBoxOffice());
+            ps.setInt(8, movie.getWeeklyRevenueRank());
+            ps.setInt(9, movie.getTicketsSoldMilestone());
+            ps.setString(10, movie.getPoster());
+            ps.setString(11, movie.getTrailer());
+            ps.setString(12, movie.getLanguage());
+            ps.setString(13, movie.getSubtitle());
+            ps.setString(14, movie.getDirector());
+            ps.setString(15, movie.getCast());
+            ps.setString(16, movie.getCountry());
+            ps.setInt(17, movie.getAgeRestriction());
+            ps.setBoolean(18, movie.isIsActive());
             ps.executeUpdate();
 
             // Lấy ID vừa tạo ra

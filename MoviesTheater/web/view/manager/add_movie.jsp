@@ -9,17 +9,7 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-            /* Class hỗ trợ chia form 2 cột cho ngay ngắn */
-            .cgv-form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 0 24px;
-            }
-            .cgv-form-full {
-                grid-column: span 2;
-            }
-        </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager-movie.css">
     </head>
     <body class="cgv-body">
         <% request.setAttribute("activeNav", "movies"); %>
@@ -71,6 +61,11 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Thời lượng (phút) *</label>
                                 <input type="number" name="duration" class="cgv-input" min="40" max="300" required>
+                            </div>
+
+                            <div class="cgv-field">
+                                <label class="cgv-label">Ngày khởi chiếu *</label>
+                                <input type="date" name="releaseDate" class="cgv-input" required>
                             </div>
 
                             <div class="cgv-field">
@@ -180,93 +175,6 @@
             </div>
         </main>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                var btnFetch = document.getElementById('btnFetchTMDB');
-                if (btnFetch) {
-                    btnFetch.addEventListener('click', function () {
-                        // Vẫn cần Tên phim để biết đường gọi API tìm kiếm
-                        var movieName = document.querySelector('input[name="movieName"]').value;
-                        if (!movieName) {
-                            alert("Vui lòng nhập tên phim trước.");
-                            return;
-                        }
-
-                        var btn = this;
-                        btn.innerText = "Đang tra cứu số liệu...";
-                        btn.disabled = true;
-
-                        fetch('TMDBController?query=' + encodeURIComponent(movieName))
-                                .then(response => response.json())
-                                .then(data => {
-                                    btn.innerText = "Cập nhật số liệu từ TMDB";
-                                    btn.disabled = false;
-
-                                    if (data.error) {
-                                        alert("Không tìm thấy dữ liệu của phim này trên TMDB!");
-                                        return;
-                                    }
-
-                                    // Chỉ cập nhật số liệu về kinh tế
-                                    let hasUpdate = false;
-
-                                    if (data.Budget && data.Budget !== "0") {
-                                        let budgetInput = document.querySelector('input[name="budget"]');
-                                        if (budgetInput) {
-                                            budgetInput.value = data.Budget;
-                                            hasUpdate = true;
-                                        }
-                                    }
-
-                                    if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
-                                        let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
-                                        if (boxOfficeInput) {
-                                            boxOfficeInput.value = data.GlobalBoxOffice;
-                                            hasUpdate = true;
-                                        }
-                                    }
-
-                                    if (hasUpdate) {
-                                        alert("Đã tải xong số liệu từ TMDB.");
-                                    } else {
-                                        alert("TMDB không có sẵn số liệu của phim này.");
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    btn.innerText = "Cập nhật số liệu từ TMDB";
-                                    btn.disabled = false;
-                                    alert("Có lỗi mạng xảy ra khi tra cứu!");
-                                });
-                    });
-                }
-
-                var form = document.querySelector('form');
-                if (form) {
-                    form.addEventListener('submit', function (e) {
-                        // Kiểm tra bắt buộc chọn ít nhất một thể loại
-                        var checkedGenres = document.querySelectorAll('input[name="genreIds"]:checked');
-                        if (checkedGenres.length === 0) {
-                            alert("Vui lòng chọn ít nhất một thể loại phim!");
-                            e.preventDefault(); // Chặn không cho lưu
-                            return;
-                        }
-
-                        // Lấy thời lượng phim do Manager nhập
-                        var durationInput = document.querySelector('input[name="duration"]');
-                        if (durationInput) {
-                            var duration = parseInt(durationInput.value);
-
-                            // Validation: Phim chiếu rạp thực tế hiếm khi ngắn hơn 40 phút hoặc dài hơn 300 phút
-                            if (duration < 40 || duration > 300) {
-                                alert("Lỗi: Thời lượng phim chiếu rạp phải hợp lý (nằm trong khoảng từ 40 đến 300 phút)!");
-                                e.preventDefault(); // Chặn không cho lưu vào Database
-                                return;
-                            }
-                        }
-                    });
-                }
-            });
-        </script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
     </body>
 </html>

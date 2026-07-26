@@ -155,26 +155,7 @@
 
 
 
-        <script>
-            // Hàm hiển thị Form Sửa
-            function enableEdit(id) {
-                document.getElementById('view-mode-' + id).style.display = 'none';
-                document.getElementById('edit-form-' + id).style.display = 'flex';
-            }
-
-            // Hàm Hủy Sửa (Quay lại hiển thị chữ)
-            function cancelEdit(id) {
-                document.getElementById('view-mode-' + id).style.display = 'flex';
-                document.getElementById('edit-form-' + id).style.display = 'none';
-            }
-
-            // Hàm Xác nhận Xóa thể loại
-            function confirmDeleteGenre(id, name) {
-                if (confirm('Bạn có chắc chắn muốn xóa thể loại "' + name + '" không?\nHành động này không thể hoàn tác!')) {
-                    document.getElementById('delete-form-' + id).submit();
-                }
-            }
-        </script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
 
     </body>
 </html>

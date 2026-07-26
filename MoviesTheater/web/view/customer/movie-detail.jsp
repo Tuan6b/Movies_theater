@@ -228,7 +228,7 @@
 
         <div class="site-inner md-wrap">
             <div class="md-eyebrow">
-                PHIM ĐIỆN ẢNH &nbsp;|&nbsp; IMAX 2D
+                PHIM ĐIỆN ẢNH
             </div>
 
             <h1 class="md-title">${movie.movieName}</h1>
@@ -248,7 +248,7 @@
 
             <div class="md-meta-bar">
                 <span>${movie.duration} PHÚT</span>
-                <span><fmt:formatDate value="${movie.dateAdded}" pattern="dd 'THÁNG' MM, yyyy"/></span>
+                <span><fmt:formatDate value="${movie.releaseDate}" pattern="dd 'THÁNG' MM, yyyy"/></span>
                 <span>C-${movie.ageRestriction}</span>
                 <c:if test="${not empty genres}">
                     <span style="border-left: 2px solid var(--cgv-border); padding-left: 15px; margin-left: 5px;">
@@ -320,6 +320,10 @@
                     <div>
                         <span class="crew-label">NGÔN NGỮ</span>
                         <span class="crew-value">${movie.language}</span>
+                    </div>
+                    <div>
+                        <span class="crew-label">PHỤ ĐỀ</span>
+                        <span class="crew-value">${not empty movie.subtitle ? movie.subtitle : 'Không có'}</span>
                     </div>
                 </div>
             </div>
@@ -569,90 +573,9 @@
         </div>
 
 
+        <script src="${pageContext.request.contextPath}/js/customer-movie.js"></script>
         <script>
-            // Xử lý xác nhận xóa đánh giá
-            function confirmDeleteReview(event, formElement) {
-                event.preventDefault();
-                if (confirm('Bài đánh giá của bạn sẽ bị xóa vĩnh viễn khỏi phim này! Bạn có chắc chắn?')) {
-                    formElement.submit();
-                }
-            }
-
-            // Xử lý bộ lọc từ ngữ không phù hợp cho form gửi Review
-            document.addEventListener("DOMContentLoaded", function() {
-                // Hiệu ứng thanh tiến trình đánh giá (UC21 - CSS Animation "WOW" effect)
-                const ratingBars = document.querySelectorAll('.rating-bar-fill');
-                setTimeout(() => {
-                    ratingBars.forEach(bar => {
-                        bar.style.width = bar.getAttribute('data-width');
-                    });
-                }, 100);
-
-                const reviewForms = document.querySelectorAll('form[action="ReviewController"]');
-                const badWords = ["ngu", "dm", "vl", "rac", "rác"]; 
-
-                reviewForms.forEach(form => {
-                    if (form.id !== 'delete-review-form') {
-                        form.addEventListener('submit', function (e) {
-                            const commentBox = this.querySelector('textarea[name="comment"]');
-                            if (commentBox) {
-                                const commentText = commentBox.value.toLowerCase();
-                                const containsBadWord = badWords.some(word => commentText.includes(word));
-
-                                if (containsBadWord) {
-                                    e.preventDefault();
-                                    alert('Ngôn từ không phù hợp! Bình luận của bạn chứa từ ngữ vi phạm tiêu chuẩn cộng đồng. Vui lòng sửa lại.');
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-
-            // Fetch TMDB User Score dynamically for this movie
-            const movieName = "${fn:escapeXml(movie.movieName)}";
-            if (movieName) {
-                console.log("Đang lấy User Score cho phim:", movieName);
-                fetch('${pageContext.request.contextPath}/TMDBController?query=' + encodeURIComponent(movieName))
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log("Kết quả từ TMDB:", data);
-                        if (!data.error && data.UserScore) {
-                            document.getElementById('tmdb-user-score-value').innerText = data.UserScore;
-                            document.getElementById('tmdb-user-score-badge').style.display = 'inline-flex';
-                        }
-                    })
-                    .catch(err => console.error("TMDB fetch error:", err));
-            }
-
-            function toggleEditMenu() {
-                var menu = document.getElementById("edit-dropdown-menu");
-                menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "block" : "none";
-            }
-            function showEditForm() {
-                document.getElementById("edit-dropdown-menu").style.display = "none";
-                document.getElementById("user-review-display").style.display = "none";
-                document.getElementById("user-review-edit-form").style.display = "block";
-            }
-            function cancelEditForm() {
-                document.getElementById("user-review-display").style.display = "block";
-                document.getElementById("user-review-edit-form").style.display = "none";
-            }
-            function submitDeleteReview() {
-                document.getElementById("edit-dropdown-menu").style.display = "none";
-                var formElement = document.getElementById("delete-review-form");
-                if (confirm('Bạn có chắc chắn muốn xóa đánh giá này không? Hành động này không thể hoàn tác.')) {
-                    formElement.submit();
-                }
-            }
-            window.addEventListener('click', function(e) {
-                var menu = document.getElementById("edit-dropdown-menu");
-                if (menu && menu.style.display === 'block') {
-                    if (!e.target.closest('h3') && !e.target.closest('#edit-dropdown-menu')) {
-                        menu.style.display = 'none';
-                    }
-                }
-            });
+            fetchTMDBUserScore('${pageContext.request.contextPath}', '${fn:escapeXml(movie.movieName)}');
         </script>
     </body>
 </html>
