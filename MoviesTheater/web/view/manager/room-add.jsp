@@ -54,6 +54,8 @@
 
                 <form action="${pageContext.request.contextPath}/RoomServlet" method="post">
                     <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="page" value="${param.page}">
+                    <input type="hidden" name="filter" value="${param.filter}">
 
                     <div class="cgv-field">
                         <label class="cgv-label">Room Number</label>

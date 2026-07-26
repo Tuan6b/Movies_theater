@@ -62,7 +62,7 @@
                             <a href="RoomServlet?filter=inactive"
                                class="cgv-pill ${currentFilter eq 'inactive' ? 'active' : ''}">Inactive</a>
                         </div>
-                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp" class="btn--cgv" style="margin-left:auto;">
+                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp?page=${currentPage}&filter=${currentFilter}" class="btn--cgv" style="margin-left:auto;">
                             + Add Room
                         </a>
                     </div>
