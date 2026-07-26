@@ -43,9 +43,7 @@
 
                 <div class="cgv-table-wrap">
 
-                    <c:if test="${param.error eq 'capacity_invalid'}">
-                        <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
-                    </c:if>
+
 
                     <c:if test="${param.error eq 'room_number_exists'}">
                         <div class="cgv-alert cgv-alert-danger">Room number already exists. Please use a different room number.</div>
