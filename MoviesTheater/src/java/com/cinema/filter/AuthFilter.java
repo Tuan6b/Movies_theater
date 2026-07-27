@@ -14,17 +14,11 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class AuthFilter extends HttpFilter implements Filter {
 
-    private static final Set<String> ADMIN_SERVLET_PREFIXES = new HashSet<>(Arrays.asList(
-            "/unlock-request",
-            "/deletion-request"
-    ));
-
+    // Public pages
     private static final List<String> EXACT_PUBLIC_PATHS = Arrays.asList(
             "/",
             "/index.jsp",
@@ -38,18 +32,15 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/view/auth/register.jsp",
             "/view/auth/forgot-password.jsp",
             "/view/auth/new-password.jsp",
-            "/view/auth/unlock-request.jsp",
             "/Login",
             "/Register",
             "/view/common/Error.jsp",
             "/showtimes",
             "/RoomServlet",
-            "/TMDBController",
-            "/booking",
-            "/unlock-request",
-            "/deletion-request"
+            "/booking"
     );
 
+    // Public resources
     private static final List<String> PREFIX_PUBLIC_PATHS = Arrays.asList(
             "/css/",
             "/js/",
@@ -67,6 +58,7 @@ public class AuthFilter extends HttpFilter implements Filter {
             "/manager/users",
             "/manager/genre",
             "/manager/shifts",
+            "/manager/shift-exchanges",
             "/manager/employees"
     );
 
@@ -85,13 +77,8 @@ public class AuthFilter extends HttpFilter implements Filter {
 
         // ===== PUBLIC URL =====
         if (isPublicPath(path)) {
-            String pi = request.getPathInfo();
-            if (ADMIN_SERVLET_PREFIXES.contains(path) && pi != null && pi.startsWith("/admin")) {
-                // admin sub-path — not public, continue to auth checks
-            } else {
-                chain.doFilter(request, response);
-                return;
-            }
+            chain.doFilter(request, response);
+            return;
         }
 
         // ===== CHECK LOGIN =====
@@ -127,13 +114,6 @@ public class AuthFilter extends HttpFilter implements Filter {
          * 4 = Manager
          * 5 = Admin
          */
-
-        // ===== ADMIN-ONLY SERVLETS (non-/admin URLs) =====
-        String pi = request.getPathInfo();
-        if (ADMIN_SERVLET_PREFIXES.contains(path) && pi != null && pi.startsWith("/admin") && roleId < 5) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-            return;
-        }
 
         // ===== ADMIN ONLY =====
         if ((path.startsWith("/admin") || path.startsWith("/view/admin")) && roleId < 5) {
@@ -189,11 +169,13 @@ public class AuthFilter extends HttpFilter implements Filter {
     }
 
     private boolean isPathInList(String path, List<String> pathList) {
+
         for (String p : pathList) {
-            if (path.equals(p) || path.startsWith(p + "/") || path.startsWith(p + "?")) {
+            if (path.equals(p) || path.startsWith(p)) {
                 return true;
             }
         }
+
         return false;
     }
 

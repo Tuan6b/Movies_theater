@@ -192,7 +192,12 @@ public class WorkShiftServlet extends HttpServlet {
             shift.setStartTime(shiftStart);
             shift.setEndTime(LocalTime.parse(times[1]));
             shift.setStatus("Scheduled");
-            shiftDAO.add(shift);
+            if (shiftDAO.add(shift) > 0) {
+                request.getSession().setAttribute("flashSuccess",
+                        "Đã phân ca " + shiftType.replace("_", " ") + " ngày " + dateStr + ".");
+            } else {
+                request.getSession().setAttribute("flashError", "Không thể tạo ca. Vui lòng thử lại.");
+            }
         } catch (Exception e) {
             request.getSession().setAttribute("flashError", "Lỗi hệ thống. Vui lòng thử lại.");
         }
@@ -209,7 +214,14 @@ public class WorkShiftServlet extends HttpServlet {
 
         String status = request.getParameter("status");
         String notes  = request.getParameter("notes");
-        if (status != null && !status.isEmpty()) shift.setStatus(status);
+        if (status != null && !status.isEmpty()) {
+            if (!isAllowedShiftStatus(status)) {
+                request.getSession().setAttribute("flashError", "Trạng thái ca làm việc không hợp lệ.");
+                response.sendRedirect(request.getContextPath() + LIST_URL);
+                return;
+            }
+            shift.setStatus(status);
+        }
         shift.setNotes(notes);
         shiftDAO.update(shift);
 
@@ -315,6 +327,18 @@ public class WorkShiftServlet extends HttpServlet {
         if (value == null || value.trim().isEmpty()) return defaultValue;
         try { return Integer.parseInt(value.trim()); }
         catch (NumberFormatException e) { return defaultValue; }
+    }
+
+    // Mirrors CHK_WorkShift_Status in the schema, which accepts exactly these three
+    // values, and the three options the shift form offers. The status arrives as a
+    // plain request parameter, and UC-45 derives each employee's WorkingDays by
+    // counting rows with Status = 'Completed', so an unvalidated value would let a
+    // hand-edited form rewrite staff records.
+    // Package-private so WorkShiftServletStatusWhitelistTest can call it directly.
+    static boolean isAllowedShiftStatus(String status) {
+        return "Scheduled".equals(status)
+                || "Completed".equals(status)
+                || "Absent".equals(status);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

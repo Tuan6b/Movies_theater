@@ -6,8 +6,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard — CGV Employee</title>
+    <title>Trang chính — CGV Employee</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
+    <style>
+        .emp-card {
+            background: #fff;
+            border: 1px solid var(--cgv-border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .emp-card-title {
+            font-weight: 700;
+            font-family: var(--font-cgv-ui);
+            margin-bottom: 4px;
+        }
+        .emp-card-desc {
+            font-size: 13px;
+            color: rgba(94,63,58,0.6);
+            margin-bottom: 16px;
+            flex: 1;
+        }
+        .emp-shift-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid var(--cgv-border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 32px;
+            font-size: 13px;
+            color: rgba(94,63,58,0.7);
+        }
+        .emp-shift-bar b {
+            font-family: var(--font-cgv-ui);
+            font-size: 15px;
+            color: var(--cgv-dark);
+        }
+        .emp-shift-tag {
+            font-family: var(--font-cgv-ui);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+        .emp-shift-tag.on  { background: #d1fae5; color: #065f46; }
+        .emp-shift-tag.off { background: #f3f4f6; color: #6b7280; }
+        .section-heading {
+            font-family: var(--font-cgv-ui);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(94,63,58,0.5);
+            margin: 0 0 12px 0;
+        }
+        .emp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 1100px) { .emp-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 700px)  { .emp-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body class="cgv-body">
 
@@ -16,7 +80,7 @@
 <div class="cgv-main">
 
     <header class="cgv-header">
-        <h1 class="cgv-header-title">Dashboard</h1>
+        <h1 class="cgv-header-title">Trang chính</h1>
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <%@ include file="_notifications.jsp" %>
@@ -37,7 +101,13 @@
     <div class="cgv-page">
         <div class="cgv-list-wrap">
 
-            <%-- No-shift warning --%>
+            <c:if test="${not empty flashError}">
+                <div style="background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;font-weight:600;color:#991b1b;">
+                    ${flashError}
+                </div>
+            </c:if>
+
+            <%-- Cảnh báo ngoài ca: giải thích vì sao bán vé và check-in bị khoá --%>
             <c:if test="${noShift}">
                 <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
@@ -49,44 +119,59 @@
                 </div>
             </c:if>
 
-            <%-- Stat cards --%>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;">
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Suất chiếu hôm nay</div>
-                    <div class="cgv-stat-num" style="font-size:28px;">${not empty empScreeningsToday ? empScreeningsToday : '—'}</div>
-                </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Check-in hôm nay</div>
-                    <div class="cgv-stat-num amber" style="font-size:28px;">${not empty empCheckinsToday ? empCheckinsToday : '—'}</div>
-                </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Phim đang chiếu</div>
-                    <div class="cgv-stat-num" style="font-size:28px;">${not empty empActiveMovies ? empActiveMovies : '—'}</div>
-                </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Trạng thái ca</div>
-                    <div class="cgv-stat-num red" style="font-size:28px;">${not empty empShiftStatus ? empShiftStatus : '—'}</div>
-                </div>
+            <%-- Ca của chính nhân viên: quyết định chức năng nào đang mở khoá --%>
+            <div class="emp-shift-bar">
+                <span>Ca hôm nay:</span>
+                <b>${not empty empShiftToday ? empShiftToday : 'Không có ca'}</b>
+                <span class="emp-shift-tag ${noShift ? 'off' : 'on'}">${empShiftStatus}</span>
+                <a href="${pageContext.request.contextPath}/employee/my-shifts"
+                   style="color:var(--cgv-red);font-weight:600;text-decoration:none;">Xem lịch ca →</a>
             </div>
 
-            <%-- Shift breakdown chart --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">CA LÀM VIỆC THÁNG NÀY</div>
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;margin-bottom:32px;">
-                <div style="height:300px;">
-                    <canvas id="shiftChart"></canvas>
+            <div class="section-heading">CHỨC NĂNG</div>
+            <div class="emp-grid">
+
+                <div class="emp-card">
+                    <div class="emp-card-title">Check-in vé</div>
+                    <div class="emp-card-desc">Quét mã vé hoặc tra cứu để cho khách vào phòng chiếu</div>
+                    <c:choose>
+                        <c:when test="${noShift}">
+                            <span class="btn--cgv-outline" style="opacity:.45;cursor:not-allowed;">Cần có ca làm việc</span>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/employee/checkin" class="btn--cgv-outline">Mở màn hình quét vé</a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
-            </div>
 
-            <%-- Account --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">TÀI KHOẢN</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+                <div class="emp-card">
+                    <div class="emp-card-title">Lịch chiếu</div>
+                    <div class="emp-card-desc">Tra cứu suất chiếu theo ngày, phim hoặc phòng — nơi bắt đầu để bán vé tại quầy</div>
+                    <a href="${pageContext.request.contextPath}/employee/schedules" class="btn--cgv-outline">Xem lịch chiếu</a>
+                </div>
 
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-weight:700;font-family:var(--font-cgv-ui);margin-bottom:4px;">Đổi mật khẩu</div>
-                    <div style="font-size:13px;color:rgba(94,63,58,0.6);margin-bottom:16px;">Cập nhật mật khẩu đăng nhập của bạn</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <a href="${pageContext.request.contextPath}/change-password" class="btn--cgv-outline">Đổi mật khẩu</a>
-                    </div>
+                <div class="emp-card">
+                    <div class="emp-card-title">Ca làm việc của tôi</div>
+                    <div class="emp-card-desc">Xem lịch ca tháng này và gửi yêu cầu chuyển ca</div>
+                    <a href="${pageContext.request.contextPath}/employee/my-shifts" class="btn--cgv-outline">Mở lịch ca</a>
+                </div>
+
+                <div class="emp-card">
+                    <div class="emp-card-title">Đồ ăn &amp; nước</div>
+                    <div class="emp-card-desc">Xem và cập nhật danh sách bắp nước đang bán</div>
+                    <a href="${pageContext.request.contextPath}/FoodController" class="btn--cgv-outline">Mở danh sách</a>
+                </div>
+
+                <div class="emp-card">
+                    <div class="emp-card-title">Thông tin cá nhân</div>
+                    <div class="emp-card-desc">Xem hồ sơ nhân viên do quản lý cập nhật</div>
+                    <a href="${pageContext.request.contextPath}/employee/profile" class="btn--cgv-outline">Xem hồ sơ</a>
+                </div>
+
+                <div class="emp-card">
+                    <div class="emp-card-title">Đổi mật khẩu</div>
+                    <div class="emp-card-desc">Cập nhật mật khẩu đăng nhập của bạn</div>
+                    <a href="${pageContext.request.contextPath}/change-password" class="btn--cgv-outline">Đổi mật khẩu</a>
                 </div>
 
             </div>
@@ -94,23 +179,5 @@
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
-        integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
-        crossorigin="anonymous"></script>
-<script>
-    var shiftChartData = ${shiftChartJson};
-    new Chart(document.getElementById('shiftChart').getContext('2d'), {
-        type: 'doughnut',
-        data: {
-            labels: shiftChartData.labels,
-            datasets: [{
-                data: shiftChartData.values,
-                backgroundColor: ['#865300', '#bd0000', '#5e3f3a']
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-</script>
 </body>
 </html>

@@ -22,7 +22,7 @@
         <div class="cgv-main">
 
             <header class="cgv-header">
-                <h1 class="cgv-header-title">Screening Rooms</h1>
+                <h1 class="cgv-header-title">Phòng chiếu</h1>
                 <div class="cgv-header-right">
                     <div class="cgv-header-actions">
                         <div class="cgv-header-divider"></div>
@@ -130,7 +130,6 @@
                         </div>
                     </div>
                 </div>
-
 
 
             </div>

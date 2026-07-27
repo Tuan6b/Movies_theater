@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class ShiftExchangeDAO {
 
+    private static final int ROLE_EMPLOYEE = 3;
+
     private static final String BASE_SELECT =
             "SELECT r.RequestID, r.ShiftID, r.RequesterID, r.TargetEmpID, r.Message, "
             + "r.Status, r.CreatedAt, r.RespondedAt, "
@@ -36,12 +38,20 @@ public class ShiftExchangeDAO {
             + "LEFT JOIN UserProfile tu ON ta.AccountID = tu.AccountID ";
 
     // Returns the generated RequestID (> 0) on success, or 0 if the shift no
-    // longer belongs to the requester (WHERE EXISTS check fails) or on error.
+    // longer belongs to the requester, if the target is not an active employee,
+    // or on error.
     public int createRequest(int shiftId, int requesterId, int targetEmpId, String message) {
-        // WHERE EXISTS ensures the shift belongs to the requester at the DB level
+        // Both EXISTS clauses are the authorisation check, done at the DB level so a
+        // hand-edited form cannot bypass them. The first confirms the shift belongs
+        // to the requester. The second confirms the recipient is an employee who is
+        // not blocked: TargetEmpID only has a foreign key to Account, so without it
+        // a shift could be handed to a Customer, an Admin or a deactivated account,
+        // none of which can work it.
         String sql = "INSERT INTO ShiftExchangeRequest (ShiftID, RequesterID, TargetEmpID, Message) "
                 + "SELECT ?, ?, ?, ? "
-                + "WHERE EXISTS (SELECT 1 FROM WorkShift WHERE ShiftID = ? AND EmployeeID = ?)";
+                + "WHERE EXISTS (SELECT 1 FROM WorkShift WHERE ShiftID = ? AND EmployeeID = ?) "
+                + "AND EXISTS (SELECT 1 FROM Account WHERE AccountID = ? "
+                + "AND RoleID = " + ROLE_EMPLOYEE + " AND IsBlocked = 0)";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, shiftId);
@@ -50,6 +60,7 @@ public class ShiftExchangeDAO {
             ps.setNString(4, message);
             ps.setInt(5, shiftId);
             ps.setInt(6, requesterId);
+            ps.setInt(7, targetEmpId);
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -76,6 +87,8 @@ public class ShiftExchangeDAO {
         return null;
     }
 
+    // Pending requests that name this employee as the new owner. Read-only for the
+    // employee since UC44.1: the Manager decides, the recipient is only informed.
     public List<ShiftExchangeRequest> getIncoming(int targetEmpId) {
         List<ShiftExchangeRequest> list = new ArrayList<>();
         String sql = BASE_SELECT
@@ -93,10 +106,91 @@ public class ShiftExchangeDAO {
         return list;
     }
 
-    public List<ShiftExchangeRequest> getOutgoing(int requesterId) {
+    /**
+     * Every hand-off request in the cinema, for the Manager's review screen.
+     *
+     * @param status one of Pending / Accepted / Rejected / Cancelled, or null for
+     *               all of them. Compared as a bind parameter, never concatenated.
+     */
+    public List<ShiftExchangeRequest> getAllForManager(String status) {
+        List<ShiftExchangeRequest> list = new ArrayList<>();
+        // Pending first, then newest: the queue the Manager has to act on stays on
+        // top even when the filter is showing the whole history.
+        String sql = BASE_SELECT
+                + (status != null ? "WHERE r.Status = ? " : "")
+                + "ORDER BY CASE WHEN r.Status = 'Pending' THEN 0 ELSE 1 END, r.CreatedAt DESC";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (status != null) ps.setString(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRequest(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countPending() {
+        String sql = "SELECT COUNT(*) FROM ShiftExchangeRequest WHERE Status = 'Pending'";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * One page of the employee's own request history, newest first. Paged because
+     * this list only ever grows — an employee who has swapped shifts all year would
+     * otherwise push the whole month calendar off the screen.
+     */
+    public List<ShiftExchangeRequest> getOutgoing(int requesterId, int page, int pageSize) {
         List<ShiftExchangeRequest> list = new ArrayList<>();
         String sql = BASE_SELECT
                 + "WHERE r.RequesterID = ? "
+                + "ORDER BY r.CreatedAt DESC "
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, requesterId);
+            ps.setInt(2, (page - 1) * pageSize);
+            ps.setInt(3, pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRequest(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countOutgoing(int requesterId) {
+        String sql = "SELECT COUNT(*) FROM ShiftExchangeRequest WHERE RequesterID = ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, requesterId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * The employee's still-undecided requests, unpaged. The calendar marks the
+     * shifts these cover, so it needs all of them regardless of which page of the
+     * history list happens to be on screen. Only Pending rows, so it stays small.
+     */
+    public List<ShiftExchangeRequest> getOutgoingPending(int requesterId) {
+        List<ShiftExchangeRequest> list = new ArrayList<>();
+        String sql = BASE_SELECT
+                + "WHERE r.RequesterID = ? AND r.Status = 'Pending' "
                 + "ORDER BY r.CreatedAt DESC";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -110,31 +204,66 @@ public class ShiftExchangeDAO {
         return list;
     }
 
-    // Accepts a pending handoff request and transfers the shift to the target employee.
-    public boolean accept(int requestId, int currentEmpId) {
-        String sqlGet = "SELECT ShiftID, RequesterID FROM ShiftExchangeRequest "
-                + "WHERE RequestID = ? AND TargetEmpID = ? AND Status = 'Pending'";
+    /** approve() outcomes, so the Manager screen can say what actually went wrong. */
+    public static final String APPROVE_OK          = "OK";
+    public static final String APPROVE_NOT_PENDING = "NOT_PENDING";
+    public static final String APPROVE_SHIFT_MOVED = "SHIFT_MOVED";
+    public static final String APPROVE_TARGET_BUSY = "TARGET_BUSY";
+    public static final String APPROVE_ERROR       = "ERROR";
+
+    /**
+     * Approves a pending hand-off and transfers the shift to the target employee.
+     *
+     * The Manager is the approver, so this takes no employee id: authorisation is
+     * the /manager/shift-exchanges route itself. Three things can still stop the
+     * transfer, and each gets its own return code: the request was already settled,
+     * the requester has lost the shift since asking, or the recipient is already
+     * booked at that hour — UQ_WorkShift_Emp_Date_Start would reject that last one
+     * anyway, so it is checked up front rather than surfaced as a SQL error.
+     *
+     * @return one of the APPROVE_* constants
+     */
+    public String approve(int requestId) {
+        String sqlGet = "SELECT ShiftID, RequesterID, TargetEmpID FROM ShiftExchangeRequest "
+                + "WHERE RequestID = ? AND Status = 'Pending'";
         try (Connection conn = DBUtils.getConnection()) {
-            int shiftId = 0;
-            int originalOwnerId = 0;
+            int shiftId;
+            int originalOwnerId;
+            int newOwnerId;
             try (PreparedStatement ps = conn.prepareStatement(sqlGet)) {
                 ps.setInt(1, requestId);
-                ps.setInt(2, currentEmpId);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (!rs.next()) return false;
+                    if (!rs.next()) return APPROVE_NOT_PENDING;
                     shiftId = rs.getInt("ShiftID");
                     originalOwnerId = rs.getInt("RequesterID");
+                    newOwnerId = rs.getInt("TargetEmpID");
                 }
             }
 
             conn.setAutoCommit(false);
             try {
+                // Does the recipient already work a shift starting at that hour that day?
+                String sqlClash = "SELECT COUNT(*) FROM WorkShift target "
+                        + "WHERE target.EmployeeID = ? AND EXISTS ("
+                        + "  SELECT 1 FROM WorkShift src WHERE src.ShiftID = ? "
+                        + "  AND src.ShiftDate = target.ShiftDate AND src.StartTime = target.StartTime)";
+                try (PreparedStatement ps = conn.prepareStatement(sqlClash)) {
+                    ps.setInt(1, newOwnerId);
+                    ps.setInt(2, shiftId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            conn.rollback();
+                            return APPROVE_TARGET_BUSY;
+                        }
+                    }
+                }
+
                 // Verify the requester still owns the shift before transferring
                 String sqlTransfer = "UPDATE WorkShift SET EmployeeID = ? "
                         + "WHERE ShiftID = ? AND EmployeeID = ?";
                 int rows;
                 try (PreparedStatement ps = conn.prepareStatement(sqlTransfer)) {
-                    ps.setInt(1, currentEmpId);
+                    ps.setInt(1, newOwnerId);
                     ps.setInt(2, shiftId);
                     ps.setInt(3, originalOwnerId);
                     rows = ps.executeUpdate();
@@ -142,18 +271,31 @@ public class ShiftExchangeDAO {
 
                 if (rows == 0) {
                     conn.rollback();
-                    return false;
+                    return APPROVE_SHIFT_MOVED;
                 }
 
-                String sqlAccept = "UPDATE ShiftExchangeRequest "
+                String sqlApprove = "UPDATE ShiftExchangeRequest "
                         + "SET Status = 'Accepted', RespondedAt = GETDATE() WHERE RequestID = ?";
-                try (PreparedStatement ps = conn.prepareStatement(sqlAccept)) {
+                try (PreparedStatement ps = conn.prepareStatement(sqlApprove)) {
                     ps.setInt(1, requestId);
                     ps.executeUpdate();
                 }
 
+                // Any other pending request for this shift now names a requester who
+                // no longer owns it, so it could never be approved. Closing them here
+                // keeps the Manager's queue from filling with requests that can only
+                // fail, and it happens inside the same transaction as the transfer.
+                String sqlSupersede = "UPDATE ShiftExchangeRequest "
+                        + "SET Status = 'Rejected', RespondedAt = GETDATE() "
+                        + "WHERE ShiftID = ? AND Status = 'Pending' AND RequestID <> ?";
+                try (PreparedStatement ps = conn.prepareStatement(sqlSupersede)) {
+                    ps.setInt(1, shiftId);
+                    ps.setInt(2, requestId);
+                    ps.executeUpdate();
+                }
+
                 conn.commit();
-                return true;
+                return APPROVE_OK;
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -163,17 +305,17 @@ public class ShiftExchangeDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return APPROVE_ERROR;
     }
 
-    public boolean reject(int requestId, int currentEmpId) {
+    /** Manager turns a pending hand-off down; the shift stays with the requester. */
+    public boolean reject(int requestId) {
         String sql = "UPDATE ShiftExchangeRequest "
                 + "SET Status = 'Rejected', RespondedAt = GETDATE() "
-                + "WHERE RequestID = ? AND TargetEmpID = ? AND Status = 'Pending'";
+                + "WHERE RequestID = ? AND Status = 'Pending'";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, requestId);
-            ps.setInt(2, currentEmpId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,13 +24,18 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;   
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Selenium WebDriver end-to-end tests for the Shift Exchange use case
- * (request -> accept/reject, plus in-app notifications). These are real
- * browser tests: they require the app to already be running at BASE_URL
- * (deployed via NetBeans/Tomcat) and a reachable SQL Server database.
+ * (employee requests -> Manager approves/declines, plus in-app notifications).
+ * These are real browser tests: they require the app to already be running at
+ * BASE_URL (deployed via NetBeans/Tomcat) and a reachable SQL Server database.
+ *
+ * Two browsers are driven at once because the flow spans two roles: the
+ * employee raising the request and the Manager settling it on
+ * /manager/shift-exchanges. The recipient no longer decides anything.
  *
  * Browser: Microsoft Edge (Chromium-based) via EdgeDriver. Selenium Manager
  * resolves a matching msedgedriver automatically since Edge is pre-installed
@@ -41,6 +48,7 @@ public class ShiftExchangeSeleniumTest {
     private static final int REQUESTER_ID = 3;   // employee@cinema.vn
     private static final String REQUESTER_EMAIL = "employee@cinema.vn";
     private static final String TARGET_EMAIL = "employee02@cinema.vn";
+    private static final String MANAGER_EMAIL = "manager@cinema.vn";
     private static final String PASSWORD = "123456";
 
     // Base64(salt || SHA-256(salt || "123456")), the same stored hash the seed
@@ -94,10 +102,40 @@ public class ShiftExchangeSeleniumTest {
         return new EdgeDriver(options);
     }
 
+    /** ShiftIDs seeded by the running test, removed again in tearDown. */
+    private final List<Integer> seededShiftIds = new ArrayList<>();
+
     @After
     public void tearDown() {
         if (driver1 != null) driver1.quit();
         if (driver2 != null) driver2.quit();
+        removeSeededShifts();
+    }
+
+    /**
+     * Deletes the shifts this test inserted.
+     *
+     * Every test method seeds another 08:00-16:00 shift for the same employee on
+     * the same date, so without this the employee's calendar collects one extra
+     * copy per test method per run — they stack up on one day and make the month
+     * view unreadable. ShiftExchangeRequest declares ON DELETE CASCADE on ShiftID,
+     * so the requests raised against these shifts go with them.
+     */
+    private void removeSeededShifts() {
+        if (seededShiftIds.isEmpty()) return;
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM WorkShift WHERE ShiftID = ?")) {
+            for (int shiftId : seededShiftIds) {
+                ps.setInt(1, shiftId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            // Cleanup must never mask the actual test result.
+            e.printStackTrace();
+        }
+        seededShiftIds.clear();
     }
 
     // Inserts a fresh Scheduled shift for the requester and returns its generated ShiftID.
@@ -116,7 +154,9 @@ public class ShiftExchangeSeleniumTest {
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 keys.next();
-                return keys.getInt(1);
+                int shiftId = keys.getInt(1);
+                seededShiftIds.add(shiftId);
+                return shiftId;
             }
         }
     }
@@ -136,43 +176,83 @@ public class ShiftExchangeSeleniumTest {
     }
 
     private void login(WebDriver driver, String email, String password) {
+        login(driver, email, password, "/employee");
+    }
+
+    private void login(WebDriver driver, String email, String password, String landingPath) {
         driver.get(BASE_URL + "/Login");
         driver.findElement(By.id("email")).sendKeys(email);
         driver.findElement(By.id("password")).sendKeys(password);
         driver.findElement(By.cssSelector("#loginForm button[type=submit]")).click();
         new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.urlContains("/employee"));
+                .until(ExpectedConditions.urlContains(landingPath));
     }
 
-    private WebDriverWait wait(WebDriver driver) {
-        return new WebDriverWait(driver, Duration.ofSeconds(10));
+    // Reads the employee a shift currently belongs to, so a test can prove the
+    // transfer really happened (or did not) rather than trusting the banner alone.
+    private int shiftOwner(int shiftId) throws SQLException {
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT EmployeeID FROM WorkShift WHERE ShiftID = ?")) {
+            ps.setInt(1, shiftId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
     }
 
-    // TC_UC_01 (Basic Flow): request an exchange, then accept it; verify both
-    // flash messages and the notification bell on the target's side.
-    @Test
-    public void testBasicFlow_requestAndAcceptShiftExchange() throws SQLException {
-        int shiftId = seedScheduledShift();
+    // Opens the hand-off form for one shift on the employee calendar. The month
+    // view renders each shift as a button carrying the ShiftID, and clicking it
+    // opens the detail modal whose #sm-handoff block holds the form.
+    private WebElement openHandoffPanel(WebDriver driver, int shiftId) {
+        driver.get(BASE_URL + "/employee/my-shifts");
+        wait(driver).until(ExpectedConditions.elementToBeClickable(
+                By.id("shift-" + shiftId))).click();
+        return wait(driver).until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("sm-handoff")));
+    }
 
+    // Raises a hand-off request for the seeded shift as the requester, and returns
+    // the RequestID it produced. Shared by the approve and decline tests.
+    private int requestHandoff(int shiftId, String message) throws SQLException {
         driver1 = newDriver();
         login(driver1, REQUESTER_EMAIL, PASSWORD);
-        driver1.get(BASE_URL + "/employee/my-shifts");
 
-        wait(driver1).until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
-        WebElement panel = wait(driver1).until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
+        WebElement panel = openHandoffPanel(driver1, shiftId);
         new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(targetId));
-        panel.findElement(By.name("message")).sendKeys("Selenium test: xin nhuong ca");
+        if (message != null) {
+            panel.findElement(By.name("message")).sendKeys(message);
+        }
         panel.findElement(By.cssSelector("button[type=submit]")).click();
 
         WebElement successBanner = wait(driver1).until(
                 ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
         assertTrue(successBanner.getText().contains("Yêu cầu chuyển ca đã được gửi"));
 
-        int requestId = getPendingRequestId(shiftId);
+        return getPendingRequestId(shiftId);
+    }
 
-        // Target employee should see an unread notification about the new request.
+    // Finds the approve/decline form for one request on the Manager's queue page.
+    private By decisionForm(int requestId, String action) {
+        return By.xpath("//input[@name='requestId'][@value='" + requestId + "']"
+                + "/ancestor::form[.//input[@name='action'][@value='" + action + "']]");
+    }
+
+    private WebDriverWait wait(WebDriver driver) {
+        return new WebDriverWait(driver, Duration.ofSeconds(10));
+    }
+
+    // TC_UC_01 (Basic Flow): employee requests a hand-off, the target is told it is
+    // only a proposal, and the Manager approves it - which is what actually moves
+    // the shift.
+    @Test
+    public void testBasicFlow_requestThenManagerApproves() throws SQLException {
+        int shiftId = seedScheduledShift();
+        int requestId = requestHandoff(shiftId, "Selenium test: xin nhuong ca");
+
+        // Target employee is notified, but gets no accept button: the card only
+        // tells them the request is waiting on the Manager.
         driver2 = newDriver();
         login(driver2, TARGET_EMAIL, PASSWORD);
         driver2.get(BASE_URL + "/employee/my-shifts");
@@ -188,20 +268,29 @@ public class ShiftExchangeSeleniumTest {
         boolean hasRequestNotification = new WebDriverWait(driver2, Duration.ofSeconds(10))
                 .ignoring(StaleElementReferenceException.class)
                 .until(dr -> dr.findElements(By.cssSelector(".cgv-notif-item-title")).stream()
-                        .anyMatch(t -> t.getText().contains("New Shift Exchange Request")));
+                        .anyMatch(t -> t.getText().contains("Shift Exchange Proposed")));
         assertTrue(hasRequestNotification);
+        assertTrue("Recipient must not be able to settle the request itself",
+                driver2.findElements(decisionForm(requestId, "accept_exchange")).isEmpty());
+        assertEquals("Shift must not move before the manager approves",
+                REQUESTER_ID, shiftOwner(shiftId));
 
-        // Accept the request.
-        By acceptFormLocator = By.xpath(
-                "//input[@name='requestId'][@value='" + requestId + "']"
-                        + "/ancestor::form[.//input[@name='action'][@value='accept_exchange']]");
-        WebElement acceptForm = wait(driver2).until(ExpectedConditions.presenceOfElementLocated(acceptFormLocator));
-        acceptForm.findElement(By.cssSelector("button[type=submit]")).click();
+        // Manager approves from the review queue; only now does the shift move.
+        driver2.quit();
+        driver2 = newDriver();
+        login(driver2, MANAGER_EMAIL, PASSWORD, "/manager");
+        driver2.get(BASE_URL + "/manager/shift-exchanges?status=Pending");
+
+        WebElement approveForm = wait(driver2).until(
+                ExpectedConditions.presenceOfElementLocated(decisionForm(requestId, "approve")));
+        approveForm.findElement(By.cssSelector("button[type=submit]")).click();
         driver2.switchTo().alert().accept();
 
-        WebElement acceptBanner = wait(driver2).until(
+        WebElement approveBanner = wait(driver2).until(
                 ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
-        assertTrue(acceptBanner.getText().contains("Đã nhận ca thành công"));
+        assertTrue(approveBanner.getText().contains("Đã duyệt yêu cầu đổi ca"));
+        assertEquals("Approval must transfer the shift to the target employee",
+                targetId, shiftOwner(shiftId));
     }
 
     // AF1: attempt to hand off a shift to oneself. The dropdown never lists the
@@ -213,13 +302,8 @@ public class ShiftExchangeSeleniumTest {
 
         driver1 = newDriver();
         login(driver1, REQUESTER_EMAIL, PASSWORD);
-        driver1.get(BASE_URL + "/employee/my-shifts");
 
-        wait(driver1).until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
-        WebElement panel = wait(driver1).until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
-
+        WebElement panel = openHandoffPanel(driver1, shiftId);
         WebElement select = panel.findElement(By.name("targetEmpId"));
         JavascriptExecutor js = (JavascriptExecutor) driver1;
         js.executeScript(
@@ -234,36 +318,50 @@ public class ShiftExchangeSeleniumTest {
         assertTrue(errorBanner.getText().contains("Không thể chuyển ca cho chính mình"));
     }
 
-    // AF4: target employee declines the request.
+    // AF4: the Manager declines the request; the shift stays with the requester.
     @Test
-    public void testAlternativeFlow_rejectShiftExchange() throws SQLException {
+    public void testAlternativeFlow_managerRejectsShiftExchange() throws SQLException {
         int shiftId = seedScheduledShift();
+        int requestId = requestHandoff(shiftId, null);
 
-        driver1 = newDriver();
-        login(driver1, REQUESTER_EMAIL, PASSWORD);
-        driver1.get(BASE_URL + "/employee/my-shifts");
-        wait(driver1).until(ExpectedConditions.elementToBeClickable(
-                By.cssSelector("#shift-wrap-" + shiftId + " button"))).click();
-        WebElement panel = wait(driver1).until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#handoff-" + shiftId + ".open")));
-        new Select(panel.findElement(By.name("targetEmpId"))).selectByValue(String.valueOf(targetId));
-        panel.findElement(By.cssSelector("button[type=submit]")).click();
-        wait(driver1).until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
+        driver2 = newDriver();
+        login(driver2, MANAGER_EMAIL, PASSWORD, "/manager");
+        driver2.get(BASE_URL + "/manager/shift-exchanges?status=Pending");
 
-        int requestId = getPendingRequestId(shiftId);
+        WebElement rejectForm = wait(driver2).until(
+                ExpectedConditions.presenceOfElementLocated(decisionForm(requestId, "reject")));
+        rejectForm.findElement(By.cssSelector("button[type=submit]")).click();
+        driver2.switchTo().alert().accept();
+
+        WebElement banner = wait(driver2).until(
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
+        assertTrue(banner.getText().contains("Đã từ chối yêu cầu đổi ca"));
+        assertEquals("A declined hand-off must leave the shift where it was",
+                REQUESTER_ID, shiftOwner(shiftId));
+    }
+
+    // The employee area no longer exposes the decision actions at all, so a
+    // hand-crafted POST to the old endpoint must not settle anything either.
+    @Test
+    public void testTamperedAcceptPostIsIgnoredByEmployeeEndpoint() throws SQLException {
+        int shiftId = seedScheduledShift();
+        int requestId = requestHandoff(shiftId, null);
 
         driver2 = newDriver();
         login(driver2, TARGET_EMAIL, PASSWORD);
         driver2.get(BASE_URL + "/employee/my-shifts");
 
-        By rejectFormLocator = By.xpath(
-                "//input[@name='requestId'][@value='" + requestId + "']"
-                        + "/ancestor::form[.//input[@name='action'][@value='reject_exchange']]");
-        WebElement rejectForm = wait(driver2).until(ExpectedConditions.presenceOfElementLocated(rejectFormLocator));
-        rejectForm.findElement(By.cssSelector("button[type=submit]")).click();
+        JavascriptExecutor js = (JavascriptExecutor) driver2;
+        js.executeScript(
+                "var f = document.createElement('form'); f.method = 'post';"
+                        + " f.action = arguments[0] + '/employee/my-shifts';"
+                        + " f.innerHTML = \"<input name='action' value='accept_exchange'>\""
+                        + " + \"<input name='requestId' value='\" + arguments[1] + \"'>\";"
+                        + " document.body.appendChild(f); f.submit();",
+                BASE_URL, String.valueOf(requestId));
 
-        WebElement banner = wait(driver2).until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cgv-alert-success")));
-        assertTrue(banner.getText().contains("Đã từ chối yêu cầu"));
+        wait(driver2).until(ExpectedConditions.urlContains("/employee/my-shifts"));
+        assertEquals("An unmapped action must leave the shift untouched",
+                REQUESTER_ID, shiftOwner(shiftId));
     }
 }
