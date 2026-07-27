@@ -54,14 +54,6 @@
             gap: 24px;
             margin-bottom: 32px;
         }
-        .sort-link {
-            color: rgba(94,63,58,0.5);
-            font-size: 10px;
-            text-decoration: none;
-            margin-left: 4px;
-        }
-        .sort-link:hover  { color: var(--cgv-red); }
-        .sort-link.active { color: var(--cgv-red); font-weight: 700; }
         .bar-wrap {
             height: 8px;
             background: rgba(94,63,58,0.08);
@@ -158,8 +150,6 @@
                             <option value="${y}" ${selectedYear eq y ? 'selected' : ''}>${y}</option>
                         </c:forEach>
                     </select>
-                    <input type="hidden" name="sortBy" value="${sortBy}">
-                    <input type="hidden" name="dir" value="${sortDir}">
                     <button type="submit" class="btn--cgv-outline" style="height:36px;">Xem</button>
                 </form>
             </div>
@@ -263,24 +253,10 @@
                 <table class="cgv-dt">
                     <thead>
                         <tr>
-                            <th>
-                                Tháng
-                                <c:set var="nextMonthDir" value="${sortBy eq 'month' && sortDir eq 'ASC' ? 'DESC' : 'ASC'}"/>
-                                <a href="?year=${selectedYear}&sortBy=month&dir=${nextMonthDir}"
-                                   class="sort-link ${sortBy eq 'month' ? 'active' : ''}">
-                                    ${sortBy eq 'month' && sortDir eq 'ASC' ? '↑' : '↓'}
-                                </a>
-                            </th>
+                            <th>Tháng</th>
                             <th>Hóa đơn</th>
                             <th>Vé bán</th>
-                            <th>
-                                Doanh thu (VND)
-                                <c:set var="nextRevDir" value="${sortBy eq 'revenue' && sortDir eq 'ASC' ? 'DESC' : 'ASC'}"/>
-                                <a href="?year=${selectedYear}&sortBy=revenue&dir=${nextRevDir}"
-                                   class="sort-link ${sortBy eq 'revenue' ? 'active' : ''}">
-                                    ${sortBy eq 'revenue' && sortDir eq 'ASC' ? '↑' : '↓'}
-                                </a>
-                            </th>
+                            <th>Doanh thu (VND)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -315,42 +291,6 @@
 
         </div>
 
-        <aside class="cgv-aside">
-            <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">THÁNG NÀY</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num">${not empty monthRevenue ? monthRevenue : '0'}</div>
-                        <div class="cgv-stat-key">DOANH THU (VND)</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num amber">${not empty monthTickets ? monthTickets : '0'}</div>
-                        <div class="cgv-stat-key">VÉ ĐÃ BÁN</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num red">${not empty newCustomers ? '+' : ''}${not empty newCustomers ? newCustomers : '0'}</div>
-                        <div class="cgv-stat-key">KHÁCH MỚI</div>
-                    </div>
-                </div>
-            </div>
-            <div class="cgv-aside-divider">
-                <div class="cgv-aside-heading">SẮP XẾP</div>
-                <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-                    <a href="?year=${selectedYear}&sortBy=month&dir=ASC"
-                       class="btn--cgv-outline ${sortBy eq 'month' && sortDir eq 'ASC' ? 'active' : ''}"
-                       style="text-align:center; font-size:12px;">Tháng ↑</a>
-                    <a href="?year=${selectedYear}&sortBy=month&dir=DESC"
-                       class="btn--cgv-outline ${sortBy eq 'month' && sortDir eq 'DESC' ? 'active' : ''}"
-                       style="text-align:center; font-size:12px;">Tháng ↓</a>
-                    <a href="?year=${selectedYear}&sortBy=revenue&dir=DESC"
-                       class="btn--cgv-outline ${sortBy eq 'revenue' && sortDir eq 'DESC' ? 'active' : ''}"
-                       style="text-align:center; font-size:12px;">Doanh thu ↓</a>
-                    <a href="?year=${selectedYear}&sortBy=revenue&dir=ASC"
-                       class="btn--cgv-outline ${sortBy eq 'revenue' && sortDir eq 'ASC' ? 'active' : ''}"
-                       style="text-align:center; font-size:12px;">Doanh thu ↑</a>
-                </div>
-            </div>
-        </aside>
     </div>
 </div>
 

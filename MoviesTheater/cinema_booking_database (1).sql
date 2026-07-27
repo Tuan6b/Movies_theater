@@ -217,6 +217,12 @@ CREATE TABLE WorkShift (
 CREATE INDEX IDX_WorkShift_EmployeeID ON WorkShift(EmployeeID);
 CREATE INDEX IDX_WorkShift_ShiftDate  ON WorkShift(ShiftDate);
 
+-- One employee cannot start two shifts at the same time on the same day. The
+-- scheduling screens already refuse it (WorkShiftDAO.existsShift / bulkCreate),
+-- but that guard only covers inserts made through the app: a direct INSERT used
+-- to stack identical rows on one day and make the employee calendar unreadable.
+CREATE UNIQUE INDEX UQ_WorkShift_Emp_Date_Start ON WorkShift(EmployeeID, ShiftDate, StartTime);
+
 CREATE TABLE ShiftExchangeRequest (
     RequestID   INT IDENTITY(1,1) PRIMARY KEY,
     ShiftID     INT NOT NULL,

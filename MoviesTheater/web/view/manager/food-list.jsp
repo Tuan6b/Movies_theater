@@ -140,21 +140,6 @@
             </div>
         </div>
 
-        <aside class="cgv-aside">
-            <div class="cgv-aside-divider">
-                <div class="cgv-aside-heading">SUMMARY</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num">${not empty foodList ? foodList.size() : '0'}</div>
-                        <div class="cgv-stat-key">ITEMS</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num amber">${currentType eq 'combo' ? 'Combo' : 'Retail'}</div>
-                        <div class="cgv-stat-key">TYPE</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
 
     </div>
 </div>

@@ -216,7 +216,11 @@ public class EmployeeServlet extends HttpServlet {
     private Map<String, String> validateForCreate(Account account) {
         Map<String, String> errors = new LinkedHashMap<>();
         validateEmail(account.getEmail(), 0, errors);
-        // fullName and password are optional on create; employee fills them on first login
+        // Full name is required here, not optional: first-login setup only replaces
+        // the temporary password now, so this form is the sole place the profile is
+        // entered and a blank name would leave the account nameless for good.
+        // The password stays out of it — EmployeeDAO.add() generates a temporary one.
+        validateFullName(account.getFullName(), errors);
         return errors;
     }
 

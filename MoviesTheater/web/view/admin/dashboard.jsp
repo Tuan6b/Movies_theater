@@ -6,8 +6,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard — CGV System Admin</title>
+    <title>Trang chính — CGV System Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
+    <style>
+        .sa-card {
+            background: #fff;
+            border: 1px solid var(--cgv-border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sa-card-title {
+            font-weight: 700;
+            font-family: var(--font-cgv-ui);
+            margin-bottom: 4px;
+        }
+        .sa-card-desc {
+            font-size: 13px;
+            color: rgba(94,63,58,0.6);
+            margin-bottom: 16px;
+            flex: 1;
+        }
+        .sa-heading {
+            font-family: var(--font-cgv-ui);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(94,63,58,0.5);
+            margin: 0 0 12px 0;
+        }
+        .sa-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) { .sa-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body class="cgv-body">
 
@@ -36,52 +72,25 @@
     <div class="cgv-page">
         <div class="cgv-list-wrap">
 
-            <%-- Stat cards --%>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;">
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Tổng người dùng</div>
-                    <div class="cgv-stat-num" style="font-size:28px;">${not empty adminTotalUsers ? adminTotalUsers : '—'}</div>
-                </div>
-                <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                    <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:8px;">Tổng nhân viên</div>
-                    <div class="cgv-stat-num amber" style="font-size:28px;">${not empty adminTotalStaff ? adminTotalStaff : '—'}</div>
-                </div>
-            </div>
+            <div class="sa-heading">CHỨC NĂNG</div>
+            <div class="sa-grid">
 
-            <%-- System activity chart --%>
-            <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.4);margin-bottom:16px;">HOẠT ĐỘNG HỆ THỐNG (7 NGÀY GẦN NHẤT)</div>
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:24px;">
-                <div style="height:300px;">
-                    <canvas id="activityChart"></canvas>
+                <div class="sa-card">
+                    <div class="sa-card-title">Nhật ký hệ thống</div>
+                    <div class="sa-card-desc">Tra cứu toàn bộ thao tác đã thực hiện trên hệ thống, lọc theo loại thao tác hoặc từ khoá</div>
+                    <a href="${pageContext.request.contextPath}/admin/logs" class="btn--cgv-outline">Xem nhật ký</a>
                 </div>
+
+                <div class="sa-card">
+                    <div class="sa-card-title">Đổi mật khẩu</div>
+                    <div class="sa-card-desc">Cập nhật mật khẩu đăng nhập của bạn</div>
+                    <a href="${pageContext.request.contextPath}/change-password" class="btn--cgv-outline">Đổi mật khẩu</a>
+                </div>
+
             </div>
 
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
-        integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
-        crossorigin="anonymous"></script>
-<script>
-    var activityChartData = ${activityChartJson};
-    new Chart(document.getElementById('activityChart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: activityChartData.labels,
-            datasets: [{
-                label: 'Số lượt hoạt động',
-                data: activityChartData.values,
-                backgroundColor: 'rgba(94,63,58,0.7)'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-        }
-    });
-</script>
 </body>
 </html>

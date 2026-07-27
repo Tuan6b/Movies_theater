@@ -214,6 +214,15 @@
         <servlet-name>WorkShiftServlet</servlet-name>
         <url-pattern>/manager/shifts</url-pattern>
     </servlet-mapping>
+    <!-- Manager approval queue for shift hand-off requests -->
+    <servlet>
+        <servlet-name>ShiftExchangeServlet</servlet-name>
+        <servlet-class>com.cinema.controller.ShiftExchangeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ShiftExchangeServlet</servlet-name>
+        <url-pattern>/manager/shift-exchanges</url-pattern>
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>TMDBController</servlet-name>
         <url-pattern>/TMDBController</url-pattern>

@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccountDAO {
 
@@ -108,6 +110,27 @@ public class AccountDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Account ids of every active holder of a role, used when a notification has to
+     * reach a job rather than one named person — the shift-exchange queue goes to
+     * whoever is currently a Manager, not to a manager id stored on the request.
+     * Blocked accounts are left out: they cannot log in to read the notification.
+     */
+    public List<Integer> getActiveAccountIdsByRole(int roleId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT AccountID FROM Account WHERE RoleID = ? AND IsBlocked = 0";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) ids.add(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
     }
 
     public Account getAccountByEmail(String email) {

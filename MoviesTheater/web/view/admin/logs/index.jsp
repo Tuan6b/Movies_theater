@@ -82,7 +82,7 @@
 <div class="cgv-main">
 
     <header class="cgv-header">
-        <h1 class="cgv-header-title">System Logs (UC51)</h1>
+        <h1 class="cgv-header-title">System Logs</h1>
         <div class="cgv-header-right">
             <div class="cgv-user-wrap">
                 <div class="cgv-avatar">SA</div>

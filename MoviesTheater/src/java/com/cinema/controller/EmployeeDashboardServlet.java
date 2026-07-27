@@ -173,182 +173,20 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
     }
 
-    /** How far ahead the dashboard looks when counting tickets still to be scanned. */
-    private static final int UPCOMING_WINDOW_HOURS = 2;
-
-    /** Payment methods rung up at the desk; everything else counts as paid online. */
-    private static final List<String> COUNTER_METHODS = java.util.Arrays.asList("Cash", "Card");
-
     /**
-     * Figures shown on the counter's landing page. The money side is cinema-wide,
-     * not per-employee: Invoice.AccountID is the customer, and no column records
-     * which employee rang the sale, so "what I sold today" is not derivable.
+     * The counter's landing page. It is a navigation screen, not a report: the
+     * revenue, ticket and payment figures it used to carry belong to UC49 (View
+     * Ticket Revenue Statistics), which the use case table assigns to the Manager.
+     * All that is left is the employee's own shift, because every other feature on
+     * the page is gated on whether a shift is running right now.
      */
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, boolean noShift)
             throws ServletException, IOException {
         Account emp = (Account) request.getSession().getAttribute("account");
 
-        double revenueToday = 0;
-        int invoicesToday = 0;
-        int ticketsToday = 0;
-        int screeningsToday = 0;
-        int checkinsToday = 0;
-        int pendingSoon = 0;
-        List<PaymentSlice> paymentToday = new ArrayList<>();
-        List<UpcomingShow> upcoming = new ArrayList<>();
-
-        java.time.LocalDate today = java.time.LocalDate.now();
-        java.time.LocalDate weekStart = today.minusDays(6);
-        // Zero-filled up front so a day without invoices still gets a bar rather than
-        // silently collapsing the axis to the days that happen to have sales.
-        Map<java.time.LocalDate, Double> revByDay = new LinkedHashMap<>();
-        for (java.time.LocalDate d = weekStart; !d.isAfter(today); d = d.plusDays(1)) {
-            revByDay.put(d, 0.0);
-        }
-
-        try (Connection conn = DBUtils.getConnection()) {
-
-            String sqlRevenue = """
-                SELECT COALESCE(SUM(i.TotalAmount),0) AS Rev, COUNT(*) AS Cnt
-                FROM Invoice i
-                WHERE i.PaymentStatus = 'Paid'
-                  AND CAST(i.CreatedAt AS DATE) = CAST(GETDATE() AS DATE)
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlRevenue);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    revenueToday  = rs.getDouble("Rev");
-                    invoicesToday = rs.getInt("Cnt");
-                }
-            }
-
-            String sqlTickets = """
-                SELECT COUNT(*) FROM Ticket t
-                INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
-                WHERE i.PaymentStatus = 'Paid'
-                  AND CAST(i.CreatedAt AS DATE) = CAST(GETDATE() AS DATE)
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlTickets);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) ticketsToday = rs.getInt(1);
-            }
-
-            String sqlScreenings =
-                "SELECT COUNT(*) FROM Schedule WHERE CAST(StartTime AS DATE) = CAST(GETDATE() AS DATE)";
-            try (PreparedStatement ps = conn.prepareStatement(sqlScreenings);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) screeningsToday = rs.getInt(1);
-            }
-
-            String sqlCheckins =
-                "SELECT COUNT(*) FROM Ticket WHERE IsCheckedIn = 1 AND CAST(CheckedInAt AS DATE) = CAST(GETDATE() AS DATE)";
-            try (PreparedStatement ps = conn.prepareStatement(sqlCheckins);
-                 ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) checkinsToday = rs.getInt(1);
-            }
-
-            // Tickets the door still has to scan: paid, unscanned, for a show that has
-            // not ended and starts inside the window. Mirrors the check-in rules so the
-            // number matches what /employee/checkin will actually let through.
-            String sqlPendingSoon = """
-                SELECT COUNT(*) FROM Ticket t
-                INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
-                INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
-                WHERE t.IsCheckedIn = 0
-                  AND i.PaymentStatus = 'Paid'
-                  AND sc.EndTime >= GETDATE()
-                  AND sc.StartTime <= DATEADD(HOUR, ?, GETDATE())
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlPendingSoon)) {
-                ps.setInt(1, UPCOMING_WINDOW_HOURS);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) pendingSoon = rs.getInt(1);
-                }
-            }
-
-            String sqlPayment = """
-                SELECT i.PaymentMethod, COUNT(*) AS Cnt, COALESCE(SUM(i.TotalAmount),0) AS Rev
-                FROM Invoice i
-                WHERE i.PaymentStatus = 'Paid'
-                  AND CAST(i.CreatedAt AS DATE) = CAST(GETDATE() AS DATE)
-                GROUP BY i.PaymentMethod
-                ORDER BY SUM(i.TotalAmount) DESC
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlPayment);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    PaymentSlice slice = new PaymentSlice();
-                    slice.setMethod(rs.getString("PaymentMethod"));
-                    slice.setCount(rs.getInt("Cnt"));
-                    slice.setAmount(rs.getDouble("Rev"));
-                    slice.setFormattedAmount(formatMoney(rs.getDouble("Rev")));
-                    slice.setCounter(COUNTER_METHODS.contains(rs.getString("PaymentMethod")));
-                    slice.setPercent(revenueToday > 0
-                            ? (int) Math.round(rs.getDouble("Rev") / revenueToday * 100) : 0);
-                    paymentToday.add(slice);
-                }
-            }
-
-            // Shows still to run today, with seats sold and tickets left to scan, so the
-            // counter can see what is coming without opening the schedule page.
-            String sqlUpcoming = """
-                SELECT TOP 6 sc.ScheduleID, m.MovieName, r.RoomNumber, r.Capacity,
-                       CONVERT(VARCHAR(5), sc.StartTime, 108) AS StartHHMM,
-                       CASE WHEN sc.StartTime <= GETDATE() THEN 1 ELSE 0 END AS Ongoing,
-                       (SELECT COUNT(*) FROM Ticket t WHERE t.ScheduleID = sc.ScheduleID) AS Sold,
-                       (SELECT COUNT(*) FROM Ticket t
-                         WHERE t.ScheduleID = sc.ScheduleID AND t.IsCheckedIn = 0) AS Pending
-                FROM Schedule sc
-                INNER JOIN Movie m ON sc.MovieID = m.MovieID
-                INNER JOIN Room r ON sc.RoomID = r.RoomID
-                WHERE sc.Status <> 'Cancelled'
-                  AND sc.EndTime >= GETDATE()
-                  AND CAST(sc.StartTime AS DATE) = CAST(GETDATE() AS DATE)
-                ORDER BY sc.StartTime
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlUpcoming);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    UpcomingShow show = new UpcomingShow();
-                    show.setScheduleId(rs.getInt("ScheduleID"));
-                    show.setMovieName(rs.getNString("MovieName"));
-                    show.setRoomNumber(rs.getNString("RoomNumber"));
-                    show.setCapacity(rs.getInt("Capacity"));
-                    show.setStartTime(rs.getString("StartHHMM"));
-                    show.setOngoing(rs.getInt("Ongoing") == 1);
-                    show.setSold(rs.getInt("Sold"));
-                    show.setPending(rs.getInt("Pending"));
-                    upcoming.add(show);
-                }
-            }
-
-            String sqlWeek = """
-                SELECT CAST(i.CreatedAt AS DATE) AS D, SUM(i.TotalAmount) AS Rev
-                FROM Invoice i
-                WHERE i.PaymentStatus = 'Paid'
-                  AND CAST(i.CreatedAt AS DATE) BETWEEN ? AND ?
-                GROUP BY CAST(i.CreatedAt AS DATE)
-                """;
-            try (PreparedStatement ps = conn.prepareStatement(sqlWeek)) {
-                ps.setDate(1, Date.valueOf(weekStart));
-                ps.setDate(2, Date.valueOf(today));
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        revByDay.put(rs.getDate("D").toLocalDate(), rs.getDouble("Rev"));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            request.setAttribute("flashError",
-                    "Không tải được số liệu hôm nay. Vui lòng tải lại trang hoặc báo quản lý.");
-        }
-
-        // Today's shift and any hand-off waiting on this employee — both already
-        // available through the DAOs the shift pages use.
         String shiftToday = null;
-        int pendingExchanges = 0;
         if (emp != null) {
+            java.time.LocalDate today = java.time.LocalDate.now();
             java.time.LocalTime nowTime = java.time.LocalTime.now();
             for (WorkShift ws : shiftDAO.getByEmployeeAndMonth(
                     emp.getAccountId(), today.getYear(), today.getMonthValue())) {
@@ -365,43 +203,13 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     shiftToday = label;
                 }
             }
-            pendingExchanges = exchangeDAO.getIncoming(emp.getAccountId()).size();
         }
 
-        java.time.format.DateTimeFormatter dayFmt =
-                java.time.format.DateTimeFormatter.ofPattern("dd/MM");
-        List<String> chartLabels = new ArrayList<>();
-        List<Double> chartValues = new ArrayList<>();
-        for (Map.Entry<java.time.LocalDate, Double> entry : revByDay.entrySet()) {
-            chartLabels.add(entry.getKey().format(dayFmt));
-            chartValues.add(entry.getValue());
-        }
-        Map<String, Object> chartMap = new LinkedHashMap<>();
-        chartMap.put("labels", chartLabels);
-        chartMap.put("values", chartValues);
-        request.setAttribute("revenueChartJson", new Gson().toJson(chartMap));
-
-        request.setAttribute("empRevenueToday", formatMoney(revenueToday));
-        request.setAttribute("empInvoicesToday", invoicesToday);
-        request.setAttribute("empTicketsToday", ticketsToday);
-        request.setAttribute("empScreeningsToday", screeningsToday);
-        request.setAttribute("empCheckinsToday", checkinsToday);
-        request.setAttribute("empPendingSoon", pendingSoon);
-        request.setAttribute("empWindowHours", UPCOMING_WINDOW_HOURS);
-        request.setAttribute("empPaymentToday", paymentToday);
-        request.setAttribute("empUpcoming", upcoming);
-        request.setAttribute("empUpcomingCount", upcoming.size());
-        request.setAttribute("empShiftToday", shiftToday);
-        request.setAttribute("empPendingExchanges", pendingExchanges);
+        request.setAttribute("empShiftToday",  shiftToday);
         request.setAttribute("empShiftStatus", noShift ? "Ngoài ca" : "Đang ca");
-        request.setAttribute("noShift", noShift);
+        request.setAttribute("noShift",        noShift);
 
         request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
-    }
-
-    /** Thousands-separated whole VND, matching how prices read elsewhere in the UI. */
-    private static String formatMoney(double amount) {
-        return String.format("%,.0f", amount);
     }
 
     private static String formatTime(java.time.LocalTime time) {
@@ -993,6 +801,25 @@ public class EmployeeDashboardServlet extends HttpServlet {
 
     private void showSetup(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        forwardSetup(request, response, null);
+    }
+
+    /**
+     * Renders the first-login screen. Name, phone, date of birth and address are
+     * captured by the Manager at UC44, so setup only shows them back read-only —
+     * and it reads them from the employee row rather than the session Account,
+     * which carries neither address nor date of birth.
+     */
+    private void forwardSetup(HttpServletRequest request, HttpServletResponse response, String error)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        Account current = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (current != null) {
+            request.setAttribute("profile", employeeDAO.getById(current.getAccountId()));
+        }
+        if (error != null) {
+            request.setAttribute("error", error);
+        }
         request.getRequestDispatcher(SETUP_JSP).forward(request, response);
     }
 
@@ -1006,33 +833,21 @@ public class EmployeeDashboardServlet extends HttpServlet {
             return;
         }
 
-        String fullName = request.getParameter("fullName");
-        String phoneNumber = request.getParameter("phoneNumber");
-        String address = request.getParameter("address");
-        String dateOfBirth = request.getParameter("dateOfBirth");
         String newPassword = request.getParameter("newPassword");
-
-        if (fullName == null || fullName.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập họ và tên.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
-            return;
-        }
 
         // BR-42.2: the temporary password issued at account creation must not
         // outlive setup, so a replacement is mandatory here rather than optional.
         // Leaving this blank used to clear NeedsSetup anyway, which kept a
         // Manager-known password valid indefinitely.
         if (newPassword == null || newPassword.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng đặt mật khẩu mới để thay thế mật khẩu tạm.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            forwardSetup(request, response, "Vui lòng đặt mật khẩu mới để thay thế mật khẩu tạm.");
             return;
         }
 
         // E1: same 6-character minimum as Register, Change Password and Reset Password.
         String password = newPassword.trim();
         if (password.length() < 6) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            forwardSetup(request, response, "Mật khẩu phải có ít nhất 6 ký tự.");
             return;
         }
 
@@ -1042,37 +857,29 @@ public class EmployeeDashboardServlet extends HttpServlet {
         Account stored = accountDAO.getAccountById(current.getAccountId());
         if (stored != null && stored.getPassword() != null
                 && PasswordHash.verify(password, stored.getPassword())) {
-            request.setAttribute("error", "Mật khẩu mới phải khác mật khẩu tạm được cấp.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            forwardSetup(request, response, "Mật khẩu mới phải khác mật khẩu tạm được cấp.");
             return;
         }
 
-        Account updated = new Account();
-        updated.setAccountId(current.getAccountId());
-        updated.setEmail(current.getEmail());
-        updated.setFullName(fullName.trim());
-        updated.setPhoneNumber(phoneNumber);
-        updated.setAddress(address);
-        updated.setDateOfBirth(dateOfBirth);
-        updated.setPassword(password);
-
-        // clearNeedsSetup only runs when update() reported success, and update()
-        // takes its password branch unconditionally now, so the setup flag can no
-        // longer be cleared while the temp password is still in place.
-        boolean ok = employeeDAO.update(updated);
+        // resetPassword, not update(): the profile fields this form used to post are
+        // the Manager's to fill in now, and update() rewrites the whole UserProfile
+        // row, so going through it would blank out the phone, date of birth and
+        // address entered at UC44. Both statements are scoped to RoleID = Employee.
+        boolean ok = employeeDAO.resetPassword(current.getAccountId(), password);
         if (ok) {
             accountDAO.clearNeedsSetup(current.getAccountId());
             // Update session object so the guard doesn't redirect again
             current.setNeedsSetup(false);
-            current.setFullName(fullName.trim());
             session.setAttribute("account", current);
-            session.setAttribute("flashSuccess", "Thông tin cá nhân đã được cập nhật. Chào mừng bạn!");
+            session.setAttribute("flashSuccess", "Tài khoản đã được kích hoạt. Chào mừng bạn!");
             response.sendRedirect(request.getContextPath() + "/employee");
         } else {
-            request.setAttribute("error", "Có lỗi xảy ra. Vui lòng thử lại.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            forwardSetup(request, response, "Có lỗi xảy ra. Vui lòng thử lại.");
         }
     }
+
+    /** Rows per page in the employee's "requests I sent" list. */
+    private static final int REQUEST_PAGE_SIZE = 5;
 
     private void showMyShifts(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -1091,9 +898,24 @@ public class EmployeeDashboardServlet extends HttpServlet {
         if (month < 1)  month = 1;
         if (month > 12) month = 12;
 
+        // The request history is paged; the pending subset is not, because the
+        // calendar marks every shift with an open request no matter which page of
+        // the history is showing.
+        int reqPage = 1;
+        String reqPageStr = request.getParameter("reqPage");
+        if (reqPageStr != null && !reqPageStr.isEmpty()) {
+            try { reqPage = Integer.parseInt(reqPageStr); } catch (NumberFormatException ignored) {}
+        }
+        if (reqPage < 1) reqPage = 1;
+
+        int reqTotal = exchangeDAO.countOutgoing(empId);
+        int reqTotalPages = reqTotal == 0 ? 1 : (int) Math.ceil((double) reqTotal / REQUEST_PAGE_SIZE);
+        if (reqPage > reqTotalPages) reqPage = reqTotalPages;
+
         List<WorkShift> myShifts = shiftDAO.getByEmployeeAndMonth(empId, year, month);
         List<ShiftExchangeRequest> incoming = exchangeDAO.getIncoming(empId);
-        List<ShiftExchangeRequest> outgoing = exchangeDAO.getOutgoing(empId);
+        List<ShiftExchangeRequest> outgoing = exchangeDAO.getOutgoing(empId, reqPage, REQUEST_PAGE_SIZE);
+        List<ShiftExchangeRequest> outgoingPending = exchangeDAO.getOutgoingPending(empId);
         List<Account> colleagues = employeeDAO.getAll(null, 1, 200, "name", "ASC");
 
         int prevMonth = month == 1 ? 12 : month - 1;
@@ -1101,10 +923,14 @@ public class EmployeeDashboardServlet extends HttpServlet {
         int nextMonth = month == 12 ? 1 : month + 1;
         int nextYear  = month == 12 ? year + 1 : year;
 
-        request.setAttribute("myShifts",    myShifts);
-        request.setAttribute("incoming",    incoming);
-        request.setAttribute("outgoing",    outgoing);
-        request.setAttribute("colleagues",  colleagues);
+        request.setAttribute("myShifts",        myShifts);
+        request.setAttribute("incoming",        incoming);
+        request.setAttribute("outgoing",        outgoing);
+        request.setAttribute("outgoingPending", outgoingPending);
+        request.setAttribute("reqPage",         reqPage);
+        request.setAttribute("reqTotal",        reqTotal);
+        request.setAttribute("reqTotalPages",   reqTotalPages);
+        request.setAttribute("colleagues",      colleagues);
         request.setAttribute("selYear",     year);
         request.setAttribute("selMonth",    month);
         request.setAttribute("prevYear",    prevYear);
@@ -1154,32 +980,10 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     }
                     break;
                 }
-                case "accept_exchange": {
-                    int requestId = Integer.parseInt(request.getParameter("requestId"));
-                    boolean ok = exchangeDAO.accept(requestId, empId);
-                    if (ok) {
-                        ShiftExchangeRequest accepted = exchangeDAO.getById(requestId);
-                        if (accepted != null) {
-                            notificationService.notifyShiftExchangeAccepted(accepted);
-                        }
-                    }
-                    session.setAttribute(ok ? "flashSuccess" : "flashError",
-                            ok ? "Đã nhận ca thành công." : "Không thể nhận ca. Yêu cầu có thể đã hết hạn.");
-                    break;
-                }
-                case "reject_exchange": {
-                    int requestId = Integer.parseInt(request.getParameter("requestId"));
-                    boolean ok = exchangeDAO.reject(requestId, empId);
-                    if (ok) {
-                        ShiftExchangeRequest rejected = exchangeDAO.getById(requestId);
-                        if (rejected != null) {
-                            notificationService.notifyShiftExchangeRejected(rejected);
-                        }
-                    }
-                    session.setAttribute(ok ? "flashSuccess" : "flashError",
-                            ok ? "Đã từ chối yêu cầu." : "Không thể từ chối. Vui lòng thử lại.");
-                    break;
-                }
+                // accept_exchange / reject_exchange used to live here. Approving a
+                // hand-off is the Manager's call now (/manager/shift-exchanges), so
+                // the recipient has nothing to post from this page — leaving the
+                // actions mapped would keep that authority in two places at once.
                 case "cancel_exchange": {
                     int requestId = Integer.parseInt(request.getParameter("requestId"));
                     boolean ok = exchangeDAO.cancel(requestId, empId);
@@ -1351,76 +1155,5 @@ public class EmployeeDashboardServlet extends HttpServlet {
 
         public int getBookingId() { return bookingId; }
         public void setBookingId(int bookingId) { this.bookingId = bookingId; }
-    }
-
-    /** One payment method's share of today's takings, for the dashboard breakdown. */
-    public static class PaymentSlice {
-        private String method;
-        private int count;
-        private double amount;
-        private String formattedAmount;
-        private int percent;
-        private boolean counter;
-
-        public String getMethod() { return method; }
-        public void setMethod(String method) { this.method = method; }
-
-        public int getCount() { return count; }
-        public void setCount(int count) { this.count = count; }
-
-        public double getAmount() { return amount; }
-        public void setAmount(double amount) { this.amount = amount; }
-
-        public String getFormattedAmount() { return formattedAmount; }
-        public void setFormattedAmount(String formattedAmount) { this.formattedAmount = formattedAmount; }
-
-        public int getPercent() { return percent; }
-        public void setPercent(int percent) { this.percent = percent; }
-
-        /** True when the money was taken at the desk rather than paid online. */
-        public boolean isCounter() { return counter; }
-        public void setCounter(boolean counter) { this.counter = counter; }
-    }
-
-    /** A show still to run today, with what the counter still has to sell and scan. */
-    public static class UpcomingShow {
-        private int scheduleId;
-        private String movieName;
-        private String roomNumber;
-        private String startTime;
-        private int sold;
-        private int capacity;
-        private int pending;
-        private boolean ongoing;
-
-        public int getScheduleId() { return scheduleId; }
-        public void setScheduleId(int scheduleId) { this.scheduleId = scheduleId; }
-
-        public String getMovieName() { return movieName; }
-        public void setMovieName(String movieName) { this.movieName = movieName; }
-
-        public String getRoomNumber() { return roomNumber; }
-        public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
-
-        public String getStartTime() { return startTime; }
-        public void setStartTime(String startTime) { this.startTime = startTime; }
-
-        public int getSold() { return sold; }
-        public void setSold(int sold) { this.sold = sold; }
-
-        public int getCapacity() { return capacity; }
-        public void setCapacity(int capacity) { this.capacity = capacity; }
-
-        public int getPending() { return pending; }
-        public void setPending(int pending) { this.pending = pending; }
-
-        /** True once the show has started — the door is still open for latecomers. */
-        public boolean isOngoing() { return ongoing; }
-        public void setOngoing(boolean ongoing) { this.ongoing = ongoing; }
-
-        /** Seat occupancy as a whole percent, for the fill bar. Zero when capacity is unknown. */
-        public int getSoldPercent() {
-            return capacity > 0 ? (int) Math.round(sold * 100.0 / capacity) : 0;
-        }
     }
 }

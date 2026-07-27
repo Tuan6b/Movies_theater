@@ -136,7 +136,7 @@ The system's database, `CinemaBookingDB`, comprises 20 interconnected tables sup
 
 **(5) Employee Management & Logging**
 - `WorkShift`: Employee shift tracking.
-- `ShiftExchangeRequest`: For employees swapping shifts.
+- `ShiftExchangeRequest`: Shift hand-offs raised by an employee and approved or declined by a Manager.
 - `SystemConfig` & `SystemLog`: App configurations and audit logs.
 
 ---
