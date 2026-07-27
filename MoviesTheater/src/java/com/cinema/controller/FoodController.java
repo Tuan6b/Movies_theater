@@ -70,13 +70,13 @@ public class FoodController extends HttpServlet {
         List<Food> foodList = foodDAO.getFoodsByType(isCombo);
         request.setAttribute("foodList", foodList);
         request.setAttribute("currentType", type);
-        request.getRequestDispatcher("/view/manager/food-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/employee/food-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("currentType", getTypeParam(request));
-        request.getRequestDispatcher("/view/manager/food-add.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/employee/food-add.jsp").forward(request, response);
     }
 
     private void addFood(HttpServletRequest request, HttpServletResponse response)
@@ -133,7 +133,7 @@ public class FoodController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
-        request.getRequestDispatcher("/view/manager/food-edit.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/employee/food-edit.jsp").forward(request, response);
     }
 
     private void updateFood(HttpServletRequest request, HttpServletResponse response)

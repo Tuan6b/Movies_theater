@@ -18,7 +18,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Schedule Management — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/schedule-list.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/manager/_sidebar.jsp" %>
@@ -48,15 +49,15 @@
         <div class="cgv-table-wrap">
 
             <c:if test="${not empty flashSuccess}">
-                <div style="background:#d4edda;color:#155724;padding:12px 16px;border-radius:8px;margin-bottom:16px;">${flashSuccess}</div>
+                <div class="sl-alert-success">${flashSuccess}</div>
             </c:if>
             <c:if test="${not empty flashError}">
-                <div style="background:#f8d7da;color:#721c24;padding:12px 16px;border-radius:8px;margin-bottom:8px;">${flashError}</div>
+                <div class="sl-alert-error">${flashError}</div>
             </c:if>
             <c:if test="${not empty flashErrorList}">
-                <div style="background:#fff3cd;color:#856404;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                <div class="sl-alert-warning">
                     <c:forEach var="err" items="${flashErrorList}">
-                        <div style="margin:2px 0;">${err}</div>
+                        <div class="sl-err-msg">${err}</div>
                     </c:forEach>
                 </div>
             </c:if>
@@ -70,7 +71,7 @@
                         </a>
                     </c:forEach>
                 </div>
-                <a href="ScheduleController?action=showAddForm<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>" class="btn--cgv" style="margin-left:auto;">
+                <a href="ScheduleController?action=showAddForm<c:if test='${not empty selectedMovieId}'>&movieId=${selectedMovieId}</c:if>" class="btn--cgv sl-btn-right">
                     + Add Schedule
                 </a>
             </div>
@@ -95,8 +96,8 @@
                             <c:when test="${not empty scheduleList}">
                                 <c:forEach var="s" items="${scheduleList}" varStatus="st">
                                     <tr>
-                                        <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
-                                        <td style="font-weight:600;">
+                                        <td class="sl-td-index">${st.index + 1}</td>
+                                        <td class="sl-td-bold">
                                             <c:choose>
                                                 <c:when test="${not empty movieNameMap[s.movieID]}">${movieNameMap[s.movieID]}</c:when>
                                                 <c:otherwise>Movie ${s.movieID}</c:otherwise>
@@ -116,14 +117,13 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <div style="display:flex;gap:8px;">
+                                            <div class="sl-actions-wrap">
                                                 <c:choose>
                                                     <c:when test="${s.status eq 'Scheduled'}">
                                                         <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
                                                            class="btn--cgv-outline">Edit</a>
                                                         <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                           class="btn--cgv-outline"
-                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           class="btn--cgv-outline sl-btn-danger"
                                                            onclick="return confirmDelete(${s.scheduleID})">
                                                             Delete
                                                         </a>
@@ -132,17 +132,16 @@
                                                         <a href="ScheduleController?action=edit&id=${s.scheduleID}&page=${currentPage}"
                                                            class="btn--cgv-outline">Edit</a>
                                                         <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                           class="btn--cgv-outline"
-                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           class="btn--cgv-outline sl-btn-danger"
                                                            onclick="return confirmDelete(${s.scheduleID})">
                                                             Delete
                                                         </a>
                                                     </c:when>
                                                     <c:when test="${s.status eq 'Finished'}">
-                                                        <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">-</span>
+                                                        <span class="sl-sep">-</span>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>
+                                                        <span class="sl-sep">Ongoing</span>
                                                     </c:otherwise>
                                                 </c:choose>
                                             </div>
@@ -152,7 +151,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="9" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                    <td colspan="9" class="sl-empty-row">
                                         No schedules found.
                                     </td>
                                 </tr>
@@ -172,28 +171,16 @@
                 </div>
             </div>
         </div>
-
-
     </div>
 </div>
 
+<script src="${pageContext.request.contextPath}/js/manager/schedule-list.js"></script>
 <script>
     const scheduleIdsWithTickets = new Set([
         <c:forEach items="${schedulesWithTickets}" var="sid" varStatus="st">
             ${sid}${st.last ? '' : ','}
         </c:forEach>
     ]);
-
-    function confirmDelete(scheduleId) {
-        if (scheduleIdsWithTickets.has(scheduleId)) {
-            const code = prompt(
-                'This schedule has ticket bookings.\n' +
-                'Type XOALICHCHIEUKHANCAP to confirm cancellation:'
-            );
-            return code === 'XOALICHCHIEUKHANCAP';
-        }
-        return confirm('Delete this schedule?');
-    }
 </script>
 </body>
 </html>

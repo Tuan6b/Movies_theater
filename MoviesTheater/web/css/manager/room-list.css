@@ -1,0 +1,10 @@
+.cgv-badge.type-2D   { background: #d3e1fb; color: #0d3d86; }
+            .cgv-badge.type-3D   { background: #d7f3dd; color: #0d5023; }
+            .cgv-badge.type-IMAX { background: #ffe8c7; color: #8a5100; }
+            .cgv-badge.type-4DX  { background: #ffdad4; color: #ba1a1a; }
+.rl-btn-right { margin-left:auto; }
+.rl-td-index { color:rgba(94,63,58,0.5);font-size:12px; }
+.rl-td-bold { font-weight:600; }
+.rl-actions-wrap { display:flex;gap:8px; }
+.rl-btn-danger { color:var(--cgv-red);border-color:var(--cgv-red); }
+.rl-empty-row { text-align:center;padding:48px;color:rgba(94,63,58,0.4); }

@@ -13,7 +13,8 @@
     <title>Seat Layout — ${room.roomNumber} — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/seat-layout.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/seat-layout.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/manager/_sidebar.jsp" %>
@@ -23,7 +24,7 @@
     <header class="cgv-header">
         <h1 class="cgv-header-title">
             Seat Layout — ${room.roomNumber}
-            <span style="font-size:13px;font-weight:400;color:var(--md-on-surface-variant);margin-left:12px;">
+            <span class="sl-subtitle">
                 ${room.roomType} · ${room.capacity} seats
             </span>
         </h1>
@@ -50,18 +51,18 @@
         <div class="screen-bar">SCREEN</div>
 
         <c:if test="${param.error eq 'has_schedules'}">
-            <div class="cgv-alert cgv-alert-danger" style="margin-bottom:16px;">Cannot change seat types — room has existing schedules.</div>
+            <div class="cgv-alert cgv-alert-danger sl-alert-danger">Cannot change seat types — room has existing schedules.</div>
         </c:if>
 
         <c:if test="${hasSchedules}">
-            <div style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+            <div class="sl-alert-warning">
                 This room has existing schedules. Seat types cannot be changed.
             </div>
         </c:if>
 
         <c:choose>
             <c:when test="${empty seatsByRow}">
-                <div style="text-align:center;padding:48px;color:var(--md-on-surface-variant);">
+                <div class="sl-empty">
                     No seats found for this room.
                 </div>
             </c:when>
@@ -87,12 +88,12 @@
                                 <input type="hidden" name="action" value="updateRow">
                                 <input type="hidden" name="roomId" value="${room.roomId}">
                                 <input type="hidden" name="rowChar" value="${entry.key}">
-                                <select name="seatType" ${hasSchedules ? 'disabled style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
+                                <select name="seatType" ${hasSchedules ? 'disabled class="sl-select-disabled"' : ''}>
                                     <option value="Normal" ${firstSeat.seatType eq 'Normal' ? 'selected' : ''}>Normal</option>
                                     <option value="VIP" ${firstSeat.seatType eq 'VIP' ? 'selected' : ''}>VIP</option>
                                     <option value="Couple" ${firstSeat.seatType eq 'Couple' ? 'selected' : ''}>Couple</option>
                                 </select>
-                                <button type="submit" ${hasSchedules ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Save</button>
+                                <button type="submit" ${hasSchedules ? 'disabled class="sl-btn-disabled"' : ''}>Save</button>
                             </form>
                         </div>
                     </c:forEach>

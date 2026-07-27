@@ -1,0 +1,6 @@
+﻿.sl-subtitle { font-size:13px; font-weight:400; color:var(--md-on-surface-variant); margin-left:12px; }
+.sl-alert-danger { margin-bottom:16px; }
+.sl-alert-warning { background:#fff3cd; border:1px solid #ffc107; color:#856404; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+.sl-empty { text-align:center; padding:48px; color:var(--md-on-surface-variant); }
+.sl-select-disabled { background:#f5f5f5; cursor:not-allowed; }
+.sl-btn-disabled { opacity:0.5; cursor:not-allowed; }

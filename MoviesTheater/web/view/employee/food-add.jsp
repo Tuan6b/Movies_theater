@@ -8,7 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Add Food — CGV Staff</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/employee/food-add.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/employee/_sidebar.jsp" %>
@@ -34,14 +35,14 @@
     </header>
 
     <div class="cgv-page">
-        <div class="cgv-list-wrap" style="max-width:640px;">
+        <div class="cgv-list-wrap fa-wrap">
 
             <c:if test="${not empty requestScope.flashError}">
                 <div class="cgv-alert cgv-alert-danger">${requestScope.flashError}</div>
             </c:if>
 
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
-                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+            <div class="fa-box">
+                <div class="fa-title">
                     FOOD ITEM DETAILS
                 </div>
 
@@ -68,7 +69,7 @@
                                placeholder="https://example.com/image.jpg">
                     </div>
 
-                    <div style="display:flex;gap:12px;margin-top:24px;">
+                    <div class="fa-actions">
                         <button type="submit" class="btn--cgv">Add New</button>
                         <a href="${pageContext.request.contextPath}/FoodController?type=${currentType}" class="btn--cgv-outline">Cancel</a>
                     </div>

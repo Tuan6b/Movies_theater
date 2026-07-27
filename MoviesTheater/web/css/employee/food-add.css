@@ -1,0 +1,4 @@
+﻿.fa-wrap { max-width:640px; }
+.fa-box { background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px; }
+.fa-title { font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px; }
+.fa-actions { display:flex;gap:12px;margin-top:24px; }
