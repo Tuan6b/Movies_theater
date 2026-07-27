@@ -13,6 +13,8 @@ import java.util.Map;
 
 public class FoodDAO {
 
+
+
     public List<Food> getAllActiveFoods() {
         List<Food> list = new ArrayList<>();
         String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsActive = 1 ORDER BY FoodName";

@@ -52,7 +52,7 @@
                     <a href="${pageContext.request.contextPath}/FoodController?type=combo"
                        class="cgv-pill ${currentType eq 'combo' ? 'active' : ''}">Combo</a>
                 </div>
-                <a href="${pageContext.request.contextPath}/FoodController?action=add&amp;type=${currentType}" class="btn--cgv" style="margin-left:auto;">
+                <a href="${pageContext.request.contextPath}/FoodController?action=showAddForm&amp;type=${currentType}" class="btn--cgv" style="margin-left:auto;">
                     + Add Food
                 </a>
             </div>
@@ -94,7 +94,7 @@
                                         </td>
                                         <td>
                                             <div style="display:flex;gap:8px;">
-                                                <a href="${pageContext.request.contextPath}/FoodController?action=edit&amp;id=${item.foodId}&amp;type=${currentType}" class="btn--cgv-outline">
+                                                <a href="${pageContext.request.contextPath}/FoodController?action=showEditForm&amp;id=${item.foodId}&amp;type=${currentType}" class="btn--cgv-outline">
                                                     Edit
                                                 </a>
                                                 <c:choose>

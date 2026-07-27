@@ -134,6 +134,11 @@ public class RoomServlet extends HttpServlet {
             currentPage = "1";
         }
 
+        if (numberOfRows > 10 || seatsPerRow > 10 || numberOfRows < 1 || seatsPerRow < 1) {
+            response.sendRedirect("RoomServlet?error=invalid_dimensions&page=" + currentPage);
+            return;
+        }
+
         if (roomDAO.isRoomNumberExists(roomNumber)) {
             response.sendRedirect("RoomServlet?error=room_number_exists&page=" + currentPage);
             return;
@@ -182,6 +187,15 @@ public class RoomServlet extends HttpServlet {
         String currentFilter = request.getParameter("filter");
         if (currentFilter == null || currentFilter.isEmpty()) {
             currentFilter = "active";
+        }
+
+        if (numberOfRows > 10 || seatsPerRow > 10 || numberOfRows < 1 || seatsPerRow < 1) {
+            response.sendRedirect(
+                    "RoomServlet?action=edit&id="
+                    + roomId
+                    + "&error=invalid_dimensions&page="
+                    + currentPage + "&filter=" + currentFilter);
+            return;
         }
 
         if (roomDAO.isRoomNumberExists(roomNumber, roomId)) {
