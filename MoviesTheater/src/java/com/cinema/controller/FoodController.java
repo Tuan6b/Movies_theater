@@ -12,9 +12,7 @@ import java.util.List;
 
 public class FoodController extends HttpServlet {
 
-    private static final String LIST_JSP = "/food-list.jsp";
-    private static final String ADD_JSP = "/food-add.jsp";
-    private static final String EDIT_JSP = "/food-edit.jsp";
+
 
     private final FoodDAO foodDAO = new FoodDAO();
 
@@ -35,7 +33,7 @@ public class FoodController extends HttpServlet {
         switch (action) {
             case "add":
                 request.setAttribute("currentType", getTypeParam(request));
-                request.getRequestDispatcher(ADD_JSP).forward(request, response);
+                request.getRequestDispatcher("/view/manager/food-add.jsp").forward(request, response);
                 break;
             case "edit":
                 showEdit(request, response);
@@ -82,7 +80,7 @@ public class FoodController extends HttpServlet {
         List<Food> foodList = foodDAO.getFoodsByType(isCombo);
         request.setAttribute("foodList", foodList);
         request.setAttribute("currentType", type);
-        request.getRequestDispatcher(LIST_JSP).forward(request, response);
+        request.getRequestDispatcher("/view/manager/food-list.jsp").forward(request, response);
     }
 
     private void showEdit(HttpServletRequest request, HttpServletResponse response)
@@ -99,7 +97,7 @@ public class FoodController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
-        request.getRequestDispatcher(EDIT_JSP).forward(request, response);
+        request.getRequestDispatcher("/view/manager/food-edit.jsp").forward(request, response);
     }
 
     private void add(HttpServletRequest request, HttpServletResponse response)

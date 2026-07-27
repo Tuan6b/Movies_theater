@@ -2,7 +2,10 @@ USE master;
 GO
 
 IF EXISTS (SELECT name FROM sys.databases WHERE name = N'CinemaBookingDB')
+BEGIN
+    ALTER DATABASE CinemaBookingDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE CinemaBookingDB;
+END
 GO
 
 CREATE DATABASE CinemaBookingDB;
@@ -543,4 +546,16 @@ CREATE TABLE UnlockRequest (
     ReviewedAt DATETIME NULL,
     CONSTRAINT FK_UnlockRequest_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
     CONSTRAINT FK_UnlockRequest_ReviewedBy FOREIGN KEY (ReviewedBy) REFERENCES Account(AccountID)
+);
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('DeletionRequest') AND type = 'U')
+CREATE TABLE DeletionRequest (
+    RequestID INT IDENTITY(1,1) PRIMARY KEY,
+    AccountID INT NOT NULL,
+    Reason NVARCHAR(MAX) NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    ReviewedBy INT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ReviewedAt DATETIME NULL,
+    CONSTRAINT FK_DeletionRequest_Account FOREIGN KEY (AccountID) REFERENCES Account(AccountID),
+    CONSTRAINT FK_DeletionRequest_ReviewedBy FOREIGN KEY (ReviewedBy) REFERENCES Account(AccountID)
 );

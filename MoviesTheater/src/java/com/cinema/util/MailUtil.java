@@ -36,7 +36,7 @@ public class MailUtil {
     // that would bypass the caller's best-effort try/catch.
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
-    private static final String SMTP_USERNAME = envOrDefault("SMTP_USERNAME", "");
+    private static final String SMTP_USERNAME = envOrDefault("SMTP_USERNAME", "huylmhe@fpt.edu.vn");
     private static final String SENDER_NAME = "CGV Cinema";
 
     private static String requireEnv(String envVar) throws MessagingException {
@@ -168,7 +168,64 @@ public class MailUtil {
         return "";
     }
 
-    private static String escape(String value) {
+    public static void sendWelcomeEmail(String toEmail, String toName) throws MessagingException {
+        Session session = buildSession(requireEnv("SMTP_APP_PASSWORD"));
+        MimeMessage message = new MimeMessage(session);
+        try {
+            message.setFrom(new InternetAddress(SMTP_USERNAME, SENDER_NAME));
+        } catch (UnsupportedEncodingException e) {
+            message.setFrom(new InternetAddress());
+        }
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        message.setSubject("Chào mừng bạn đến với CGV Cinema!", "UTF-8");
+
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;\">"
+                + "<div style=\"background:#151515;padding:20px;text-align:center;\">"
+                + "<span style=\"color:#e71a0f;font-size:24px;font-weight:bold;letter-spacing:1px;\">CGV CINEMA</span>"
+                + "</div>"
+                + "<div style=\"padding:24px;border:1px solid #e2dfcc;\">"
+                + "<p>Xin chào <strong>" + escape(toName) + "</strong>,</p>"
+                + "<p>Cảm ơn bạn đã đăng ký tài khoản tại CGV Cinema!</p>"
+                + "<p>Bạn có thể đặt vé xem phim, chọn ghế yêu thích và nhận ưu đãi đặc biệt từ chúng tôi.</p>"
+                + "<div style=\"text-align:center;margin:24px 0;\">"
+                + "<a href=\"http://localhost:8080/MoviesTheater/\" "
+                + "style=\"display:inline-block;background:#e71a0f;color:#fff;padding:12px 32px;"
+                + "border-radius:24px;text-decoration:none;font-weight:bold;\">"
+                + "ĐẶT VÉ NGAY</a></div>"
+                + "<p>Trân trọng,<br><strong>CGV Cinema Team</strong></p>"
+                + "</div>"
+                + "<div style=\"background:#151515;color:rgba(255,255,255,0.5);padding:12px;text-align:center;font-size:12px;\">"
+                + "&copy; 2026 CGV Cinema</div></div>";
+
+        message.setContent(html, "text/html; charset=UTF-8");
+        Transport.send(message);
+    }
+
+    public static void sendNotificationEmail(String toEmail, String toName, String subject, String bodyHtml)
+            throws MessagingException {
+        Session session = buildSession(requireEnv("SMTP_APP_PASSWORD"));
+        MimeMessage message = new MimeMessage(session);
+        try {
+            message.setFrom(new InternetAddress(SMTP_USERNAME, SENDER_NAME));
+        } catch (UnsupportedEncodingException e) {
+            message.setFrom(new InternetAddress());
+        }
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        message.setSubject(subject, "UTF-8");
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;\">"
+                + "<div style=\"background:#151515;padding:20px;text-align:center;\">"
+                + "<span style=\"color:#e71a0f;font-size:24px;font-weight:bold;letter-spacing:1px;\">CGV CINEMA</span>"
+                + "</div>"
+                + "<div style=\"padding:24px;border:1px solid #e2dfcc;\">"
+                + bodyHtml
+                + "</div>"
+                + "<div style=\"background:#151515;color:rgba(255,255,255,0.5);padding:12px;text-align:center;font-size:12px;\">"
+                + "&copy; 2026 CGV Cinema</div></div>";
+        message.setContent(html, "text/html; charset=UTF-8");
+        Transport.send(message);
+    }
+
+    public static String escape(String value) {
         if (value == null) {
             return "";
         }

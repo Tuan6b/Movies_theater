@@ -248,62 +248,7 @@
                 </div>
             </div>
         </main>
-        <script>
-            
-            function confirmEmergencyHide(event, formElement, isEmergency) {
-                // NGĂN chặn form gửi đi ngay lập tức
-                event.preventDefault();
-
-                if (!isEmergency) {
-                    // Phim chưa lên lịch / đã chiếu -> Hỏi bình thường
-                    Swal.fire({
-                        title: 'Xác nhận thay đổi?',
-                        text: 'Bạn có chắc chắn muốn thay đổi trạng thái của phim này?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#28a745',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Đồng ý',
-                        cancelButtonText: 'Hủy'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            formElement.submit(); // Bấm đồng ý mới gửi Data xuống DB
-                        }
-                    });
-                } else {
-                    // Phim đang chiếu / sắp chiếu -> popup Báo Động Đỏ, yêu cầu nhập chữ
-                    Swal.fire({
-                        title: 'CẢNH BÁO KHẨN CẤP',
-                        html: '<span style="color:red; font-size:14px;">Phim này đang có lịch chiếu công khai. Hủy ngang sẽ ảnh hưởng nghiêm trọng đến vé đã bán!</span><br><br>Hãy gõ chữ <b>ANPHIMKHANCAP</b> để xác nhận:',
-                        icon: 'warning',
-                        input: 'text',
-                        inputPlaceholder: 'Nhập ANPHIMKHANCAP...',
-                        inputAttributes: {
-                            autocomplete: 'off'
-                        },
-                        showCancelButton: true,
-                        confirmButtonColor: '#e50914', // Nút Đỏ
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Thực thi ngay!',
-                        cancelButtonText: 'Hủy bỏ',
-                        // Hàm preConfirm sẽ kiểm tra input trước khi cho phép đóng Popup
-                        preConfirm: (inputValue) => {
-                            if (inputValue !== "ANPHIMKHANCAP") {
-                                Swal.showValidationMessage('Sai mã xác nhận! Yêu cầu gõ chính xác: ANPHIMKHANCAP');
-                                return false;
-                            }
-                            return true;
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            formElement.submit(); // Nhập đúng mã mới gửi Data xuống DB
-                        }
-                    });
-                }
-            }
-        </script>
-
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
     </body>
 
 </html>

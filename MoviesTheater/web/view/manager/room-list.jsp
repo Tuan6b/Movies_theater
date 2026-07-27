@@ -30,7 +30,7 @@
                             <div class="cgv-avatar">MG</div>
                             <span class="cgv-user-name">
                                 <c:choose>
-                                    <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
+                                    <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
                                     <c:otherwise>Manager</c:otherwise>
                                 </c:choose>
                             </span>
@@ -43,9 +43,7 @@
 
                 <div class="cgv-table-wrap">
 
-                    <c:if test="${param.error eq 'capacity_invalid'}">
-                        <div class="cgv-alert cgv-alert-danger">Capacity must be greater than 0.</div>
-                    </c:if>
+
 
                     <c:if test="${param.error eq 'room_number_exists'}">
                         <div class="cgv-alert cgv-alert-danger">Room number already exists. Please use a different room number.</div>
@@ -62,7 +60,7 @@
                             <a href="RoomServlet?filter=inactive"
                                class="cgv-pill ${currentFilter eq 'inactive' ? 'active' : ''}">Inactive</a>
                         </div>
-                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp" class="btn--cgv" style="margin-left:auto;">
+                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp?page=${currentPage}&filter=${currentFilter}" class="btn--cgv" style="margin-left:auto;">
                             + Add Room
                         </a>
                     </div>

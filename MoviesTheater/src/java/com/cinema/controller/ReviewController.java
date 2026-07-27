@@ -28,37 +28,48 @@ public class ReviewController extends HttpServlet {
             return;
         }
 
-        int movieId = Integer.parseInt(movieIdStr);
+        int movieId;
+        try {
+            movieId = Integer.parseInt(movieIdStr);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/HomeController");
+            return;
+        }
+
         int accountId = account.getAccountId();
         MovieReviewDAO dao = new MovieReviewDAO();
 
-        if ("add".equals(action)) {
-            int ticketId = dao.getCheckedInTicketId(accountId, movieId);
-            if (ticketId != -1) {
+        try {
+            if ("add".equals(action)) {
+                int ticketId = dao.getCheckedInTicketId(accountId, movieId);
+                if (ticketId != -1) {
+                    int rating = Integer.parseInt(request.getParameter("rating"));
+                    String comment = request.getParameter("comment");
+                    clsMovieReview review = new clsMovieReview();
+                    review.setMovieId(movieId);
+                    review.setAccountId(accountId);
+                    review.setTicketId(ticketId);
+                    review.setRatingValue(rating);
+                    review.setComment(comment);
+                    dao.addReview(review);
+                }
+            } else if ("update".equals(action)) {
+                int reviewId = Integer.parseInt(request.getParameter("reviewId"));
                 int rating = Integer.parseInt(request.getParameter("rating"));
                 String comment = request.getParameter("comment");
-                clsMovieReview review = new clsMovieReview();
-                review.setMovieId(movieId);
-                review.setAccountId(accountId);
-                review.setTicketId(ticketId);
-                review.setRatingValue(rating);
-                review.setComment(comment);
-                dao.addReview(review);
+                boolean success = dao.updateReview(reviewId, accountId, rating, comment);
+                if (!success) {
+                    session.setAttribute("flashError", "Hết hạn sửa! Phim đã ngừng chiếu quá 7 ngày.");
+                }
+            } else if ("delete".equals(action)) {
+                int reviewId = Integer.parseInt(request.getParameter("reviewId"));
+                boolean success = dao.deleteReview(reviewId, accountId);
+                if (!success) {
+                    session.setAttribute("flashError", "Hết hạn xóa! Phim đã ngừng chiếu quá 7 ngày.");
+                }
             }
-        } else if ("update".equals(action)) {
-            int reviewId = Integer.parseInt(request.getParameter("reviewId"));
-            int rating = Integer.parseInt(request.getParameter("rating"));
-            String comment = request.getParameter("comment");
-            boolean success = dao.updateReview(reviewId, accountId, rating, comment);
-            if (!success) {
-                session.setAttribute("flashError", "Hết hạn sửa! Phim đã ngừng chiếu quá 7 ngày.");
-            }
-        } else if ("delete".equals(action)) {
-            int reviewId = Integer.parseInt(request.getParameter("reviewId"));
-            boolean success = dao.deleteReview(reviewId, accountId);
-            if (!success) {
-                session.setAttribute("flashError", "Hết hạn xóa! Phim đã ngừng chiếu quá 7 ngày.");
-            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("flashError", "Dữ liệu không hợp lệ!");
         }
 
         response.sendRedirect("MovieDetailController?id=" + movieId);

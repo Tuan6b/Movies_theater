@@ -36,7 +36,7 @@
                     <div class="cgv-avatar">MG</div>
                     <span class="cgv-user-name">
                         <c:choose>
-                            <c:when test="${not empty sessionScope.LOGIN_USER}">${sessionScope.LOGIN_USER.fullName}</c:when>
+                            <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
                             <c:otherwise>Manager</c:otherwise>
                         </c:choose>
                     </span>
