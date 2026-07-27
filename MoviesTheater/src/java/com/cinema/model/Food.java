@@ -52,19 +52,19 @@ public class Food {
         this.image = image;
     }
 
-    public boolean isIsActive() {
+    public boolean isActive() {
         return isActive;
     }
 
-    public void setIsActive(boolean isActive) {
+    public void setActive(boolean isActive) {
         this.isActive = isActive;
     }
 
-    public boolean isIsCombo() {
+    public boolean isCombo() {
         return isCombo;
     }
 
-    public void setIsCombo(boolean isCombo) {
+    public void setCombo(boolean isCombo) {
         this.isCombo = isCombo;
     }
 

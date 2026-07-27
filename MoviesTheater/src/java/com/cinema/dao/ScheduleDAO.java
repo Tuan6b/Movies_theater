@@ -171,6 +171,21 @@ public class ScheduleDAO {
         return false;
     }
 
+    public java.util.Set<Integer> getScheduleIdsWithBookedTickets() {
+        java.util.Set<Integer> set = new java.util.HashSet<>();
+        String sql = "SELECT DISTINCT ScheduleID FROM Ticket";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                set.add(rs.getInt("ScheduleID"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return set;
+    }
+
     public boolean hasOverlappingSchedule(int roomId, String startDateTime, String endDateTime, int excludeScheduleId) {
         String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ? AND ScheduleID != ? "
                 + "AND Status != 'Cancelled' AND StartTime < ? AND EndTime > ?";

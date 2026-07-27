@@ -125,8 +125,8 @@ public class FoodDAO {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isIsActive());
-            ps.setBoolean(5, food.isIsCombo());
+            ps.setBoolean(4, food.isActive());
+            ps.setBoolean(5, food.isCombo());
             ps.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -140,7 +140,7 @@ public class FoodDAO {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isIsCombo());
+            ps.setBoolean(4, food.isCombo());
             ps.setInt(5, food.getFoodId());
             ps.executeUpdate();
         } catch (SQLException ex) {
@@ -149,7 +149,18 @@ public class FoodDAO {
     }
 
     public void deleteFood(int id) {
-        String sql = "DELETE FROM Food WHERE FoodID = ?";
+        String sql = "UPDATE Food SET IsActive = 0 WHERE FoodID = ?";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void restoreFood(int id) {
+        String sql = "UPDATE Food SET IsActive = 1 WHERE FoodID = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -165,8 +176,8 @@ public class FoodDAO {
         food.setFoodName(rs.getNString("FoodName"));
         food.setPrice(rs.getDouble("Price"));
         food.setImage(rs.getString("Image"));
-        food.setIsActive(rs.getBoolean("IsActive"));
-        food.setIsCombo(rs.getBoolean("IsCombo"));
+        food.setActive(rs.getBoolean("IsActive"));
+        food.setCombo(rs.getBoolean("IsCombo"));
         return food;
     }
 }
