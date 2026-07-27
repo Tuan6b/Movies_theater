@@ -174,7 +174,13 @@ public class EmployeeDAO {
         return -1;
     }
 
-    private static String generatePassword(int length) {
+    /**
+     * Generates a random password using an alphabet with the look-alike characters
+     * (I, l, O, 0, 1) removed, since temp passwords get read out loud or copied by
+     * hand. Public because the counter-sales flow needs the same generator when it
+     * creates a walk-in customer account.
+     */
+    public static String generatePassword(int length) {
         String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
         java.security.SecureRandom rng = new java.security.SecureRandom();
         StringBuilder sb = new StringBuilder(length);
@@ -184,25 +190,45 @@ public class EmployeeDAO {
         return sb.toString();
     }
 
+    /**
+     * Updates an employee account and its profile.
+     *
+     * BR-14: every statement is scoped to RoleID = ROLE_EMPLOYEE, matching the rest
+     * of this DAO (getById, setBlocked, resetPassword). Without that scope a
+     * hand-edited accountId in the edit form would let a Manager rewrite the email
+     * and password of a Manager or Admin row. The Account update runs first and its
+     * row count doubles as the authorisation check for the UserProfile writes that
+     * follow, so a non-employee id aborts before any profile data is touched.
+     */
     public boolean update(Account account) {
         try (Connection conn = DBUtils.getConnection()) {
             conn.setAutoCommit(false);
 
+            int accountRows;
             if (account.getPassword() != null && !account.getPassword().trim().isEmpty()) {
-                String sqlAccount = "UPDATE Account SET Email = ?, Password = ? WHERE AccountID = ?";
+                String sqlAccount = "UPDATE Account SET Email = ?, Password = ? "
+                        + "WHERE AccountID = ? AND RoleID = " + ROLE_EMPLOYEE;
                 try (PreparedStatement ps = conn.prepareStatement(sqlAccount)) {
                     ps.setString(1, account.getEmail());
                     ps.setString(2, PasswordHash.hash(account.getPassword().trim()));
                     ps.setInt(3, account.getAccountId());
-                    ps.executeUpdate();
+                    accountRows = ps.executeUpdate();
                 }
             } else {
-                String sqlAccount = "UPDATE Account SET Email = ? WHERE AccountID = ?";
+                String sqlAccount = "UPDATE Account SET Email = ? "
+                        + "WHERE AccountID = ? AND RoleID = " + ROLE_EMPLOYEE;
                 try (PreparedStatement ps = conn.prepareStatement(sqlAccount)) {
                     ps.setString(1, account.getEmail());
                     ps.setInt(2, account.getAccountId());
-                    ps.executeUpdate();
+                    accountRows = ps.executeUpdate();
                 }
+            }
+
+            // Target is not an employee row (or does not exist): abort before the
+            // profile writes, which have no RoleID column of their own to filter on.
+            if (accountRows == 0) {
+                conn.rollback();
+                return false;
             }
 
             String sqlCheck = "SELECT COUNT(*) FROM UserProfile WHERE AccountID = ?";

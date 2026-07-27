@@ -61,7 +61,7 @@
                     <div class="cgv-field">
                         <label class="cgv-label">Price (VND)</label>
                         <fmt:formatNumber value="${food.price}" pattern="#" var="formattedPrice" />
-                        <input class="cgv-input" type="number" name="price" required min="0" step="1000"
+                        <input class="cgv-input" type="number" name="price" required min="1000" step="1000"
                                value="${formattedPrice}">
                     </div>
 

@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
+import com.cinema.dao.BookingConflictException;
 import com.cinema.dao.EmployeeDAO;
 import com.cinema.dao.PromotionDAO;
 import com.cinema.dao.RoomDAO;
@@ -22,6 +23,8 @@ import com.cinema.model.clsMovie;
 import com.cinema.model.clsSchedule;
 import com.cinema.service.NotificationService;
 import com.cinema.util.DBUtils;
+import com.cinema.util.PasswordHash;
+import com.cinema.util.SeatPricing;
 import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -50,6 +53,25 @@ public class EmployeeDashboardServlet extends HttpServlet {
     private static final String PROFILE_JSP    = "/view/employee/profile.jsp";
     private static final String SETUP_JSP      = "/view/employee/setup.jsp";
     private static final String MY_SHIFTS_JSP  = "/view/employee/my-shifts.jsp";
+
+    // Shared by the check-in list and the single-code lookup: both need the same
+    // columns, so the SELECT/FROM half lives here and each caller appends its own
+    // WHERE. Movie has to be joined explicitly — Schedule only carries MovieID.
+    private static final String CHECKIN_SELECT = """
+        SELECT t.TicketID, t.Code, t.IsCheckedIn, t.PriceAtBooking,
+               u.FullName AS CustomerName,
+               m.MovieName,
+               CAST(sc.StartTime AS DATE) AS ShowDate,
+               CONVERT(VARCHAR(5), sc.StartTime, 108) AS StartTime,
+               s.RowChar + CAST(s.ColNumber AS VARCHAR) AS SeatName
+        FROM Ticket t
+        INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
+        INNER JOIN Movie m ON sc.MovieID = m.MovieID
+        INNER JOIN Seat s ON t.SeatID = s.SeatID
+        INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+        INNER JOIN Account a ON i.AccountID = a.AccountID
+        LEFT JOIN UserProfile u ON a.AccountID = u.AccountID
+        """;
 
     private final AccountDAO      accountDAO      = new AccountDAO();
     private final EmployeeDAO     employeeDAO     = new EmployeeDAO();
@@ -129,7 +151,11 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     handleBook(request, response);
                     break;
                 case "/checkin":
-                    handleCheckin(request, response);
+                    if ("checkin_by_code".equals(request.getParameter("action"))) {
+                        handleCheckinByCode(request, response);
+                    } else {
+                        handleCheckin(request, response);
+                    }
                     break;
                 case "/setup":
                     handleSetup(request, response);
@@ -147,55 +173,47 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
     }
 
+    /**
+     * The counter's landing page. It is a navigation screen, not a report: the
+     * revenue, ticket and payment figures it used to carry belong to UC49 (View
+     * Ticket Revenue Statistics), which the use case table assigns to the Manager.
+     * All that is left is the employee's own shift, because every other feature on
+     * the page is gated on whether a shift is running right now.
+     */
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, boolean noShift)
             throws ServletException, IOException {
-        int screeningsToday = 0;
-        int checkinsToday = 0;
-        int activeMovies = 0;
-
-        try (Connection conn = DBUtils.getConnection()) {
-            String q1 = "SELECT COUNT(*) FROM Schedule WHERE CAST(StartTime AS DATE) = CAST(GETDATE() AS DATE)";
-            try (PreparedStatement ps = conn.prepareStatement(q1); ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) screeningsToday = rs.getInt(1);
-            }
-            String q2 = "SELECT COUNT(*) FROM Ticket WHERE IsCheckedIn = 1 AND CAST(CheckedInAt AS DATE) = CAST(GETDATE() AS DATE)";
-            try (PreparedStatement ps = conn.prepareStatement(q2); ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) checkinsToday = rs.getInt(1);
-            }
-            String q3 = "SELECT COUNT(*) FROM Movie WHERE IsActive = 1";
-            try (PreparedStatement ps = conn.prepareStatement(q3); ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) activeMovies = rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        request.setAttribute("empScreeningsToday", screeningsToday);
-        request.setAttribute("empCheckinsToday", checkinsToday);
-        request.setAttribute("empActiveMovies", activeMovies);
-        request.setAttribute("empShiftStatus", noShift ? "Ngoài ca" : "Đang ca");
-        request.setAttribute("noShift", noShift);
-
         Account emp = (Account) request.getSession().getAttribute("account");
-        int sang = 0, chieu = 0, toi = 0;
+
+        String shiftToday = null;
         if (emp != null) {
-            java.time.LocalDate now = java.time.LocalDate.now();
-            List<WorkShift> myShifts = shiftDAO.getByEmployeeAndMonth(emp.getAccountId(), now.getYear(), now.getMonthValue());
-            for (WorkShift ws : myShifts) {
-                java.time.LocalTime st = ws.getStartTime();
-                if (st == null) continue;
-                int hour = st.getHour();
-                if (hour < 12) sang++;
-                else if (hour < 18) chieu++;
-                else toi++;
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalTime nowTime = java.time.LocalTime.now();
+            for (WorkShift ws : shiftDAO.getByEmployeeAndMonth(
+                    emp.getAccountId(), today.getYear(), today.getMonthValue())) {
+                if (!today.equals(ws.getShiftDate())
+                        || ws.getStartTime() == null || ws.getEndTime() == null) {
+                    continue;
+                }
+                String label = formatTime(ws.getStartTime()) + " – " + formatTime(ws.getEndTime());
+                boolean covering = !nowTime.isBefore(ws.getStartTime())
+                        && !nowTime.isAfter(ws.getEndTime());
+                // The shift being served right now wins; otherwise the first one today
+                // stands in, so an employee before clock-on still sees when to arrive.
+                if (covering || shiftToday == null) {
+                    shiftToday = label;
+                }
             }
         }
-        Map<String, Object> shiftChartMap = new LinkedHashMap<>();
-        shiftChartMap.put("labels", java.util.Arrays.asList("Ca sáng", "Ca chiều", "Ca tối"));
-        shiftChartMap.put("values", java.util.Arrays.asList(sang, chieu, toi));
-        request.setAttribute("shiftChartJson", new com.google.gson.Gson().toJson(shiftChartMap));
+
+        request.setAttribute("empShiftToday",  shiftToday);
+        request.setAttribute("empShiftStatus", noShift ? "Ngoài ca" : "Đang ca");
+        request.setAttribute("noShift",        noShift);
 
         request.getRequestDispatcher(DASHBOARD_JSP).forward(request, response);
+    }
+
+    private static String formatTime(java.time.LocalTime time) {
+        return String.format("%02d:%02d", time.getHour(), time.getMinute());
     }
 
     private void showSchedules(HttpServletRequest request, HttpServletResponse response)
@@ -209,11 +227,10 @@ public class EmployeeDashboardServlet extends HttpServlet {
             dateStr = new Date(System.currentTimeMillis()).toString();
         }
 
-        String movieIdStr = request.getParameter("movieId");
-        Integer movieId = (movieIdStr != null && !movieIdStr.trim().isEmpty()) ? Integer.parseInt(movieIdStr) : null;
-
-        String roomIdStr = request.getParameter("roomId");
-        Integer roomId = (roomIdStr != null && !roomIdStr.trim().isEmpty()) ? Integer.parseInt(roomIdStr) : null;
+        // parseOptionalInt, not Integer.parseInt: a hand-edited ?movieId=abc used to
+        // throw out of processRequest and render a 500 page instead of the schedule list.
+        Integer movieId = parseOptionalInt(request.getParameter("movieId"));
+        Integer roomId  = parseOptionalInt(request.getParameter("roomId"));
 
         List<clsSchedule> schedules = scheduleDAO.getSchedules(dateStr, movieId, roomId);
         List<clsMovie> movieList = movieDAO.getAllActiveMovies();
@@ -393,17 +410,26 @@ public class EmployeeDashboardServlet extends HttpServlet {
                 promotionId = promo.getPromotionId();
             }
 
-            List<String> newCodes = ticketDAO.createManualBooking(
-                    scheduleId, selectedSeats, customerId,
-                    schedule.getBaseTicketPrice(), paymentMethod, promotionId, discountAmount);
+            List<String> newCodes;
+            try {
+                newCodes = ticketDAO.createManualBooking(
+                        scheduleId, selectedSeats, customerId,
+                        schedule.getBaseTicketPrice(), paymentMethod, promotionId, discountAmount);
+            } catch (BookingConflictException conflict) {
+                request.getSession().setAttribute("flashError", messageFor(conflict));
+                response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
+                return;
+            }
 
             if (!newCodes.isEmpty()) {
                 request.getSession().setAttribute("flashSuccess", "Xuất vé thành công!");
                 request.getSession().setAttribute("flashNewCodes", newCodes);
                 response.sendRedirect(request.getContextPath() + "/employee/tickets?scheduleId=" + scheduleId);
             } else {
+                // A refused booking now arrives as BookingConflictException, so an
+                // empty list only means the transaction itself failed.
                 request.getSession().setAttribute("flashError",
-                        "Không thể xuất vé. Ghế có thể đã được đặt trước.");
+                        "Không thể xuất vé do lỗi hệ thống. Vui lòng thử lại hoặc báo quản lý.");
                 response.sendRedirect(request.getContextPath() + "/employee/book?scheduleId=" + scheduleId);
             }
         } catch (Exception e) {
@@ -426,7 +452,10 @@ public class EmployeeDashboardServlet extends HttpServlet {
                     ? "Walk-in Customer" : customerName.trim());
             newAcc.setPhoneNumber(customerPhone == null || customerPhone.trim().isEmpty()
                     ? null : customerPhone.trim());
-            newAcc.setPassword("cgv12345");
+            // Random, not a shared default: anyone who knows a customer's email would
+            // otherwise be able to log into the account created for them at the counter.
+            // The customer resets it through Forgot Password.
+            newAcc.setPassword(EmployeeDAO.generatePassword(12));
             newAcc.setRoleId(2);
             int id = accountDAO.register(newAcc);
             if (id > 0) {
@@ -440,7 +469,8 @@ public class EmployeeDashboardServlet extends HttpServlet {
         Account newWalkin = new Account();
         newWalkin.setEmail("walkin@cinema.vn");
         newWalkin.setFullName("Walk-in Customer");
-        newWalkin.setPassword("cgv12345");
+        // Shared placeholder account, never meant to be logged into.
+        newWalkin.setPassword(EmployeeDAO.generatePassword(24));
         newWalkin.setRoleId(2);
         int id = accountDAO.register(newWalkin);
         if (id > 0) {
@@ -451,20 +481,25 @@ public class EmployeeDashboardServlet extends HttpServlet {
         return empAcc.getAccountId();
     }
 
+    // Turns a booking refused by a business rule into the message shown at the
+    // counter. Kept in the servlet so no user-facing text has to live in the DAO.
+    private String messageFor(BookingConflictException conflict) {
+        switch (conflict.getReason()) {
+            case SEAT_TAKEN:
+                return "Ghế vừa được bán ở quầy khác. Vui lòng tải lại sơ đồ và chọn ghế còn trống.";
+            case PROMOTION_EXHAUSTED:
+                return "Mã khuyến mãi vừa hết lượt sử dụng. Vui lòng bỏ mã hoặc dùng mã khác.";
+            default:
+                return "Không thể xuất vé. Vui lòng thử lại.";
+        }
+    }
+
     // Package-private (not private) so EmployeeDashboardServletComputeSubtotalTest,
     // in the same package under test/, can call it directly without reflection.
+    // Delegates to SeatPricing so the basket priced here and the rows priced inside
+    // TicketDAO.createManualBooking can never drift apart.
     double computeSubtotal(List<Seat> seats, double basePrice) {
-        double total = 0.0;
-        for (Seat seat : seats) {
-            if ("VIP".equalsIgnoreCase(seat.getSeatType())) {
-                total += basePrice * 1.5;
-            } else if ("Couple".equalsIgnoreCase(seat.getSeatType())) {
-                total += basePrice * 2.0;
-            } else {
-                total += basePrice;
-            }
-        }
-        return total;
+        return SeatPricing.subtotal(seats, basePrice);
     }
 
     // Package-private (not private) so EmployeeDashboardServletComputeDiscountTest,
@@ -502,21 +537,7 @@ public class EmployeeDashboardServlet extends HttpServlet {
         String q = request.getParameter("q"); // ticket code or email
 
         List<BookingView> bookingList = new ArrayList<>();
-        String sql = """
-            SELECT t.TicketID, t.Code, t.IsCheckedIn, t.PriceAtBooking,
-                   u.FullName AS CustomerName,
-                   m.MovieName,
-                   CAST(sc.StartTime AS DATE) AS ShowDate,
-                   CONVERT(VARCHAR(5), sc.StartTime, 108) AS StartTime,
-                   s.RowChar + CAST(s.ColNumber AS VARCHAR) AS SeatName
-            FROM Ticket t
-            INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
-            INNER JOIN Seat s ON t.SeatID = s.SeatID
-            INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
-            INNER JOIN Account a ON i.AccountID = a.AccountID
-            LEFT JOIN UserProfile u ON a.AccountID = u.AccountID
-            WHERE 1=1
-            """;
+        String sql = CHECKIN_SELECT + " WHERE 1=1";
 
         List<Object> params = new ArrayList<>();
         if ("today".equalsIgnoreCase(filter)) {
@@ -544,21 +565,13 @@ public class EmployeeDashboardServlet extends HttpServlet {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    BookingView bv = new BookingView();
-                    bv.setCode(rs.getString("Code"));
-                    bv.setCustomerName(rs.getNString("CustomerName"));
-                    bv.setMovieTitle(rs.getNString("MovieName"));
-                    bv.setShowDate(rs.getDate("ShowDate").toString());
-                    bv.setStartTime(rs.getString("StartTime"));
-                    bv.setSeats(rs.getString("SeatName"));
-                    bv.setTotalAmount(rs.getDouble("PriceAtBooking"));
-                    bv.setCheckedIn(rs.getBoolean("IsCheckedIn"));
-                    bv.setBookingId(rs.getInt("TicketID"));
-                    bookingList.add(bv);
+                    bookingList.add(mapBookingView(rs));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            request.setAttribute("flashError",
+                    "Không tải được danh sách vé. Vui lòng thử lại hoặc báo quản lý.");
         }
 
         // Stats
@@ -594,36 +607,13 @@ public class EmployeeDashboardServlet extends HttpServlet {
             }
             if (match == null) {
                 // query database directly for verification code
-                String sqlVerify = """
-                    SELECT t.TicketID, t.Code, t.IsCheckedIn, t.PriceAtBooking,
-                           u.FullName AS CustomerName,
-                           m.MovieName,
-                           CAST(sc.StartTime AS DATE) AS ShowDate,
-                           CONVERT(VARCHAR(5), sc.StartTime, 108) AS StartTime,
-                           s.RowChar + CAST(s.ColNumber AS VARCHAR) AS SeatName
-                    FROM Ticket t
-                    INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
-                    INNER JOIN Seat s ON t.SeatID = s.SeatID
-                    INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
-                    INNER JOIN Account a ON i.AccountID = a.AccountID
-                    LEFT JOIN UserProfile u ON a.AccountID = u.AccountID
-                    WHERE t.Code = ?
-                    """;
+                String sqlVerify = CHECKIN_SELECT + " WHERE t.Code = ?";
                 try (Connection conn = DBUtils.getConnection();
                      PreparedStatement ps = conn.prepareStatement(sqlVerify)) {
                     ps.setString(1, verifyCode.trim());
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
-                            match = new BookingView();
-                            match.setCode(rs.getString("Code"));
-                            match.setCustomerName(rs.getNString("CustomerName"));
-                            match.setMovieTitle(rs.getNString("MovieName"));
-                            match.setShowDate(rs.getDate("ShowDate").toString());
-                            match.setStartTime(rs.getString("StartTime"));
-                            match.setSeats(rs.getString("SeatName"));
-                            match.setTotalAmount(rs.getDouble("PriceAtBooking"));
-                            match.setCheckedIn(rs.getBoolean("IsCheckedIn"));
-                            match.setBookingId(rs.getInt("TicketID"));
+                            match = mapBookingView(rs);
                         }
                     }
                 } catch (SQLException e) {
@@ -640,6 +630,105 @@ public class EmployeeDashboardServlet extends HttpServlet {
         request.getRequestDispatcher(CHECKIN_JSP).forward(request, response);
     }
 
+    private BookingView mapBookingView(ResultSet rs) throws SQLException {
+        BookingView bv = new BookingView();
+        bv.setCode(rs.getString("Code"));
+        bv.setCustomerName(rs.getNString("CustomerName"));
+        bv.setMovieTitle(rs.getNString("MovieName"));
+        bv.setShowDate(rs.getDate("ShowDate").toString());
+        bv.setStartTime(rs.getString("StartTime"));
+        bv.setSeats(rs.getString("SeatName"));
+        bv.setTotalAmount(rs.getDouble("PriceAtBooking"));
+        bv.setCheckedIn(rs.getBoolean("IsCheckedIn"));
+        bv.setBookingId(rs.getInt("TicketID"));
+        return bv;
+    }
+
+    // ========== UC46: check-in outcomes ==========
+
+    static final String CHECKIN_OK         = "CHECKIN_OK";
+    static final String CHECKIN_NOT_FOUND  = "CHECKIN_NOT_FOUND";
+    static final String CHECKIN_ALREADY    = "CHECKIN_ALREADY";
+    static final String CHECKIN_UNPAID     = "CHECKIN_UNPAID";
+    static final String CHECKIN_TOO_EARLY  = "CHECKIN_TOO_EARLY";
+    static final String CHECKIN_SHOW_ENDED = "CHECKIN_SHOW_ENDED";
+    static final String CHECKIN_ERROR      = "CHECKIN_ERROR";
+
+    /** The door opens this long before the showtime starts. */
+    static final int CHECKIN_OPENS_MINUTES_BEFORE = 30;
+
+    /**
+     * Decides whether a ticket may be let through. Takes plain values rather than the
+     * DAO row so EmployeeDashboardServletCheckinOutcomeTest, in the same package under
+     * test/, can cover the whole table without a database.
+     *
+     * Order matters: "already checked in" is reported before the showtime checks so a
+     * second scan of a valid ticket reads as a duplicate rather than as a late arrival.
+     *
+     * @param found whether a ticket with that code exists at all
+     * @param alreadyCheckedIn Ticket.IsCheckedIn
+     * @param paymentStatus Invoice.PaymentStatus — only 'Paid' may enter
+     * @param showStart Schedule.StartTime, null when unknown
+     * @param showEnd Schedule.EndTime, null when unknown
+     * @param now current time, injected so the test does not depend on the clock
+     */
+    static String decideCheckinOutcome(boolean found, boolean alreadyCheckedIn,
+            String paymentStatus, java.time.LocalDateTime showStart,
+            java.time.LocalDateTime showEnd, java.time.LocalDateTime now) {
+        if (!found) {
+            return CHECKIN_NOT_FOUND;
+        }
+        if (alreadyCheckedIn) {
+            return CHECKIN_ALREADY;
+        }
+        if (!"Paid".equalsIgnoreCase(paymentStatus)) {
+            return CHECKIN_UNPAID;
+        }
+        if (showStart != null
+                && now.isBefore(showStart.minusMinutes(CHECKIN_OPENS_MINUTES_BEFORE))) {
+            return CHECKIN_TOO_EARLY;
+        }
+        if (showEnd != null && now.isAfter(showEnd)) {
+            return CHECKIN_SHOW_ENDED;
+        }
+        return CHECKIN_OK;
+    }
+
+    private String checkinMessage(String outcome) {
+        switch (outcome) {
+            case CHECKIN_OK:         return "Đã check-in vé thành công!";
+            case CHECKIN_ALREADY:    return "Vé này đã được check-in trước đó.";
+            case CHECKIN_NOT_FOUND:  return "Không tìm thấy vé với mã này.";
+            case CHECKIN_UNPAID:     return "Vé chưa được thanh toán, không thể vào cửa.";
+            case CHECKIN_TOO_EARLY:  return "Chưa tới giờ vào cửa (mở trước suất chiếu "
+                    + CHECKIN_OPENS_MINUTES_BEFORE + " phút).";
+            case CHECKIN_SHOW_ENDED: return "Suất chiếu đã kết thúc.";
+            default:                 return "Lỗi hệ thống. Vui lòng thử lại.";
+        }
+    }
+
+    /**
+     * Runs the decision for one ticket and, when it passes, marks it checked in.
+     * Returns the final outcome. Shared by the manual button (ticket id) and the QR
+     * scanner (ticket code) so both go through the same rules.
+     */
+    private String resolveAndCheckIn(TicketDAO ticketDAO, TicketDAO.CheckinInfo info)
+            throws SQLException {
+        String outcome = decideCheckinOutcome(
+                info != null,
+                info != null && info.isCheckedIn(),
+                info != null ? info.getPaymentStatus() : null,
+                info != null ? info.getShowStart() : null,
+                info != null ? info.getShowEnd() : null,
+                java.time.LocalDateTime.now());
+        if (CHECKIN_OK.equals(outcome) && !ticketDAO.markCheckedIn(info.getTicketId())) {
+            // Another counter scanned the same ticket between the lookup and the
+            // update — the UPDATE guard refused it, so report it as a duplicate.
+            outcome = CHECKIN_ALREADY;
+        }
+        return outcome;
+    }
+
     private void handleCheckin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String bookingIdStr = request.getParameter("bookingId");
@@ -648,28 +737,89 @@ public class EmployeeDashboardServlet extends HttpServlet {
             return;
         }
 
-        try (Connection conn = DBUtils.getConnection()) {
-            int ticketId = Integer.parseInt(bookingIdStr);
-            String sql = "UPDATE Ticket SET IsCheckedIn = 1, CheckedInAt = GETDATE() WHERE TicketID = ?";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, ticketId);
-                int updated = ps.executeUpdate();
-                if (updated > 0) {
-                    request.getSession().setAttribute("flashSuccess", "Ticket checked in successfully!");
-                } else {
-                    request.getSession().setAttribute("flashError", "Failed to check in ticket.");
-                }
-            }
+        try {
+            int ticketId = Integer.parseInt(bookingIdStr.trim());
+            TicketDAO ticketDAO = new TicketDAO();
+            String outcome = resolveAndCheckIn(ticketDAO, ticketDAO.findCheckinInfoById(ticketId));
+            request.getSession().setAttribute(
+                    CHECKIN_OK.equals(outcome) ? "flashSuccess" : "flashError",
+                    checkinMessage(outcome));
         } catch (SQLException | NumberFormatException e) {
             e.printStackTrace();
-            request.getSession().setAttribute("flashError", "Error processing check-in: " + e.getMessage());
+            request.getSession().setAttribute("flashError", checkinMessage(CHECKIN_ERROR));
         }
 
         response.sendRedirect(request.getContextPath() + "/employee/checkin");
     }
 
+    /**
+     * Scanner endpoint: POST /employee/checkin with action=checkin_by_code&amp;code=...
+     * Answers JSON so the scanner can show the result and keep the camera running
+     * instead of reloading the page for every ticket.
+     */
+    private void handleCheckinByCode(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        Map<String, Object> result = new LinkedHashMap<>();
+        String code = request.getParameter("code");
+
+        if (code == null || code.trim().isEmpty()) {
+            result.put("outcome", CHECKIN_NOT_FOUND);
+            result.put("ok", false);
+            result.put("message", checkinMessage(CHECKIN_NOT_FOUND));
+            response.getWriter().write(new Gson().toJson(result));
+            return;
+        }
+
+        try {
+            TicketDAO ticketDAO = new TicketDAO();
+            TicketDAO.CheckinInfo info = ticketDAO.findCheckinInfoByCode(code.trim());
+            String outcome = resolveAndCheckIn(ticketDAO, info);
+
+            result.put("outcome", outcome);
+            result.put("ok", CHECKIN_OK.equals(outcome));
+            result.put("message", checkinMessage(outcome));
+            if (info != null) {
+                result.put("code", info.getCode());
+                result.put("movie", info.getMovieName());
+                result.put("seat", info.getSeatName());
+                result.put("customer", info.getCustomerName());
+                result.put("showStart", info.getShowStart() != null
+                        ? info.getShowStart().toString() : null);
+            } else {
+                result.put("code", code.trim());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            result.put("outcome", CHECKIN_ERROR);
+            result.put("ok", false);
+            result.put("message", checkinMessage(CHECKIN_ERROR));
+        }
+
+        response.getWriter().write(new Gson().toJson(result));
+    }
+
     private void showSetup(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        forwardSetup(request, response, null);
+    }
+
+    /**
+     * Renders the first-login screen. Name, phone, date of birth and address are
+     * captured by the Manager at UC44, so setup only shows them back read-only —
+     * and it reads them from the employee row rather than the session Account,
+     * which carries neither address nor date of birth.
+     */
+    private void forwardSetup(HttpServletRequest request, HttpServletResponse response, String error)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        Account current = (session != null) ? (Account) session.getAttribute("account") : null;
+        if (current != null) {
+            request.setAttribute("profile", employeeDAO.getById(current.getAccountId()));
+        }
+        if (error != null) {
+            request.setAttribute("error", error);
+        }
         request.getRequestDispatcher(SETUP_JSP).forward(request, response);
     }
 
@@ -683,43 +833,53 @@ public class EmployeeDashboardServlet extends HttpServlet {
             return;
         }
 
-        String fullName = request.getParameter("fullName");
-        String phoneNumber = request.getParameter("phoneNumber");
-        String address = request.getParameter("address");
-        String dateOfBirth = request.getParameter("dateOfBirth");
         String newPassword = request.getParameter("newPassword");
 
-        if (fullName == null || fullName.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập họ và tên.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+        // BR-42.2: the temporary password issued at account creation must not
+        // outlive setup, so a replacement is mandatory here rather than optional.
+        // Leaving this blank used to clear NeedsSetup anyway, which kept a
+        // Manager-known password valid indefinitely.
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            forwardSetup(request, response, "Vui lòng đặt mật khẩu mới để thay thế mật khẩu tạm.");
             return;
         }
 
-        Account updated = new Account();
-        updated.setAccountId(current.getAccountId());
-        updated.setEmail(current.getEmail());
-        updated.setFullName(fullName.trim());
-        updated.setPhoneNumber(phoneNumber);
-        updated.setAddress(address);
-        updated.setDateOfBirth(dateOfBirth);
-        if (newPassword != null && !newPassword.trim().isEmpty()) {
-            updated.setPassword(newPassword.trim());
+        // E1: same 6-character minimum as Register, Change Password and Reset Password.
+        String password = newPassword.trim();
+        if (password.length() < 6) {
+            forwardSetup(request, response, "Mật khẩu phải có ít nhất 6 ký tự.");
+            return;
         }
 
-        boolean ok = employeeDAO.update(updated);
+        // "cannot be reused afterward" in BR-42.2 is about the temp password itself,
+        // so re-typing it here has to be rejected too — a length check alone would
+        // let the employee keep exactly the credential the Manager handed them.
+        Account stored = accountDAO.getAccountById(current.getAccountId());
+        if (stored != null && stored.getPassword() != null
+                && PasswordHash.verify(password, stored.getPassword())) {
+            forwardSetup(request, response, "Mật khẩu mới phải khác mật khẩu tạm được cấp.");
+            return;
+        }
+
+        // resetPassword, not update(): the profile fields this form used to post are
+        // the Manager's to fill in now, and update() rewrites the whole UserProfile
+        // row, so going through it would blank out the phone, date of birth and
+        // address entered at UC44. Both statements are scoped to RoleID = Employee.
+        boolean ok = employeeDAO.resetPassword(current.getAccountId(), password);
         if (ok) {
             accountDAO.clearNeedsSetup(current.getAccountId());
             // Update session object so the guard doesn't redirect again
             current.setNeedsSetup(false);
-            current.setFullName(fullName.trim());
             session.setAttribute("account", current);
-            session.setAttribute("flashSuccess", "Thông tin cá nhân đã được cập nhật. Chào mừng bạn!");
+            session.setAttribute("flashSuccess", "Tài khoản đã được kích hoạt. Chào mừng bạn!");
             response.sendRedirect(request.getContextPath() + "/employee");
         } else {
-            request.setAttribute("error", "Có lỗi xảy ra. Vui lòng thử lại.");
-            request.getRequestDispatcher(SETUP_JSP).forward(request, response);
+            forwardSetup(request, response, "Có lỗi xảy ra. Vui lòng thử lại.");
         }
     }
+
+    /** Rows per page in the employee's "requests I sent" list. */
+    private static final int REQUEST_PAGE_SIZE = 5;
 
     private void showMyShifts(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -738,9 +898,24 @@ public class EmployeeDashboardServlet extends HttpServlet {
         if (month < 1)  month = 1;
         if (month > 12) month = 12;
 
+        // The request history is paged; the pending subset is not, because the
+        // calendar marks every shift with an open request no matter which page of
+        // the history is showing.
+        int reqPage = 1;
+        String reqPageStr = request.getParameter("reqPage");
+        if (reqPageStr != null && !reqPageStr.isEmpty()) {
+            try { reqPage = Integer.parseInt(reqPageStr); } catch (NumberFormatException ignored) {}
+        }
+        if (reqPage < 1) reqPage = 1;
+
+        int reqTotal = exchangeDAO.countOutgoing(empId);
+        int reqTotalPages = reqTotal == 0 ? 1 : (int) Math.ceil((double) reqTotal / REQUEST_PAGE_SIZE);
+        if (reqPage > reqTotalPages) reqPage = reqTotalPages;
+
         List<WorkShift> myShifts = shiftDAO.getByEmployeeAndMonth(empId, year, month);
         List<ShiftExchangeRequest> incoming = exchangeDAO.getIncoming(empId);
-        List<ShiftExchangeRequest> outgoing = exchangeDAO.getOutgoing(empId);
+        List<ShiftExchangeRequest> outgoing = exchangeDAO.getOutgoing(empId, reqPage, REQUEST_PAGE_SIZE);
+        List<ShiftExchangeRequest> outgoingPending = exchangeDAO.getOutgoingPending(empId);
         List<Account> colleagues = employeeDAO.getAll(null, 1, 200, "name", "ASC");
 
         int prevMonth = month == 1 ? 12 : month - 1;
@@ -748,10 +923,14 @@ public class EmployeeDashboardServlet extends HttpServlet {
         int nextMonth = month == 12 ? 1 : month + 1;
         int nextYear  = month == 12 ? year + 1 : year;
 
-        request.setAttribute("myShifts",    myShifts);
-        request.setAttribute("incoming",    incoming);
-        request.setAttribute("outgoing",    outgoing);
-        request.setAttribute("colleagues",  colleagues);
+        request.setAttribute("myShifts",        myShifts);
+        request.setAttribute("incoming",        incoming);
+        request.setAttribute("outgoing",        outgoing);
+        request.setAttribute("outgoingPending", outgoingPending);
+        request.setAttribute("reqPage",         reqPage);
+        request.setAttribute("reqTotal",        reqTotal);
+        request.setAttribute("reqTotalPages",   reqTotalPages);
+        request.setAttribute("colleagues",      colleagues);
         request.setAttribute("selYear",     year);
         request.setAttribute("selMonth",    month);
         request.setAttribute("prevYear",    prevYear);
@@ -796,36 +975,15 @@ public class EmployeeDashboardServlet extends HttpServlet {
                             notificationService.notifyShiftExchangeRequested(newRequest);
                         }
                     } else {
-                        session.setAttribute("flashError", "Không thể gửi yêu cầu. Vui lòng thử lại.");
+                        session.setAttribute("flashError",
+                                "Không thể gửi yêu cầu. Người nhận phải là nhân viên đang hoạt động.");
                     }
                     break;
                 }
-                case "accept_exchange": {
-                    int requestId = Integer.parseInt(request.getParameter("requestId"));
-                    boolean ok = exchangeDAO.accept(requestId, empId);
-                    if (ok) {
-                        ShiftExchangeRequest accepted = exchangeDAO.getById(requestId);
-                        if (accepted != null) {
-                            notificationService.notifyShiftExchangeAccepted(accepted);
-                        }
-                    }
-                    session.setAttribute(ok ? "flashSuccess" : "flashError",
-                            ok ? "Đã nhận ca thành công." : "Không thể nhận ca. Yêu cầu có thể đã hết hạn.");
-                    break;
-                }
-                case "reject_exchange": {
-                    int requestId = Integer.parseInt(request.getParameter("requestId"));
-                    boolean ok = exchangeDAO.reject(requestId, empId);
-                    if (ok) {
-                        ShiftExchangeRequest rejected = exchangeDAO.getById(requestId);
-                        if (rejected != null) {
-                            notificationService.notifyShiftExchangeRejected(rejected);
-                        }
-                    }
-                    session.setAttribute(ok ? "flashSuccess" : "flashError",
-                            ok ? "Đã từ chối yêu cầu." : "Không thể từ chối. Vui lòng thử lại.");
-                    break;
-                }
+                // accept_exchange / reject_exchange used to live here. Approving a
+                // hand-off is the Manager's call now (/manager/shift-exchanges), so
+                // the recipient has nothing to post from this page — leaving the
+                // actions mapped would keep that authority in two places at once.
                 case "cancel_exchange": {
                     int requestId = Integer.parseInt(request.getParameter("requestId"));
                     boolean ok = exchangeDAO.cancel(requestId, empId);
@@ -927,6 +1085,18 @@ public class EmployeeDashboardServlet extends HttpServlet {
         if (value != null) {
             request.setAttribute(key, value);
             session.removeAttribute(key);
+        }
+    }
+
+    /** Returns null for a missing, blank or non-numeric parameter — never throws. */
+    private Integer parseOptionalInt(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

@@ -4,6 +4,7 @@
  */
 package com.cinema.service;
 
+import com.cinema.dao.AccountDAO;
 import com.cinema.dao.NotificationDAO;
 import com.cinema.model.Notification;
 import com.cinema.model.ShiftExchangeRequest;
@@ -13,8 +14,9 @@ import java.util.Locale;
 
 /**
  * Business logic for creating and reading in-app notifications.
- * Currently used by the Shift Exchange feature to notify employees
- * when a hand-off request is sent, accepted, rejected, or cancelled.
+ * Currently used by the Shift Exchange feature to notify the Manager
+ * when a hand-off request needs approval, and the two employees involved
+ * when it is approved, declined, or cancelled.
  *
  * @author tuan6b
  */
@@ -25,26 +27,52 @@ public class NotificationService {
     private static final DateTimeFormatter SHIFT_TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final NotificationDAO notificationDAO = new NotificationDAO();
+    private final AccountDAO accountDAO = new AccountDAO();
 
+    /** Manager, per the role mapping in AuthFilter. */
+    private static final int ROLE_MANAGER = 4;
+
+    /**
+     * A new hand-off request. The Manager decides it, so the queue notification goes
+     * to every Manager; the proposed recipient gets a heads-up but nothing to act on.
+     */
     public void notifyShiftExchangeRequested(ShiftExchangeRequest req) {
-        String title = "New Shift Exchange Request";
-        String message = req.getRequesterName() + " wants to hand off the shift on "
-                + formatShift(req) + " to you.";
-        create(req.getTargetEmpId(), "SHIFT_EXCHANGE_REQUESTED", title, message, req.getRequestId());
+        String managerMessage = req.getRequesterName() + " wants to hand off the shift on "
+                + formatShift(req) + " to " + req.getTargetName() + ". Awaiting your approval.";
+        for (int managerId : accountDAO.getActiveAccountIdsByRole(ROLE_MANAGER)) {
+            create(managerId, "SHIFT_EXCHANGE_REQUESTED", "Shift Exchange Needs Approval",
+                    managerMessage, req.getRequestId());
+        }
+
+        String targetMessage = req.getRequesterName() + " asked to hand off the shift on "
+                + formatShift(req) + " to you. It takes effect once the manager approves it.";
+        create(req.getTargetEmpId(), "SHIFT_EXCHANGE_REQUESTED", "Shift Exchange Proposed",
+                targetMessage, req.getRequestId());
     }
 
+    /** Manager approved: the shift has already moved, so both sides need telling. */
     public void notifyShiftExchangeAccepted(ShiftExchangeRequest req) {
-        String title = "Shift Exchange Accepted";
-        String message = req.getTargetName() + " accepted your shift exchange request for "
-                + formatShift(req) + ".";
-        create(req.getRequesterId(), "SHIFT_EXCHANGE_ACCEPTED", title, message, req.getRequestId());
+        String title = "Shift Exchange Approved";
+        create(req.getRequesterId(), "SHIFT_EXCHANGE_ACCEPTED", title,
+                "The manager approved your shift exchange for " + formatShift(req)
+                + ". " + req.getTargetName() + " now covers it.",
+                req.getRequestId());
+        create(req.getTargetEmpId(), "SHIFT_EXCHANGE_ACCEPTED", title,
+                "The manager approved the hand-off from " + req.getRequesterName()
+                + ". The shift on " + formatShift(req) + " is now yours.",
+                req.getRequestId());
     }
 
     public void notifyShiftExchangeRejected(ShiftExchangeRequest req) {
         String title = "Shift Exchange Declined";
-        String message = req.getTargetName() + " declined your shift exchange request for "
-                + formatShift(req) + ".";
-        create(req.getRequesterId(), "SHIFT_EXCHANGE_REJECTED", title, message, req.getRequestId());
+        create(req.getRequesterId(), "SHIFT_EXCHANGE_REJECTED", title,
+                "The manager declined your shift exchange for " + formatShift(req)
+                + ". The shift stays with you.",
+                req.getRequestId());
+        create(req.getTargetEmpId(), "SHIFT_EXCHANGE_REJECTED", title,
+                "The manager declined the hand-off from " + req.getRequesterName()
+                + " for " + formatShift(req) + ".",
+                req.getRequestId());
     }
 
     public void notifyShiftExchangeCancelled(ShiftExchangeRequest req) {

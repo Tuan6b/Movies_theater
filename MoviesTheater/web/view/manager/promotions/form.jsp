@@ -180,17 +180,8 @@
                         </c:if>
                     </div>
 
-                    <%-- Active toggle (edit only — new promotions are always upcoming) --%>
-                    <c:if test="${formAction eq 'update'}">
-                        <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
-                            <input type="checkbox" name="isActive" id="isActive"
-                                   ${promotion.active ? 'checked' : ''}
-                                   style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
-                            <label class="cgv-label" for="isActive" style="margin-bottom:0;cursor:pointer;">
-                                Kích hoạt
-                            </label>
-                        </div>
-                    </c:if>
+                    <%-- Bật/tắt khuyến mãi dùng nút Deactivate/Reactivate ở danh sách,
+                         không đặt ở form này: Status luôn được tính lại từ ngày. --%>
 
                     <div style="display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--cgv-border);">
                         <button type="submit" class="btn--cgv">Lưu khuyến mãi</button>
