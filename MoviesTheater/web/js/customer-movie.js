@@ -104,21 +104,7 @@ function confirmDeleteReview(event, formElement) {
     }
 }
 
-function fetchTMDBUserScore(contextPath, movieName) {
-    if (movieName) {
-        console.log("Đang lấy User Score cho phim:", movieName);
-        fetch(contextPath + '/TMDBController?query=' + encodeURIComponent(movieName))
-            .then(response => response.json())
-            .then(data => {
-                console.log("Kết quả từ TMDB:", data);
-                if (!data.error && data.UserScore) {
-                    document.getElementById('tmdb-user-score-value').innerText = data.UserScore;
-                    document.getElementById('tmdb-user-score-badge').style.display = 'inline-flex';
-                }
-            })
-            .catch(err => console.error("TMDB fetch error:", err));
-    }
-}
+
 
 function toggleEditMenu() {
     var menu = document.getElementById("edit-dropdown-menu");
