@@ -31,6 +31,8 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +45,8 @@ import java.util.Map;
  */
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
+
+    private static final String BOOKING_CLOSED_ERROR = "closed";
 
     private final BookingSeatDAO seatDAO = new BookingSeatDAO();
     private final BookingScheduleDAO scheduleDAO = new BookingScheduleDAO();
@@ -68,6 +72,10 @@ public class BookingController extends HttpServlet {
 
         if (action == null || action.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/index.jsp");
+            return;
+        }
+
+        if (!ensureAuthenticated(request, response)) {
             return;
         }
 
@@ -111,6 +119,58 @@ public class BookingController extends HttpServlet {
         }
     }
 
+    private boolean ensureAuthenticated(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        Account account = session != null ? (Account) session.getAttribute("account") : null;
+
+        if (account != null) {
+            return true;
+        }
+
+        session = request.getSession(true);
+        String redirectUri = request.getRequestURI();
+        if (request.getQueryString() != null && !request.getQueryString().isEmpty()) {
+            redirectUri += "?" + request.getQueryString();
+        }
+        session.setAttribute("redirectAfterLogin", redirectUri);
+        response.sendRedirect(request.getContextPath() + "/Login");
+        return false;
+    }
+
+    private boolean ensureBookingAvailable(HttpServletRequest request, HttpServletResponse response,
+            BookingScheduleView schedule) throws IOException {
+        if (schedule != null && scheduleDAO.isBookingAvailable(schedule.getScheduleId())) {
+            return true;
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute("bookingCart");
+            session.removeAttribute("bookingSchedule");
+            session.removeAttribute("vnpayTxnRef");
+            session.removeAttribute("vnpayAmount");
+        }
+
+        if (schedule == null) {
+            response.sendRedirect(request.getContextPath() + "/");
+            return false;
+        }
+
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath())
+                .append("/showtimes?movieId=")
+                .append(schedule.getMovieId());
+
+        if (schedule.getShowDate() != null && !schedule.getShowDate().trim().isEmpty()) {
+            redirectUrl.append("&date=")
+                    .append(URLEncoder.encode(schedule.getShowDate(), StandardCharsets.UTF_8));
+        }
+
+        redirectUrl.append("&bookingError=").append(BOOKING_CLOSED_ERROR);
+        response.sendRedirect(redirectUrl.toString());
+        return false;
+    }
+
     private void showSeatPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String scheduleIdRaw = request.getParameter("scheduleId");
@@ -127,6 +187,10 @@ public class BookingController extends HttpServlet {
             if (schedule == null) {
                 request.setAttribute("error", "Không tìm thấy suất chiếu.");
                 request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
+                return;
+            }
+
+            if (!ensureBookingAvailable(request, response, schedule)) {
                 return;
             }
 
@@ -160,6 +224,10 @@ public class BookingController extends HttpServlet {
             if (schedule == null) {
                 request.setAttribute("error", "Không tìm thấy suất chiếu.");
                 request.getRequestDispatcher("/view/common/Error.jsp").forward(request, response);
+                return;
+            }
+
+            if (!ensureBookingAvailable(request, response, schedule)) {
                 return;
             }
 
@@ -220,6 +288,10 @@ public class BookingController extends HttpServlet {
             return;
         }
 
+        if (!ensureBookingAvailable(request, response, schedule)) {
+            return;
+        }
+
         // Collect selected food IDs from request
         List<Integer> selectedIds = new ArrayList<>();
         Map<Integer, Integer> rawQuantities = new HashMap<>();
@@ -276,6 +348,10 @@ public class BookingController extends HttpServlet {
             return;
         }
 
+        if (!ensureBookingAvailable(request, response, schedule)) {
+            return;
+        }
+
         List<Food> foodList = foodDAO.getAllActiveFoods();
         List<Promotion> promotions = promotionDAO.getActivePromotions();
         double subtotal = cart.getGrandTotal();
@@ -316,6 +392,10 @@ public class BookingController extends HttpServlet {
 
         if (cart == null || schedule == null) {
             response.sendRedirect(request.getContextPath() + "/showtimes");
+            return;
+        }
+
+        if (!ensureBookingAvailable(request, response, schedule)) {
             return;
         }
 
@@ -368,6 +448,10 @@ public class BookingController extends HttpServlet {
         if (account == null) {
             session.setAttribute("redirectAfterLogin", request.getContextPath() + "/booking?action=checkout");
             response.sendRedirect(request.getContextPath() + "/Login");
+            return;
+        }
+
+        if (!ensureBookingAvailable(request, response, schedule)) {
             return;
         }
 
@@ -590,6 +674,10 @@ public class BookingController extends HttpServlet {
      */
     private void startVnpayPayment(HttpServletRequest request, HttpServletResponse response,
             BookingCart cart, BookingScheduleView schedule) throws IOException {
+        if (!ensureBookingAvailable(request, response, schedule)) {
+            return;
+        }
+
         HttpSession session = request.getSession();
 
         String txnRef = VNPayUtil.generateTxnRef();

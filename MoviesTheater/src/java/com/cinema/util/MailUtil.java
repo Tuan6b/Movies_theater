@@ -200,9 +200,6 @@ public class MailUtil {
                 .append(escape(value)).append("</td></tr>");
     }
 
-
-    private static String escape(String value) {
-
     private static String findSeatName(List<Integer> seatIds, List<String> seatNames, int seatId) {
         if (seatIds == null || seatNames == null) {
             return "";

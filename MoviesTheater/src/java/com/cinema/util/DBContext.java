@@ -11,25 +11,29 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author Tuan Phong Nguyen
+ * DBContext provides database connection for legacy DAOs extending it.
  */
 public class DBContext {
     protected Connection connection;
 
     public DBContext() {
+        initConnection();
+    }
+
+    private void initConnection() {
         try {
-            String user = "sa";
-            String pass = "123456";
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=CinemaBookingDB;encrypt=false";
-            
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            
-            connection = DriverManager.getConnection(url, user, pass);
-        }
-        catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("CSDL Connection Error: " + ex.getMessage());
+            connection = DBUtils.getConnection();
+        } catch (Exception ex) {
+            try {
+                String user = "sa";
+                String pass = "123";
+                String url = "jdbc:sqlserver://localhost:1433;databaseName=CinemaBookingDB;encrypt=false";
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                connection = DriverManager.getConnection(url, user, pass);
+            } catch (ClassNotFoundException | SQLException e) {
+                Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, e);
+                System.err.println("CSDL Connection Error: " + e.getMessage());
+            }
         }
     }
 }

@@ -276,12 +276,27 @@
                                         <% for (clsSchedule s : roomSlots) { 
                                             int remaining = room.getCapacity() - s.getBookedCount();
                                             boolean isFull = remaining <= 0;
+                                            boolean hasStarted = s.getStartTime() == null
+                                                    || !s.getStartTime().after(new java.util.Date());
+                                            boolean isUnavailable = isFull || hasStarted;
+
+                                            String clickHandler;
+                                            if (hasStarted) {
+                                                clickHandler = "event.preventDefault(); showCinematicToast('Suất chiếu này đã bắt đầu hoặc đã qua, bạn không thể đặt vé.');";
+                                            } else if (isFull) {
+                                                clickHandler = "event.preventDefault(); showCinematicToast('Suất chiếu này đã hết ghế trống.');";
+                                            } else {
+                                                clickHandler = "handleBooking(event, " + s.getScheduleId() + ", '"
+                                                        + timeFormat.format(s.getStartTime()) + "')";
+                                            }
                                         %>
-                                            <a href="<%= isFull ? "#" : "#" %>" class="showtime-slot-btn <%= isFull ? "slot-full" : "" %>" onclick="<%= isFull ? "event.preventDefault(); showCinematicToast('Suất chiếu này đã hết ghế trống.');" : "handleBooking(event, " + s.getScheduleId() + ", '" + timeFormat.format(s.getStartTime()) + "')" %>">
+                                            <a href="#" class="showtime-slot-btn <%= isUnavailable ? "slot-full" : "" %>" onclick="<%= clickHandler %>">
                                                 <span class="showtime-slot-time"><%= timeFormat.format(s.getStartTime()) %></span> 
                                                 <span class="showtime-slot-price"><%= String.format("%,.0f", s.getBaseTicketPrice()) %> đ</span>
-                                                <span class="showtime-slot-seats <%= isFull ? "seats-full" : "seats-available" %>">
-                                                    <%= isFull ? "Hết ghế" : "Còn "+ remaining + "/" + room.getCapacity() + " Ghế"%>
+                                                <span class="showtime-slot-seats <%= isUnavailable ? "seats-full" : "seats-available" %>">
+                                                    <%= hasStarted
+                                                            ? "Đã bắt đầu"
+                                                            : (isFull ? "Hết ghế" : "Còn " + remaining + "/" + room.getCapacity() + " Ghế") %>
                                                 </span>
                                             </a>
                                         <% } %>
@@ -338,6 +353,8 @@
 </div>
 
 <script>
+    const customerLoggedIn = <%= session.getAttribute("account") != null %>;
+
     /**
      * Display a customized cinematic toast message
      * @param {string} msg Text to display in toast
@@ -362,14 +379,24 @@
     function handleBooking(event, scheduleId, time) {
         event.preventDefault();
         
-        // Show cinematic feedback notification
-        showCinematicToast("Đang chuẩn bị phòng chiếu lúc " + time + "...");
+        if (customerLoggedIn) {
+            showCinematicToast("Đang chuẩn bị phòng chiếu lúc " + time + "...");
+        } else {
+            showCinematicToast("Vui lòng đăng nhập để tiếp tục mua vé.");
+        }
         
-        // Redirect to booking seat mapping
+        // The booking URL is protected by AuthFilter. For guests, it stores
+        // this exact URL and redirects to Login, then returns here after login.
         setTimeout(function() {
             window.location.href = "${pageContext.request.contextPath}/booking?action=seat&scheduleId=" + scheduleId;
         }, 1000);
     }
+
+    <% if ("closed".equals(request.getParameter("bookingError"))) { %>
+        window.addEventListener("DOMContentLoaded", function() {
+            showCinematicToast("Suất chiếu này đã bắt đầu hoặc đã qua, bạn không thể đặt vé.");
+        });
+    <% } %>
 </script>
 
 </body>
