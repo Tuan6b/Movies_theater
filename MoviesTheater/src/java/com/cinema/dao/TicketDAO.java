@@ -7,6 +7,7 @@ import com.cinema.model.Seat;
 import com.cinema.model.Ticket;
 import com.cinema.model.clsSchedule;
 import com.cinema.util.DBUtils;
+import com.cinema.util.SeatPricing;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -128,12 +130,21 @@ public class TicketDAO {
      * 1. Inserts an Invoice with discount and payment method.
      * 2. Inserts a Ticket for each seat.
      * 3. Increments promotion UsedCount if a promotion was applied.
-     * Returns the list of generated ticket codes, or an empty list on failure.
+     * Returns the list of generated ticket codes, or an empty list if the booking
+     * failed for a system reason such as a lost connection.
      * Used for UC48: Create Manual Ticket.
+     *
+     * BR-19 is enforced by UQ_Ticket_Seat_Schedule on Ticket(ScheduleID, SeatID).
+     * The seat map rendered by the book form is only advisory: a seat can be sold at
+     * another counter between that render and this insert, and the unique constraint
+     * is what actually stops the double sale. That case, and a promotion that runs
+     * out of redemptions mid-transaction, are reported as BookingConflictException so
+     * the caller can distinguish a refused booking from a broken one.
      */
     public List<String> createManualBooking(int scheduleId, List<Seat> selectedSeats,
             int customerAccountId, double basePrice,
-            String paymentMethod, Integer promotionId, double discountAmount) {
+            String paymentMethod, Integer promotionId, double discountAmount)
+            throws BookingConflictException {
         String sqlInvoice = """
                             INSERT INTO Invoice (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount, PaymentMethod, PaymentStatus, CreatedAt)
                             VALUES (?, ?, ?, ?, ?, ?, 'Paid', GETDATE())
@@ -148,18 +159,14 @@ public class TicketDAO {
             conn = DBUtils.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Calculate seat prices and subtotal
+            // 1. Calculate seat prices and subtotal.
+            // SeatPricing is shared with EmployeeDashboardServlet.computeSubtotal so
+            // the discount cannot be calculated against different multipliers than
+            // the prices written to Invoice and Ticket here.
             double subtotal = 0.0;
             List<Double> seatPrices = new ArrayList<>();
             for (Seat seat : selectedSeats) {
-                double seatPrice;
-                if ("VIP".equalsIgnoreCase(seat.getSeatType())) {
-                    seatPrice = basePrice * 1.5;
-                } else if ("Couple".equalsIgnoreCase(seat.getSeatType())) {
-                    seatPrice = basePrice * 2.0;
-                } else {
-                    seatPrice = basePrice;
-                }
+                double seatPrice = SeatPricing.priceFor(seat, basePrice);
                 seatPrices.add(seatPrice);
                 subtotal += seatPrice;
             }
@@ -211,12 +218,21 @@ public class TicketDAO {
                 psTicket.executeBatch();
             }
 
-            // 4. Increment promotion usage counter
+            // 4. Increment promotion usage counter.
+            // The UsedCount < UsageLimit test has to be part of this UPDATE.
+            // findByActiveCode checked the same condition earlier on its own
+            // connection, so two counters redeeming the last available use would both
+            // have passed that check and both incremented past the limit here.
             if (promotionId != null) {
-                try (PreparedStatement psPromo = conn.prepareStatement(
-                        "UPDATE Promotion SET UsedCount = UsedCount + 1 WHERE PromotionID = ?")) {
+                String sqlPromo = "UPDATE Promotion SET UsedCount = UsedCount + 1 "
+                        + "WHERE PromotionID = ? AND (UsageLimit IS NULL OR UsedCount < UsageLimit)";
+                try (PreparedStatement psPromo = conn.prepareStatement(sqlPromo)) {
                     psPromo.setInt(1, promotionId);
-                    psPromo.executeUpdate();
+                    if (psPromo.executeUpdate() == 0) {
+                        conn.rollback();
+                        throw new BookingConflictException(
+                                BookingConflictException.Reason.PROMOTION_EXHAUSTED);
+                    }
                 }
             }
 
@@ -230,6 +246,11 @@ public class TicketDAO {
                 } catch (SQLException rollbackEx) {
                     rollbackEx.printStackTrace();
                 }
+            }
+            // A unique violation here means BR-19 stopped a double sale, which is a
+            // refused booking rather than a system fault and deserves its own message.
+            if (isUniqueViolation(ex)) {
+                throw new BookingConflictException(BookingConflictException.Reason.SEAT_TAKEN);
             }
             return new ArrayList<>();
         } finally {
@@ -363,12 +384,20 @@ public class TicketDAO {
                 }
             }
 
-            // 4. Increment promotion usage counter
+            // 4. Increment promotion usage counter.
+            // Same race as the manual flow: the limit was checked on a different
+            // connection before checkout, so it is re-tested inside the UPDATE. A
+            // promotion that ran out in the meantime rolls the whole booking back
+            // rather than pushing UsedCount past UsageLimit.
             if (promotionId != null) {
-                try (PreparedStatement psPromo = conn.prepareStatement(
-                        "UPDATE Promotion SET UsedCount = UsedCount + 1 WHERE PromotionID = ?")) {
+                String sqlPromo = "UPDATE Promotion SET UsedCount = UsedCount + 1 "
+                        + "WHERE PromotionID = ? AND (UsageLimit IS NULL OR UsedCount < UsageLimit)";
+                try (PreparedStatement psPromo = conn.prepareStatement(sqlPromo)) {
                     psPromo.setInt(1, promotionId);
-                    psPromo.executeUpdate();
+                    if (psPromo.executeUpdate() == 0) {
+                        conn.rollback();
+                        return new ArrayList<>();
+                    }
                 }
             }
 
@@ -392,6 +421,127 @@ public class TicketDAO {
                     closeEx.printStackTrace();
                 }
             }
+        }
+    }
+
+    /**
+     * Reports whether a failure was a unique key violation.
+     *
+     * SQL Server raises 2627 for a unique constraint and 2601 for a unique index.
+     * executeBatch reports the failure as a BatchUpdateException whose own error
+     * code can be left unset, so the chained exceptions are inspected as well.
+     */
+    private boolean isUniqueViolation(SQLException ex) {
+        for (SQLException current = ex; current != null; current = current.getNextException()) {
+            int code = current.getErrorCode();
+            if (code == 2627 || code == 2601) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ========== UC46: CHECK-IN BY TICKET CODE (QR) ==========
+
+    /**
+     * Everything the counter needs to decide whether a scanned ticket may enter.
+     * Carries the raw showtime window and the invoice payment status, which the
+     * check-in list query does not select.
+     */
+    public static class CheckinInfo {
+        private int ticketId;
+        private String code;
+        private boolean checkedIn;
+        private String paymentStatus;
+        private LocalDateTime showStart;
+        private LocalDateTime showEnd;
+        private String movieName;
+        private String seatName;
+        private String customerName;
+
+        public int getTicketId()            { return ticketId; }
+        public String getCode()             { return code; }
+        public boolean isCheckedIn()        { return checkedIn; }
+        public String getPaymentStatus()    { return paymentStatus; }
+        public LocalDateTime getShowStart() { return showStart; }
+        public LocalDateTime getShowEnd()   { return showEnd; }
+        public String getMovieName()        { return movieName; }
+        public String getSeatName()         { return seatName; }
+        public String getCustomerName()     { return customerName; }
+    }
+
+    private static final String CHECKIN_INFO_SELECT = """
+                     SELECT t.TicketID, t.Code, t.IsCheckedIn,
+                            i.PaymentStatus,
+                            sc.StartTime, sc.EndTime,
+                            m.MovieName,
+                            s.RowChar + CAST(s.ColNumber AS VARCHAR) AS SeatName,
+                            u.FullName AS CustomerName
+                     FROM Ticket t
+                     INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
+                     INNER JOIN Movie m ON sc.MovieID = m.MovieID
+                     INNER JOIN Seat s ON t.SeatID = s.SeatID
+                     INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+                     INNER JOIN Account a ON i.AccountID = a.AccountID
+                     LEFT JOIN UserProfile u ON a.AccountID = u.AccountID
+                     """;
+
+    /**
+     * Looks up a ticket by the code carried in its QR. Returns null when no ticket
+     * has that code. Ticket.Code is UNIQUE, so at most one row can match.
+     */
+    public CheckinInfo findCheckinInfoByCode(String code) throws SQLException {
+        return findCheckinInfo(CHECKIN_INFO_SELECT + " WHERE t.Code = ?", code);
+    }
+
+    /** Same data, looked up by TicketID — used by the manual button in the list. */
+    public CheckinInfo findCheckinInfoById(int ticketId) throws SQLException {
+        return findCheckinInfo(CHECKIN_INFO_SELECT + " WHERE t.TicketID = ?", ticketId);
+    }
+
+    private CheckinInfo findCheckinInfo(String sql, Object param) throws SQLException {
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (param instanceof Integer) {
+                ps.setInt(1, (Integer) param);
+            } else {
+                ps.setString(1, String.valueOf(param));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                CheckinInfo info = new CheckinInfo();
+                info.ticketId      = rs.getInt("TicketID");
+                info.code          = rs.getString("Code");
+                info.checkedIn     = rs.getBoolean("IsCheckedIn");
+                info.paymentStatus = rs.getString("PaymentStatus");
+                Timestamp start = rs.getTimestamp("StartTime");
+                if (start != null) info.showStart = start.toLocalDateTime();
+                Timestamp end = rs.getTimestamp("EndTime");
+                if (end != null) info.showEnd = end.toLocalDateTime();
+                info.movieName    = rs.getNString("MovieName");
+                info.seatName     = rs.getString("SeatName");
+                info.customerName = rs.getNString("CustomerName");
+                return info;
+            }
+        }
+    }
+
+    /**
+     * Marks a ticket as checked in. The IsCheckedIn = 0 guard makes this idempotent:
+     * a second scan of the same ticket updates nothing and returns false, so the
+     * original CheckedInAt survives.
+     *
+     * @return true only if this call is the one that let the ticket through
+     */
+    public boolean markCheckedIn(int ticketId) throws SQLException {
+        String sql = "UPDATE Ticket SET IsCheckedIn = 1, CheckedInAt = GETDATE() "
+                + "WHERE TicketID = ? AND IsCheckedIn = 0";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ticketId);
+            return ps.executeUpdate() > 0;
         }
     }
 }

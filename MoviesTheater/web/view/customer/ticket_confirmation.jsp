@@ -166,9 +166,11 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"
-        integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU"
-        crossorigin="anonymous"></script>
+<%-- qrcodejs 1.0.0, served from web/js instead of a CDN: without a network the
+     customer would get no QR at all, and the counter has nothing to scan. The
+     vendored file is byte-identical to the CDN copy (same sha384 as the integrity
+     attribute this tag used to carry). --%>
+<script src="${pageContext.request.contextPath}/js/qrcode.min.js"></script>
 <script>
     document.querySelectorAll(".ticket-qr").forEach(function (el) {
         new QRCode(el, {

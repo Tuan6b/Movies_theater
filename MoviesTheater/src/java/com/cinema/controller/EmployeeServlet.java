@@ -164,6 +164,16 @@ public class EmployeeServlet extends HttpServlet {
             return;
         }
 
+        // BR-14: accountId arrives from a hidden form field, so confirm it still
+        // resolves to an employee before writing. getById filters on RoleID, which
+        // makes a retargeted id (a Manager or Admin account) fail here rather than
+        // relying only on the same guard inside the DAO.
+        if (employeeDAO.getById(id) == null) {
+            request.getSession().setAttribute("flashError", "Employee not found.");
+            response.sendRedirect(request.getContextPath() + LIST_URL);
+            return;
+        }
+
         Account account = buildAccountFromRequest(request);
         account.setAccountId(id);
         Map<String, String> errors = validateForUpdate(account, id);

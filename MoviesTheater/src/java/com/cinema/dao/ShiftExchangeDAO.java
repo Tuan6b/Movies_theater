@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class ShiftExchangeDAO {
 
+    private static final int ROLE_EMPLOYEE = 3;
+
     private static final String BASE_SELECT =
             "SELECT r.RequestID, r.ShiftID, r.RequesterID, r.TargetEmpID, r.Message, "
             + "r.Status, r.CreatedAt, r.RespondedAt, "
@@ -36,12 +38,20 @@ public class ShiftExchangeDAO {
             + "LEFT JOIN UserProfile tu ON ta.AccountID = tu.AccountID ";
 
     // Returns the generated RequestID (> 0) on success, or 0 if the shift no
-    // longer belongs to the requester (WHERE EXISTS check fails) or on error.
+    // longer belongs to the requester, if the target is not an active employee,
+    // or on error.
     public int createRequest(int shiftId, int requesterId, int targetEmpId, String message) {
-        // WHERE EXISTS ensures the shift belongs to the requester at the DB level
+        // Both EXISTS clauses are the authorisation check, done at the DB level so a
+        // hand-edited form cannot bypass them. The first confirms the shift belongs
+        // to the requester. The second confirms the recipient is an employee who is
+        // not blocked: TargetEmpID only has a foreign key to Account, so without it
+        // a shift could be handed to a Customer, an Admin or a deactivated account,
+        // none of which can work it.
         String sql = "INSERT INTO ShiftExchangeRequest (ShiftID, RequesterID, TargetEmpID, Message) "
                 + "SELECT ?, ?, ?, ? "
-                + "WHERE EXISTS (SELECT 1 FROM WorkShift WHERE ShiftID = ? AND EmployeeID = ?)";
+                + "WHERE EXISTS (SELECT 1 FROM WorkShift WHERE ShiftID = ? AND EmployeeID = ?) "
+                + "AND EXISTS (SELECT 1 FROM Account WHERE AccountID = ? "
+                + "AND RoleID = " + ROLE_EMPLOYEE + " AND IsBlocked = 0)";
         try (Connection conn = DBUtils.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, shiftId);
@@ -50,6 +60,7 @@ public class ShiftExchangeDAO {
             ps.setNString(4, message);
             ps.setInt(5, shiftId);
             ps.setInt(6, requesterId);
+            ps.setInt(7, targetEmpId);
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {

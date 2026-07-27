@@ -88,12 +88,16 @@
 
             <div style="border-top:1px solid var(--cgv-border);margin:20px 0;padding-top:20px;">
                 <div style="font-family:var(--font-cgv-ui);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,63,58,.5);margin-bottom:12px;">
-                    ĐỔI MẬT KHẨU (Tuỳ chọn nhưng khuyến nghị)
+                    ĐỔI MẬT KHẨU (Bắt buộc)
                 </div>
                 <div class="cgv-field">
-                    <label class="cgv-label">Mật khẩu mới</label>
+                    <label class="cgv-label">Mật khẩu mới <span style="color:var(--cgv-red)">*</span></label>
                     <input class="cgv-input" type="password" name="newPassword"
-                           placeholder="Để trống nếu không muốn đổi" autocomplete="new-password">
+                           placeholder="Tối thiểu 6 ký tự, khác mật khẩu tạm"
+                           minlength="6" autocomplete="new-password" required>
+                </div>
+                <div style="font-size:12px;color:rgba(94,63,58,.5);margin-top:8px;">
+                    Mật khẩu tạm do quản lý cấp sẽ hết hiệu lực sau bước này.
                 </div>
             </div>
 
