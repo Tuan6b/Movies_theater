@@ -59,13 +59,13 @@ public class ReviewController extends HttpServlet {
                 String comment = request.getParameter("comment");
                 boolean success = dao.updateReview(reviewId, accountId, rating, comment);
                 if (!success) {
-                    session.setAttribute("flashError", "Hết hạn sửa! Phim đã ngừng chiếu quá 7 ngày.");
+                    session.setAttribute("flashError", "Hết hạn sửa! Phim đã ngừng chiếu.");
                 }
             } else if ("delete".equals(action)) {
                 int reviewId = Integer.parseInt(request.getParameter("reviewId"));
                 boolean success = dao.deleteReview(reviewId, accountId);
                 if (!success) {
-                    session.setAttribute("flashError", "Hết hạn xóa! Phim đã ngừng chiếu quá 7 ngày.");
+                    session.setAttribute("flashError", "Hết hạn xóa! Phim đã ngừng chiếu.");
                 }
             }
         } catch (NumberFormatException e) {

@@ -1,61 +1,5 @@
-﻿document.addEventListener("DOMContentLoaded", function() {
-    // TMDB Fetch for Add and Edit Movie
-    var btnFetch = document.getElementById('btnFetchTMDB');
-    if (btnFetch) {
-        btnFetch.addEventListener('click', function () {
-            var movieName = document.querySelector('input[name="movieName"]').value;
-            if (!movieName) {
-                alert("Vui lòng nhập tên phim trước.");
-                return;
-            }
+document.addEventListener("DOMContentLoaded", function() {
 
-            var btn = this;
-            var originalText = btn.innerText;
-            btn.innerText = "Đang tra cứu số liệu...";
-            btn.disabled = true;
-
-            fetch('TMDBController?query=' + encodeURIComponent(movieName))
-                .then(response => response.json())
-                .then(data => {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-
-                    if (data.error) {
-                        alert("Không tìm thấy dữ liệu của phim này trên TMDB!");
-                        return;
-                    }
-
-                    let hasUpdate = false;
-                    if (data.Budget && data.Budget !== "0") {
-                        let budgetInput = document.querySelector('input[name="budget"]');
-                        if (budgetInput) {
-                            budgetInput.value = data.Budget;
-                            hasUpdate = true;
-                        }
-                    }
-
-                    if (data.GlobalBoxOffice && data.GlobalBoxOffice !== "0") {
-                        let boxOfficeInput = document.querySelector('input[name="globalBoxOffice"]');
-                        if (boxOfficeInput) {
-                            boxOfficeInput.value = data.GlobalBoxOffice;
-                            hasUpdate = true;
-                        }
-                    }
-
-                    if (hasUpdate) {
-                        alert("Đã tải xong số liệu kinh tế từ TMDB thành công!");
-                    } else {
-                        alert("TMDB không có sẵn số liệu kinh tế của phim này.");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    alert("Có lỗi mạng xảy ra khi tra cứu!");
-                });
-        });
-    }
 
     // Form validation for Add and Edit Movie
     var form = document.querySelector('form');
@@ -110,7 +54,12 @@ function enableEdit(id) {
 
 function cancelEdit(id) {
     document.getElementById('view-mode-' + id).style.display = 'flex';
-    document.getElementById('edit-form-' + id).style.display = 'none';
+    var form = document.getElementById('edit-form-' + id);
+    form.style.display = 'none';
+    var input = form.querySelector('input[name="genreName"]');
+    if (input) {
+        input.value = input.defaultValue;
+    }
 }
 
 function confirmDeleteGenre(id, name) {

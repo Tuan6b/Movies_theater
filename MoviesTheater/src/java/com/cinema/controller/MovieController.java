@@ -46,6 +46,12 @@ public class MovieController extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
+            // Đẩy các danh mục Enum sang JSP để render các thẻ select (Dropdown)
+            request.setAttribute("languages", com.cinema.model.LanguageEnum.values());
+            request.setAttribute("subtitles", com.cinema.model.SubtitleEnum.values());
+            request.setAttribute("countries", com.cinema.model.CountryEnum.values());
+            request.setAttribute("ageRestrictions", com.cinema.model.AgeRestrictionEnum.values());
+
             if ("add".equals(action)) {
                 // Đẩy list thể loại ra JSP để render Checkbox
                 request.setAttribute("genreList", new com.cinema.dao.GenreDAO().getAllGenres());
@@ -228,6 +234,7 @@ public class MovieController extends HttpServlet {
                         movie.setDuration(existingMovie.getDuration());
                         movie.setPoster(existingMovie.getPoster());
                         movie.setDateAdded(existingMovie.getDateAdded());
+                        movie.setIsActive(existingMovie.isIsActive()); // KHÓA trạng thái hiển thị
                     }
                     
                     isSuccess = movieDAO.updateMovie(movie);

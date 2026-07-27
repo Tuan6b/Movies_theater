@@ -38,12 +38,7 @@
                         <div class="cgv-form-grid">
                             <div class="cgv-field">
                                 <label class="cgv-label">Tên phim *</label>
-                                <div style="display: flex; gap: 8px;">
-                                    <input type="text" name="movieName" class="cgv-input" required style="flex: 1;">
-                                    <button type="button" id="btnFetchTMDB" style="background: #e50914; color: white; border: none; padding: 0 12px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap;">
-                                        <i class="fa-solid fa-cloud-arrow-down"></i> Dữ liệu TMDB
-                                    </button>
-                                </div>
+                                <input type="text" name="movieName" class="cgv-input" required>
                             </div>
 
                             <div class="cgv-field">
@@ -71,32 +66,27 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Giới hạn độ tuổi</label>
                                 <select name="ageRestriction" class="cgv-select">
-                                    <option value="0">P - Phổ biến</option>
-                                    <option value="13">C13 - Khán giả từ 13 tuổi</option>
-                                    <option value="16">C16 - Khán giả từ 16 tuổi</option>
-                                    <option value="18">C18 - Khán giả từ 18 tuổi</option>
+                                    <c:forEach items="${ageRestrictions}" var="age">
+                                        <option value="${age.value}">${age.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngôn ngữ</label>
                                 <select name="language" class="cgv-select">
-                                    <option value="Tiếng Anh">Tiếng Anh</option>
-                                    <option value="Tiếng Việt">Tiếng Việt</option>
-                                    <option value="Tiếng Hàn">Tiếng Hàn</option>
-                                    <option value="Tiếng Nhật">Tiếng Nhật</option>
-                                    <option value="Tiếng Trung">Tiếng Trung</option>
-                                    <option value="Khác">Khác</option>
+                                    <c:forEach items="${languages}" var="lang">
+                                        <option value="${lang.displayName}">${lang.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
                                 <select name="subtitle" class="cgv-select">
-                                    <option value="Phụ đề Tiếng Việt">Phụ đề Tiếng Việt</option>
-                                    <option value="Lồng Tiếng Việt">Lồng Tiếng Việt</option>
-                                    <option value="Phụ đề Tiếng Anh">Phụ đề Tiếng Anh</option>
-                                    <option value="Không phụ đề">Không phụ đề</option>
+                                    <c:forEach items="${subtitles}" var="sub">
+                                        <option value="${sub.displayName}">${sub.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
@@ -122,12 +112,9 @@
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Quốc gia</label>
                                 <select name="country" class="cgv-select">
-                                    <option value="Mỹ">Mỹ</option>
-                                    <option value="Việt Nam">Việt Nam</option>
-                                    <option value="Hàn Quốc">Hàn Quốc</option>
-                                    <option value="Nhật Bản">Nhật Bản</option>
-                                    <option value="Trung Quốc">Trung Quốc</option>
-                                    <option value="Khác">Khác</option>
+                                    <c:forEach items="${countries}" var="country">
+                                        <option value="${country.displayName}">${country.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
@@ -160,7 +147,7 @@
                             <div class="cgv-field cgv-form-full">
                                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cgv-dark); cursor: pointer;">
                                     <input type="checkbox" name="isActive" value="true" checked style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
-                                    Hiển thị phim lên trang chủ (Active)
+                                    Trạng thái hoạt động (Active)
                                 </label>
                             </div>
                         </div>
