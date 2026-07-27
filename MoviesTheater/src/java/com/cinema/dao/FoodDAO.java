@@ -17,7 +17,7 @@ public class FoodDAO {
 
     public List<Food> getAllActiveFoods() {
         List<Food> list = new ArrayList<>();
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsCombo, IsActive FROM Food WHERE IsActive = 1 ORDER BY FoodName";
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsActive = 1 ORDER BY FoodName";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -62,7 +62,7 @@ public class FoodDAO {
 
     public List<Food> getFoodsByType(boolean isCombo) {
         List<Food> list = new ArrayList<>();
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsCombo, IsActive FROM Food WHERE IsCombo = ? ORDER BY FoodName";
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE IsCombo = ? ORDER BY FoodName";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setBoolean(1, isCombo);
@@ -103,7 +103,7 @@ public class FoodDAO {
     }
 
     public Food getFoodById(int id) {
-        String sql = "SELECT FoodID, FoodName, Price, Image, IsCombo, IsActive FROM Food WHERE FoodID = ?";
+        String sql = "SELECT FoodID, FoodName, Price, Image, IsActive, IsCombo FROM Food WHERE FoodID = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -119,14 +119,14 @@ public class FoodDAO {
     }
 
     public void addFood(Food food) {
-        String sql = "INSERT INTO Food (FoodName, Price, Image, IsCombo, IsActive) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Food (FoodName, Price, Image, IsActive, IsCombo) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isCombo());
-            ps.setBoolean(5, food.isActive());
+            ps.setBoolean(4, food.isIsActive());
+            ps.setBoolean(5, food.isIsCombo());
             ps.executeUpdate();
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -140,7 +140,7 @@ public class FoodDAO {
             ps.setNString(1, food.getFoodName());
             ps.setDouble(2, food.getPrice());
             ps.setString(3, food.getImage());
-            ps.setBoolean(4, food.isCombo());
+            ps.setBoolean(4, food.isIsCombo());
             ps.setInt(5, food.getFoodId());
             ps.executeUpdate();
         } catch (SQLException ex) {
@@ -148,19 +148,8 @@ public class FoodDAO {
         }
     }
 
-    public void restoreFood(int id) {
-        String sql = "UPDATE Food SET IsActive = 1 WHERE FoodID = ?";
-        try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     public void deleteFood(int id) {
-        String sql = "UPDATE Food SET IsActive = 0 WHERE FoodID = ?";
+        String sql = "DELETE FROM Food WHERE FoodID = ?";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -176,8 +165,8 @@ public class FoodDAO {
         food.setFoodName(rs.getNString("FoodName"));
         food.setPrice(rs.getDouble("Price"));
         food.setImage(rs.getString("Image"));
-        food.setCombo(rs.getBoolean("IsCombo"));
-        food.setActive(rs.getBoolean("IsActive"));
+        food.setIsActive(rs.getBoolean("IsActive"));
+        food.setIsCombo(rs.getBoolean("IsCombo"));
         return food;
     }
 }

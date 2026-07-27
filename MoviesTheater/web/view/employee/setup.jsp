@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Thiết lập tài khoản — CGV Employee</title>
+    <title>Kích hoạt tài khoản — CGV Employee</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
     <style>
         .setup-wrap {
@@ -43,6 +43,43 @@
             text-align: center;
             margin-bottom: 28px;
         }
+        .setup-heading {
+            font-family: var(--font-cgv-ui, sans-serif);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(94,63,58,.5);
+            margin-bottom: 12px;
+        }
+        /* Read-only recap of what the Manager already filled in at account creation */
+        .setup-info {
+            background: #faf6f5;
+            border: 1px solid var(--cgv-border, #e2d5d0);
+            border-radius: 10px;
+            padding: 16px 18px;
+        }
+        .setup-info-row {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            padding: 5px 0;
+        }
+        .setup-info-key {
+            color: rgba(94,63,58,.55);
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+        .setup-info-val {
+            color: var(--cgv-dark, #3d2424);
+            font-weight: 600;
+            word-break: break-word;
+        }
+        .setup-info-note {
+            font-size: 12px;
+            color: rgba(94,63,58,.5);
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -51,53 +88,64 @@
         <img class="setup-logo"
              src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png"
              alt="CGV Cinema">
-        <h1 class="setup-title">Thiết lập tài khoản</h1>
-        <p class="setup-sub">Chào mừng! Vui lòng cập nhật thông tin cá nhân trước khi tiếp tục.</p>
+        <h1 class="setup-title">Kích hoạt tài khoản</h1>
+        <p class="setup-sub">Chào mừng! Chỉ cần đặt mật khẩu mới để bắt đầu làm việc.</p>
 
         <c:if test="${not empty error}">
             <div class="cgv-alert cgv-alert-danger" style="margin-bottom:16px;">${error}</div>
         </c:if>
 
+        <%-- Hồ sơ do quản lý nhập khi tạo tài khoản (UC44) — chỉ để đối chiếu --%>
+        <div class="setup-heading">THÔNG TIN CỦA BẠN</div>
+        <div class="setup-info">
+            <div class="setup-info-row">
+                <span class="setup-info-key">Họ và tên</span>
+                <span class="setup-info-val">
+                    ${not empty profile.fullName ? profile.fullName : sessionScope.account.fullName}
+                </span>
+            </div>
+            <div class="setup-info-row">
+                <span class="setup-info-key">Email</span>
+                <span class="setup-info-val">${sessionScope.account.email}</span>
+            </div>
+            <div class="setup-info-row">
+                <span class="setup-info-key">Số điện thoại</span>
+                <span class="setup-info-val">
+                    ${not empty profile.phoneNumber ? profile.phoneNumber : '—'}
+                </span>
+            </div>
+            <div class="setup-info-row">
+                <span class="setup-info-key">Ngày sinh</span>
+                <span class="setup-info-val">
+                    ${not empty profile.dateOfBirth ? profile.dateOfBirth : '—'}
+                </span>
+            </div>
+            <div class="setup-info-row">
+                <span class="setup-info-key">Địa chỉ</span>
+                <span class="setup-info-val">
+                    ${not empty profile.address ? profile.address : '—'}
+                </span>
+            </div>
+            <div class="setup-info-note">
+                Thông tin này do quản lý nhập khi tạo tài khoản. Nếu có sai sót, vui lòng báo quản lý cập nhật.
+            </div>
+        </div>
+
         <form method="post" action="${pageContext.request.contextPath}/employee/setup">
-            <div class="cgv-field">
-                <label class="cgv-label">Họ và tên <span style="color:var(--cgv-red)">*</span></label>
-                <input class="cgv-input" type="text" name="fullName"
-                       value="${not empty param.fullName ? param.fullName : sessionScope.account.fullName}"
-                       placeholder="Nhập họ và tên đầy đủ" required>
-            </div>
-
-            <div class="cgv-field">
-                <label class="cgv-label">Số điện thoại</label>
-                <input class="cgv-input" type="text" name="phoneNumber"
-                       value="${not empty param.phoneNumber ? param.phoneNumber : sessionScope.account.phoneNumber}"
-                       placeholder="Nhập số điện thoại">
-            </div>
-
-            <div class="cgv-field">
-                <label class="cgv-label">Ngày sinh</label>
-                <input class="cgv-input" type="date" name="dateOfBirth"
-                       value="${not empty param.dateOfBirth ? param.dateOfBirth : sessionScope.account.dateOfBirth}">
-            </div>
-
-            <div class="cgv-field">
-                <label class="cgv-label">Địa chỉ</label>
-                <input class="cgv-input" type="text" name="address"
-                       value="${not empty param.address ? param.address : sessionScope.account.address}"
-                       placeholder="Nhập địa chỉ">
-            </div>
-
             <div style="border-top:1px solid var(--cgv-border);margin:20px 0;padding-top:20px;">
-                <div style="font-family:var(--font-cgv-ui);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(94,63,58,.5);margin-bottom:12px;">
-                    ĐỔI MẬT KHẨU (Tuỳ chọn nhưng khuyến nghị)
-                </div>
+                <div class="setup-heading">ĐỔI MẬT KHẨU (BẮT BUỘC)</div>
                 <div class="cgv-field">
-                    <label class="cgv-label">Mật khẩu mới</label>
+                    <label class="cgv-label">Mật khẩu mới <span style="color:var(--cgv-red)">*</span></label>
                     <input class="cgv-input" type="password" name="newPassword"
-                           placeholder="Để trống nếu không muốn đổi" autocomplete="new-password">
+                           placeholder="Tối thiểu 6 ký tự, khác mật khẩu tạm"
+                           minlength="6" autocomplete="new-password" required>
+                </div>
+                <div style="font-size:12px;color:rgba(94,63,58,.5);margin-top:8px;">
+                    Mật khẩu tạm do quản lý cấp sẽ hết hiệu lực sau bước này.
                 </div>
             </div>
 
-            <button type="submit" class="btn--cgv" style="width:100%;margin-top:8px;">Lưu và tiếp tục</button>
+            <button type="submit" class="btn--cgv" style="width:100%;margin-top:8px;">Kích hoạt tài khoản</button>
         </form>
 
         <div style="margin-top:16px;text-align:center;font-size:12px;color:rgba(94,63,58,.4);">

@@ -104,7 +104,7 @@
 
                     <c:if test="${formAction eq 'create'}">
                         <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 14px;font-size:12px;color:#713f12;">
-                            Mật khẩu tạm thời sẽ được tạo tự động và hiển thị sau khi lưu. Nhân viên sẽ được yêu cầu cập nhật thông tin cá nhân khi đăng nhập lần đầu.
+                            Mật khẩu tạm thời sẽ được tạo tự động và hiển thị sau khi lưu. Nhân viên chỉ cần đổi mật khẩu khi đăng nhập lần đầu, nên hãy nhập đầy đủ thông tin cá nhân ở đây.
                         </div>
                     </c:if>
 
@@ -123,15 +123,6 @@
         <c:if test="${formAction eq 'update'}">
             <aside class="cgv-aside">
                 <div class="cgv-stats-section">
-                    <div class="cgv-aside-heading">OVERVIEW</div>
-                    <div class="cgv-stats-group">
-                        <div>
-                            <div class="cgv-stat-num">${employee.workingDays}</div>
-                            <div class="cgv-stat-key">WORKING DAYS</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="cgv-aside-divider">
                     <a href="${pageContext.request.contextPath}/manager/shifts?empId=${employee.accountId}"
                        class="btn--cgv" style="width:100%;text-align:center;display:block;">
                         View Shifts

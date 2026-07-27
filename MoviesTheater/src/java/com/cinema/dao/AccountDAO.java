@@ -10,14 +10,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AccountDAO {
 
     public Account login(String email, String password) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
-                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.Email = ?";
 
@@ -33,7 +35,7 @@ public class AccountDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("[LOGIN_DB_ERROR] SQLException: " + e.getMessage());
+            System.out.println("[LOGIN_DEBUG] SQLException: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -90,9 +92,9 @@ public class AccountDAO {
 
     public Account getAccountById(int accountId) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
-                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.AccountID = ?";
 
@@ -110,11 +112,32 @@ public class AccountDAO {
         return null;
     }
 
+    /**
+     * Account ids of every active holder of a role, used when a notification has to
+     * reach a job rather than one named person — the shift-exchange queue goes to
+     * whoever is currently a Manager, not to a manager id stored on the request.
+     * Blocked accounts are left out: they cannot log in to read the notification.
+     */
+    public List<Integer> getActiveAccountIdsByRole(int roleId) {
+        List<Integer> ids = new ArrayList<>();
+        String sql = "SELECT AccountID FROM Account WHERE RoleID = ? AND IsBlocked = 0";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) ids.add(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
+
     public Account getAccountByEmail(String email) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
-                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.Email = ?";
 
@@ -161,9 +184,9 @@ public class AccountDAO {
 
     public Account getAccountByResetToken(String token) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber "
                 + "FROM Account a "
-                + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
+                + "JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
                 + "WHERE a.ResetToken = ? AND a.ResetTokenExpiry > GETDATE()";
         try (Connection conn = DBUtils.getConnection();
@@ -192,19 +215,6 @@ public class AccountDAO {
         return false;
     }
 
-    public boolean setBlocked(int accountId, boolean blocked) {
-        String sql = "UPDATE Account SET IsBlocked = ? WHERE AccountID = ?";
-        try (Connection conn = DBUtils.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setBoolean(1, blocked);
-            ps.setInt(2, accountId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public boolean clearNeedsSetup(int accountId) {
         String sql = "UPDATE Account SET AccountStatus = 'active' WHERE AccountID = ?";
         try (Connection conn = DBUtils.getConnection();
@@ -223,8 +233,7 @@ public class AccountDAO {
         account.setEmail(rs.getString("Email"));
         account.setPassword(rs.getString("Password").trim());
         account.setRoleId(rs.getInt("RoleID"));
-        String rn = rs.getNString("RoleName");
-        account.setRoleName(rn != null ? rn : "Unknown");
+        account.setRoleName(rs.getNString("RoleName"));
         account.setIsBlocked(rs.getBoolean("IsBlocked"));
         account.setNeedsSetup("pending".equals(rs.getString("AccountStatus")));
 
@@ -235,10 +244,6 @@ public class AccountDAO {
 
         account.setFullName(rs.getNString("FullName"));
         account.setPhoneNumber(rs.getString("PhoneNumber"));
-        account.setAddress(rs.getNString("Address"));
-        java.sql.Date dob = rs.getDate("DoB");
-        if (dob != null) account.setDateOfBirth(dob.toString());
-        account.setAvatarUrl(rs.getString("AvatarURL"));
         return account;
     }
 }

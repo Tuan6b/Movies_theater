@@ -6,7 +6,6 @@ package com.cinema.controller;
 
 import com.cinema.dao.AccountDAO;
 import com.cinema.model.Account;
-import com.cinema.util.MailUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +14,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
@@ -30,16 +28,6 @@ public class RegisterController extends HttpServlet {
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     private static final Pattern PHONE_PATTERN =
             Pattern.compile("^(0[35789])([0-9]{8})$"); // Matches Vietnamese mobile phone numbers (10 digits)
-    private static final char[] CAPTCHA_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
-    private static final Random RANDOM = new Random();
-
-    private String generateCaptchaText() {
-        StringBuilder sb = new StringBuilder(5);
-        for (int i = 0; i < 5; i++) {
-            sb.append(CAPTCHA_CHARS[RANDOM.nextInt(CAPTCHA_CHARS.length)]);
-        }
-        return sb.toString();
-    }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -63,16 +51,6 @@ public class RegisterController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/");
                 return;
             }
-            String captchaText = generateCaptchaText();
-            if (session == null) session = request.getSession(true);
-            session.setAttribute("captcha", captchaText);
-            request.setAttribute("captchaText", captchaText);
-            // AJAX refresh captcha
-            if ("1".equals(request.getParameter("refreshCaptcha"))) {
-                response.setContentType("text/plain;charset=UTF-8");
-                response.getWriter().write(captchaText);
-                return;
-            }
             request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
 
         } else if ("POST".equalsIgnoreCase(method)) {
@@ -83,29 +61,10 @@ public class RegisterController extends HttpServlet {
             String password = request.getParameter("password");
             String confirmPassword = request.getParameter("confirmPassword");
             String phoneNumber = request.getParameter("phoneNumber");
-            String captcha = request.getParameter("captcha");
-
-            HttpSession session = request.getSession();
-            String captchaExpected = (String) session.getAttribute("captcha");
-            if (captchaExpected == null || captcha == null || !captchaExpected.equalsIgnoreCase(captcha.trim())) {
-                Map<String, String> captchaErr = new HashMap<>();
-                captchaErr.put("captcha", "Mã xác nhận không đúng.");
-                setFormAttributes(request, fullName, email, phoneNumber, captchaErr, "Mã xác nhận không đúng.");
-                String newCaptcha = generateCaptchaText();
-                session.setAttribute("captcha", newCaptcha);
-                request.setAttribute("captchaText", newCaptcha);
-                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
-                return;
-            }
-            session.removeAttribute("captcha");
 
             Map<String, String> fieldErrors = validateInput(fullName, email, password, confirmPassword, phoneNumber);
             if (!fieldErrors.isEmpty()) {
                 setFormAttributes(request, fullName, email, phoneNumber, fieldErrors, null);
-                String newCaptcha = generateCaptchaText();
-                if (session == null) session = request.getSession(true);
-                session.setAttribute("captcha", newCaptcha);
-                request.setAttribute("captchaText", newCaptcha);
                 request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
                 return;
             }
@@ -125,38 +84,21 @@ public class RegisterController extends HttpServlet {
             account.setPhoneNumber(phoneNumber != null ? phoneNumber.trim() : null);
             account.setRoleId(2); // Customer Role
 
-            int accountId;
-            try {
-                accountId = accountDAO.register(account);
-            } catch (Exception e) {
-                System.err.println("[REGISTER_ERROR] Exception during register: " + e.getMessage());
-                e.printStackTrace();
-                Map<String, String> sysErr = new HashMap<>();
-                sysErr.put("system", "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.");
-                setFormAttributes(request, fullName, email, phoneNumber,
-                        sysErr, "Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.");
-                request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
-                return;
-            }
+            int accountId = accountDAO.register(account);
             if (accountId > 0) {
                 account.setAccountId(accountId);
                 account.setPassword(null);
 
-                session = request.getSession();
+                HttpSession session = request.getSession();
                 session.setAttribute("account", account);
                 session.setMaxInactiveInterval(30 * 60);
 
-                try {
-                    MailUtil.sendWelcomeEmail(account.getEmail(), account.getFullName());
-                } catch (Exception ignored) {}
-
                 response.sendRedirect(request.getContextPath() + "/");
             } else {
-                System.err.println("[REGISTER_ERROR] register() returned -1 for email: " + email);
                 Map<String, String> sysErr = new HashMap<>();
                 sysErr.put("system", "Đăng ký thất bại. Vui lòng thử lại sau.");
                 setFormAttributes(request, fullName, email, phoneNumber,
-                        sysErr, "Đăng ký thất bại. Vui lòng kiểm tra kết nối database và thử lại.");
+                        sysErr, "Đăng ký thất bại. Vui lòng thử lại sau.");
                 request.getRequestDispatcher("/view/auth/register.jsp").forward(request, response);
             }
         }

@@ -60,6 +60,22 @@ public class ShiftExchangeRequest {
     public LocalDateTime getRespondedAt() { return respondedAt; }
     public void setRespondedAt(LocalDateTime respondedAt) { this.respondedAt = respondedAt; }
 
+    /**
+     * CreatedAt as dd/MM/yyyy HH:mm. A list that prints the LocalDateTime straight
+     * from EL shows the ISO form with seconds and fractions, which is unreadable in
+     * a table column.
+     */
+    public String getCreatedAtDisplay() { return format(createdAt); }
+
+    public String getRespondedAtDisplay() { return format(respondedAt); }
+
+    private static String format(LocalDateTime value) {
+        return value == null ? "" : value.format(DISPLAY_FMT);
+    }
+
+    private static final java.time.format.DateTimeFormatter DISPLAY_FMT =
+            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     public LocalDate getShiftDate() { return shiftDate; }
     public void setShiftDate(LocalDate shiftDate) { this.shiftDate = shiftDate; }
 

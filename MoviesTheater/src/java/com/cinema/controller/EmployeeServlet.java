@@ -164,6 +164,16 @@ public class EmployeeServlet extends HttpServlet {
             return;
         }
 
+        // BR-14: accountId arrives from a hidden form field, so confirm it still
+        // resolves to an employee before writing. getById filters on RoleID, which
+        // makes a retargeted id (a Manager or Admin account) fail here rather than
+        // relying only on the same guard inside the DAO.
+        if (employeeDAO.getById(id) == null) {
+            request.getSession().setAttribute("flashError", "Employee not found.");
+            response.sendRedirect(request.getContextPath() + LIST_URL);
+            return;
+        }
+
         Account account = buildAccountFromRequest(request);
         account.setAccountId(id);
         Map<String, String> errors = validateForUpdate(account, id);
@@ -206,7 +216,11 @@ public class EmployeeServlet extends HttpServlet {
     private Map<String, String> validateForCreate(Account account) {
         Map<String, String> errors = new LinkedHashMap<>();
         validateEmail(account.getEmail(), 0, errors);
-        // fullName and password are optional on create; employee fills them on first login
+        // Full name is required here, not optional: first-login setup only replaces
+        // the temporary password now, so this form is the sole place the profile is
+        // entered and a blank name would leave the account nameless for good.
+        // The password stays out of it — EmployeeDAO.add() generates a temporary one.
+        validateFullName(account.getFullName(), errors);
         return errors;
     }
 

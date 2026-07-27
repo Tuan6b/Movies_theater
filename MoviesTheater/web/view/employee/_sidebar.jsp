@@ -44,7 +44,7 @@
                 <line x1="10" y1="1" x2="10" y2="4"/>
                 <line x1="14" y1="1" x2="14" y2="4"/>
             </svg>
-            Foods
+            Đồ ăn
         </a>
 
         <a href="${pageContext.request.contextPath}/employee/checkin"
@@ -70,7 +70,7 @@
             Ca Làm Việc
         </a>
 
-        <a href="${pageContext.request.contextPath}/profile"
+        <a href="${pageContext.request.contextPath}/employee/profile"
            class="cgv-nav-link ${activeNav eq 'profile' ? 'active' : ''}">
             <svg class="cgv-nav-icon" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

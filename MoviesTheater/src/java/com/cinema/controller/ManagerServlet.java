@@ -100,13 +100,8 @@ public class ManagerServlet extends HttpServlet {
         request.setAttribute("revenueChartJson",    new com.google.gson.Gson().toJson(chartMap));
 
         // ── Revenue & Analytics (merged from the former /manager/analytics page) ──
-        String yearParam   = request.getParameter("year");
-        String sortByParam = request.getParameter("sortBy");
-        String dirParam    = request.getParameter("dir");
-
-        int year    = yearParam != null && yearParam.matches("\\d{4}") ? Integer.parseInt(yearParam) : java.time.Year.now().getValue();
-        String sortCol = "revenue".equals(sortByParam) ? "TotalRevenue" : "Month";
-        String dir     = "ASC".equalsIgnoreCase(dirParam) ? "ASC" : "DESC";
+        String yearParam = request.getParameter("year");
+        int year = yearParam != null && yearParam.matches("\\d{4}") ? Integer.parseInt(yearParam) : java.time.Year.now().getValue();
 
         // ── Monthly revenue table ──────────────────────────────────────────
         String sqlMonthly =
@@ -124,7 +119,11 @@ public class ManagerServlet extends HttpServlet {
                 + "  WHERE i2.PaymentStatus = 'Paid' AND YEAR(i2.CreatedAt) = ? "
                 + "  GROUP BY MONTH(i2.CreatedAt)"
                 + ") tkt ON inv.Month = tkt.Month "
-                + "ORDER BY inv." + sortCol + " " + dir;
+                // Fixed month order — the table used to be sortable, but re-ordering
+                // twelve months of one year told the Manager nothing the numbers did
+                // not already say, so the controls are gone and this is no longer
+                // built from request parameters.
+                + "ORDER BY inv.Month DESC";
 
         List<MonthlyRevenue> monthlyData = new ArrayList<>();
         double grandTotal   = 0;
@@ -240,8 +239,6 @@ public class ManagerServlet extends HttpServlet {
         request.setAttribute("grandTotal",     String.format("%,.0f", grandTotal));
         request.setAttribute("grandTickets",   grandTickets);
         request.setAttribute("selectedYear",   year);
-        request.setAttribute("sortBy",         sortByParam != null ? sortByParam : "month");
-        request.setAttribute("sortDir",        dirParam    != null ? dirParam    : "DESC");
         request.setAttribute("monthRevenue",   String.format("%,.0f", monthRevenue));
         request.setAttribute("monthTickets",   monthTickets);
         request.setAttribute("newCustomers",   newCustomers);
