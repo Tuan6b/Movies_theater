@@ -58,25 +58,7 @@
                     </div>
                 </c:if>
 
-                <!-- Dashboard Statistics -->
-                <div class="cgv-stats-dashboard fade-in" style="display: flex; width: 100%; box-sizing: border-box; gap: 16px; margin-bottom: 24px; padding: 16px; background: #fff; border: 1px solid #e1d8d8; border-radius: 8px;">
-                    <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                        <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đang chiếu</div>
-                        <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty movieStats ? movieStats['showing'] : 0}</div>
-                    </div>
-                    <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                        <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Sắp chiếu</div>
-                        <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty movieStats ? movieStats['upcoming'] : 0}</div>
-                    </div>
-                    <div class="cgv-stat-card" style="flex: 1; text-align: center; border-right: 1px solid #e1d8d8;">
-                        <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đã chiếu</div>
-                        <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #2b2b2b; margin-top: 4px;">${not empty movieStats ? movieStats['ended'] : 0}</div>
-                    </div>
-                    <div class="cgv-stat-card" style="flex: 1; text-align: center;">
-                        <div class="cgv-stat-title" style="font-size: 12px; color: #5e3f3a; font-weight: 600; text-transform: uppercase;">Đã ẩn</div>
-                        <div class="cgv-stat-value" style="font-size: 24px; font-weight: 700; color: #e71a0f; margin-top: 4px;">${not empty movieStats ? movieStats['hidden'] : 0}</div>
-                    </div>
-                </div>
+
 
                 <div class="cgv-toolbar" style="margin-bottom: 24px; width: 100%; box-sizing: border-box;">
                     <!-- Form tự động gửi GET request khi đổi thẻ option -->

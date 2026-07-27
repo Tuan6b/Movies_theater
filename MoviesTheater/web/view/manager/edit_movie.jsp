@@ -54,9 +54,7 @@
                                                title="Không thể đổi tên phim.">
                                         <i class="fa-solid fa-lock" style="position: absolute; right: 12px; top: 12px; color: #aaa;"></i>
                                     </div>
-                                    <button type="button" id="btnFetchTMDB" style="background: #e50914; color: white; border: none; padding: 0 12px; font-size: 12px; border-radius: 4px; cursor: pointer; white-space: nowrap;">
-                                        <i class="fa-solid fa-cloud-arrow-down"></i> Dữ liệu TMDB
-                                    </button>
+                                    
                                 </div>
                             </div>
 
@@ -90,32 +88,27 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Giới hạn độ tuổi</label>
                                 <select name="ageRestriction" class="cgv-select">
-                                    <option value="0" ${movie.ageRestriction == 0 ? 'selected' : ''}>P - Phổ biến</option>
-                                    <option value="13" ${movie.ageRestriction == 13 ? 'selected' : ''}>C13 - Khán giả từ 13 tuổi</option>
-                                    <option value="16" ${movie.ageRestriction == 16 ? 'selected' : ''}>C16 - Khán giả từ 16 tuổi</option>
-                                    <option value="18" ${movie.ageRestriction == 18 ? 'selected' : ''}>C18 - Khán giả từ 18 tuổi</option>
+                                    <c:forEach items="${ageRestrictions}" var="age">
+                                        <option value="${age.value}" ${movie.ageRestriction == age.value ? 'selected' : ''}>${age.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Ngôn ngữ</label>
                                 <select name="language" class="cgv-select">
-                                    <option value="Tiếng Anh" ${movie.language == 'Tiếng Anh' ? 'selected' : ''}>Tiếng Anh</option>
-                                    <option value="Tiếng Việt" ${movie.language == 'Tiếng Việt' ? 'selected' : ''}>Tiếng Việt</option>
-                                    <option value="Tiếng Hàn" ${movie.language == 'Tiếng Hàn' ? 'selected' : ''}>Tiếng Hàn</option>
-                                    <option value="Tiếng Nhật" ${movie.language == 'Tiếng Nhật' ? 'selected' : ''}>Tiếng Nhật</option>
-                                    <option value="Tiếng Trung" ${movie.language == 'Tiếng Trung' ? 'selected' : ''}>Tiếng Trung</option>
-                                    <option value="Khác" ${movie.language == 'Khác' ? 'selected' : ''}>Khác</option>
+                                    <c:forEach items="${languages}" var="lang">
+                                        <option value="${lang.displayName}" ${movie.language == lang.displayName ? 'selected' : ''}>${lang.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Phụ đề</label>
                                 <select name="subtitle" class="cgv-select">
-                                    <option value="Phụ đề Tiếng Việt" ${movie.subtitle == 'Phụ đề Tiếng Việt' ? 'selected' : ''}>Phụ đề Tiếng Việt</option>
-                                    <option value="Lồng Tiếng Việt" ${movie.subtitle == 'Lồng Tiếng Việt' ? 'selected' : ''}>Lồng Tiếng Việt</option>
-                                    <option value="Phụ đề Tiếng Anh" ${movie.subtitle == 'Phụ đề Tiếng Anh' ? 'selected' : ''}>Phụ đề Tiếng Anh</option>
-                                    <option value="Không phụ đề" ${movie.subtitle == 'Không phụ đề' ? 'selected' : ''}>Không phụ đề</option>
+                                    <c:forEach items="${subtitles}" var="sub">
+                                        <option value="${sub.displayName}" ${movie.subtitle == sub.displayName ? 'selected' : ''}>${sub.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
@@ -141,12 +134,9 @@
                             <div class="cgv-field cgv-form-full">
                                 <label class="cgv-label">Quốc gia</label>
                                 <select name="country" class="cgv-select">
-                                    <option value="Mỹ" ${movie.country == 'Mỹ' ? 'selected' : ''}>Mỹ</option>
-                                    <option value="Việt Nam" ${movie.country == 'Việt Nam' ? 'selected' : ''}>Việt Nam</option>
-                                    <option value="Hàn Quốc" ${movie.country == 'Hàn Quốc' ? 'selected' : ''}>Hàn Quốc</option>
-                                    <option value="Nhật Bản" ${movie.country == 'Nhật Bản' ? 'selected' : ''}>Nhật Bản</option>
-                                    <option value="Trung Quốc" ${movie.country == 'Trung Quốc' ? 'selected' : ''}>Trung Quốc</option>
-                                    <option value="Khác" ${movie.country == 'Khác' ? 'selected' : ''}>Khác</option>
+                                    <c:forEach items="${countries}" var="country">
+                                        <option value="${country.displayName}" ${movie.country == country.displayName ? 'selected' : ''}>${country.displayName}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
 
@@ -176,9 +166,9 @@
                             </div>
 
                             <div class="cgv-field cgv-form-full">
-                                <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cgv-dark); cursor: pointer;">
-                                    <input type="checkbox" name="isActive" value="true" ${movie.active ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--cgv-red);">
-                                    Hiển thị phim lên trang chủ ngay lập tức
+                                <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: #999; cursor: not-allowed;">
+                                    <input type="checkbox" checked="${movie.isActive ? 'checked' : ''}" disabled style="width: 18px; height: 18px; accent-color: var(--cgv-red); cursor: not-allowed;">
+                                    Trạng thái hiển thị (Đã khóa - Dùng nút Bật/Tắt bên ngoài danh sách)
                                 </label>
                             </div>
                         </div>

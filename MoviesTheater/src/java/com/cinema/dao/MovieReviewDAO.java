@@ -104,7 +104,7 @@ public class MovieReviewDAO {
     public boolean updateReview(int reviewId, int accountId, int ratingValue, String comment) {
         String sql = "UPDATE MovieReview SET RatingValue = ?, Comment = ? "
                 + "WHERE ReviewID = ? AND AccountID = ? "
-                + "AND GETDATE() <= DATEADD(day, 7, (SELECT MAX(EndTime) FROM Schedule WHERE MovieID = MovieReview.MovieID))";
+                + "AND GETDATE() <= (SELECT MAX(EndTime) FROM Schedule WHERE MovieID = MovieReview.MovieID)";
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, ratingValue);
             ps.setString(2, comment);
@@ -119,7 +119,7 @@ public class MovieReviewDAO {
     
     public boolean deleteReview(int reviewId, int accountId) {
         String sql = "DELETE FROM MovieReview WHERE ReviewID = ? AND AccountID = ? "
-                + "AND GETDATE() <= DATEADD(day, 7, (SELECT MAX(EndTime) FROM Schedule WHERE MovieID = MovieReview.MovieID))";
+                + "AND GETDATE() <= (SELECT MAX(EndTime) FROM Schedule WHERE MovieID = MovieReview.MovieID)";
         try (Connection conn = DBUtils.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, reviewId);
             ps.setInt(2, accountId);
