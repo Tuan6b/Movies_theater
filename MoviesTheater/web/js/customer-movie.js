@@ -54,16 +54,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Rating form validation for movie-detail.jsp
-    const ratingBars = document.querySelectorAll('.rating-bar-fill');
-    if (ratingBars.length > 0) {
-        setTimeout(() => {
-            ratingBars.forEach(bar => {
-                bar.style.width = bar.getAttribute('data-width');
-            });
-        }, 100);
-    }
-
     const reviewForms = document.querySelectorAll('form[action="ReviewController"]');
     const badWords = ["ngu", "dm", "vl", "rac", "rác"]; 
     if (reviewForms.length > 0) {
@@ -118,6 +108,10 @@ function showEditForm() {
 function cancelEditForm() {
     document.getElementById("user-review-display").style.display = "block";
     document.getElementById("user-review-edit-form").style.display = "none";
+    const editForm = document.querySelector('#user-review-edit-form form');
+    if (editForm) {
+        editForm.reset();
+    }
 }
 function submitDeleteReview() {
     document.getElementById("edit-dropdown-menu").style.display = "none";
