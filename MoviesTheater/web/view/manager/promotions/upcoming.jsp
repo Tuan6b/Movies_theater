@@ -174,22 +174,8 @@
 
         <aside class="cgv-aside">
             <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">UPCOMING OVERVIEW</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num">${not empty totalItems ? totalItems : '0'}</div>
-                        <div class="cgv-stat-key">TOTAL UPCOMING</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num amber">${not empty totalPages ? totalPages : '1'}</div>
-                        <div class="cgv-stat-key">PAGES</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num">${not empty promotions ? promotions.size() : '0'}</div>
-                        <div class="cgv-stat-key">SHOWING</div>
-                    </div>
-                </div>
-                <div style="margin-top:20px;font-size:12px;color:rgba(94,63,58,0.6);line-height:1.6;border-top:1px solid var(--cgv-border);padding-top:16px;">
+                <div class="cgv-aside-heading">NOTES</div>
+                <div style="font-size:12px;color:rgba(94,63,58,0.6);line-height:1.6;">
                     <strong>Activate Now</strong> — launches a promotion immediately by setting its start date to now.<br><br>
                     <strong>Cancel</strong> — permanently removes promotions that have never been used.
                 </div>

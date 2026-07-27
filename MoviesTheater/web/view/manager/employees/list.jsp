@@ -195,19 +195,6 @@
 
         <aside class="cgv-aside">
             <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">OVERVIEW</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num">${not empty totalItems ? totalItems : '0'}</div>
-                        <div class="cgv-stat-key">TOTAL</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num">${not empty employees ? employees.size() : '0'}</div>
-                        <div class="cgv-stat-key">SHOWING</div>
-                    </div>
-                </div>
-            </div>
-            <div class="cgv-aside-divider">
                 <div class="cgv-aside-heading">QUICK ACTIONS</div>
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
                     <a href="${pageContext.request.contextPath}/manager/shifts"

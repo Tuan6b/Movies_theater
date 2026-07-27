@@ -64,7 +64,7 @@
 
                     <c:if test="${hasSchedules}">
                         <div class="cgv-alert cgv-alert-warning re-alert-warning">
-                            This room has existing schedules. All fields are locked and cannot be edited.
+                            This room has existing schedules. Seat layout (rows/seats) cannot be changed.
                         </div>
                     </c:if>
 
@@ -80,14 +80,12 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Room Number</label>
                                 <input class="cgv-input" type="text" name="roomNumber"
-                                       value="${room.roomNumber}" required
-                                       ${hasSchedules ? 'readonly class="re-input-disabled"' : ''}>
+                                       value="${room.roomNumber}" required>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Room Type</label>
-                                <select class="cgv-select" name="roomType"
-                                    ${hasSchedules ? 'disabled class="re-input-disabled"' : ''}>
+                                <select class="cgv-select" name="roomType">
                                     <option value="2D"   ${room.roomType eq '2D'   ? 'selected' : ''}>2D</option>
                                     <option value="3D"   ${room.roomType eq '3D'   ? 'selected' : ''}>3D</option>
                                     <option value="IMAX" ${room.roomType eq 'IMAX' ? 'selected' : ''}>IMAX</option>
@@ -112,7 +110,6 @@
                             <div class="cgv-field re-field-row">
                                 <input type="checkbox" name="active" id="activeCheck"
                                        ${room.active ? 'checked' : ''}
-                                       ${hasSchedules ? 'disabled' : ''}
                                        class="re-check-input">
                                 <label class="cgv-label re-check-label" for="activeCheck">
                                     Active (uncheck to deactivate)

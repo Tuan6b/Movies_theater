@@ -159,22 +159,8 @@
 
         <aside class="cgv-aside">
             <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">EXPIRED OVERVIEW</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num">${not empty totalItems ? totalItems : '0'}</div>
-                        <div class="cgv-stat-key">TOTAL EXPIRED</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num amber">${not empty totalPages ? totalPages : '1'}</div>
-                        <div class="cgv-stat-key">PAGES</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num">${not empty promotions ? promotions.size() : '0'}</div>
-                        <div class="cgv-stat-key">SHOWING</div>
-                    </div>
-                </div>
-                <div style="margin-top:20px;font-size:12px;color:rgba(94,63,58,0.6);line-height:1.6;border-top:1px solid var(--cgv-border);padding-top:16px;">
+                <div class="cgv-aside-heading">NOTES</div>
+                <div style="font-size:12px;color:rgba(94,63,58,0.6);line-height:1.6;">
                     <strong>Extend</strong> — sets a new end date and reactivates the promotion.<br><br>
                     <strong>Archive</strong> — permanently removes expired promotions that have no paid invoices.
                 </div>

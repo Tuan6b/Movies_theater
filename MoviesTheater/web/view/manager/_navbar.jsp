@@ -18,15 +18,13 @@
                class="nlink ${activeNav eq 'promotions' ? 'active' : ''}">Thể loai phim</a>
         </div>
         <div class="navbar-end">
-            <a href="${pageContext.request.contextPath}/profile" class="navbar-profile-link">
-                <span class="navbar-role">
-                    <c:choose>
-                        <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
-                        <c:otherwise>Manager</c:otherwise>
-                    </c:choose>
-                </span>
-                <div class="topbar-avatar">MG</div>
-            </a>
+            <span class="navbar-role">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.account}">${sessionScope.account.fullName}</c:when>
+                    <c:otherwise>Manager</c:otherwise>
+                </c:choose>
+            </span>
+            <div class="topbar-avatar">MG</div>
         </div>
     </div>
 </nav>

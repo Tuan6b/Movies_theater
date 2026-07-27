@@ -372,24 +372,6 @@
         <%-- Aside ────────────────────────────────────────────────────── --%>
         <aside class="cgv-aside">
             <div class="cgv-stats-section">
-                <div class="cgv-aside-heading">THÁNG NÀY</div>
-                <div class="cgv-stats-group">
-                    <div>
-                        <div class="cgv-stat-num" id="stat-total">—</div>
-                        <div class="cgv-stat-key">TỔNG CA ĐÃ PHÂN</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num" id="stat-done">—</div>
-                        <div class="cgv-stat-key">ĐÃ HOÀN THÀNH</div>
-                    </div>
-                    <div>
-                        <div class="cgv-stat-num" id="stat-absent">—</div>
-                        <div class="cgv-stat-key">VẮNG</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="cgv-aside-divider">
                 <div class="cgv-aside-heading">PHÂN CA THEO THÁNG</div>
                 <form method="post" action="${pageContext.request.contextPath}/manager/shifts"
                       style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
@@ -416,6 +398,8 @@
             <div class="cgv-aside-divider">
                 <div class="cgv-aside-heading">ĐIỀU HƯỚNG</div>
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                    <a href="${pageContext.request.contextPath}/manager/shift-exchanges"
+                       class="btn--cgv-outline" style="text-align:center;">Duyệt đổi ca</a>
                     <a href="${pageContext.request.contextPath}/manager/employees"
                        class="btn--cgv-outline" style="text-align:center;">← Nhân Viên</a>
                 </div>
@@ -605,21 +589,8 @@ function deleteShift(shiftId, dateStr) {
     f.submit();
 }
 
-/* ── Aside stats ─────────────────────────────────────────────────────── */
-function updateStats() {
-    var total = SHIFTS.length, done = 0, absent = 0;
-    SHIFTS.forEach(function(s) {
-        if (s.status === 'Completed') done++;
-        else if (s.status === 'Absent' || s.date < TODAY) absent++;
-    });
-    document.getElementById('stat-total').textContent  = total;
-    document.getElementById('stat-done').textContent   = done;
-    document.getElementById('stat-absent').textContent = absent;
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     buildCalendar();
-    updateStats();
     var sel = document.getElementById('global-emp-select');
     if (sel) {
         sel.addEventListener('change', function() {

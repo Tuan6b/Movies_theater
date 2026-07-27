@@ -138,15 +138,7 @@
 
                     <div class="cgv-aside-divider"></div>
 
-                    <div class="cgv-stats-section">
-                        <h3 class="cgv-aside-heading">Thống kê nhanh</h3>
-                        <div class="cgv-stats-group">
-                            <div>
-                                <div class="cgv-stat-num red">${genreList.size()}</div>
-                                <div class="cgv-stat-key">Tổng số Thể loại</div>
-                            </div>
-                        </div>
-                    </div>
+
 
                 </aside>
 

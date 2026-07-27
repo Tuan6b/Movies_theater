@@ -211,7 +211,6 @@
                             <span style="font-size:13px;color:var(--cgv-text-muted);font-weight:500;">
                                 Xin chào, <strong>${sessionScope.account.fullName}</strong>
                             </span>
-                            <a href="${pageContext.request.contextPath}/profile" class="btn btn-ghost" style="margin-right: 8px;">Trang cá nhân</a>
                             <a href="${pageContext.request.contextPath}/Logout" class="btn btn-ghost" style="margin-right: 8px;">Đăng xuất</a>
                             <c:if test="${sessionScope.account.roleId >= 3}">
                                 <a href="${pageContext.request.contextPath}/manager" class="btn btn-primary">Quản Lý</a>
@@ -354,20 +353,9 @@
                 </div>
             </div>
 
-            <div class="md-cast">
-                <div class="md-cast-header">
-                    <h2 class="md-section-title" style="margin:0;">Diễn Viên Chính</h2>
-                </div>
-                <div class="md-cast-grid">
-                    <c:set var="castList" value="${fn:split(movie.cast, ',')}" />
-                    <c:forEach var="actor" items="${castList}" begin="0" end="3">
-                        <div class="cast-card">
-                            <img src="https://ui-avatars.com/api/?name=${fn:replace(actor, ' ', '+')}&background=random&size=300" alt="${actor}" class="cast-img">
-                            <div class="cast-name">${fn:trim(actor)}</div>
-                            <div class="cast-role">Diễn viên</div>
-                        </div>
-                    </c:forEach>
-                </div>
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <span class="crew-label" style="display: block; margin-bottom: 5px;">DIỄN VIÊN</span>
+                <span class="crew-value" style="display: block;">${movie.cast}</span>
             </div>
 
             <!-- ================= RATING & REVIEW SECTION ================= -->
@@ -396,7 +384,7 @@
                                 <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; font-weight: 500;">
                                     <span>${i} <i class="fa-solid fa-star" style="color: #ffb400; font-size: 10px;"></i></span>
                                     <div style="flex-grow: 1; background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
-                                        <div class="rating-bar-fill" data-width="${totalReviews > 0 ? (starCounts[i] * 100.0 / totalReviews) : 0}%" style="background-color: #ffb400; height: 100%; width: 0%; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);"></div>
+                                        <div class="rating-bar-fill" style="background-color: #ffb400; height: 100%; width: ${totalReviews > 0 ? (starCounts[i] * 100.0 / totalReviews) : 0}%;"></div>
                                     </div>
                                     <span style="min-width: 30px; text-align: right; color: #666;">${starCounts[i]}</span>
                                 </div>
@@ -407,24 +395,8 @@
                 </c:if>
 
                 <!-- Form Đánh giá (UC19 & UC20) -->
+                <c:if test="${not empty sessionScope.account and (not empty userReview or canReview)}">
                 <div class="review-form-container" style="background: #fdfdfd; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative;">
-
-                    <%-- Màn che (Overlay) nếu chưa đăng nhập hoặc chưa mua vé xem phim --%>
-                    <c:if test="${empty sessionScope.account or (empty userReview and not canReview)}">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); border-radius: 8px; z-index: 10; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                            <i class="fas fa-lock" style="font-size: 24px; color: #888; margin-bottom: 10px;"></i>
-                            <p style="color: white; font-weight: bold; text-align: center; margin: 0 20px;">
-                                <c:choose>
-                                    <c:when test="${empty sessionScope.account}">
-                                        Vui lòng <a href="${pageContext.request.contextPath}/Login" style="color: var(--cgv-red); text-decoration: underline;">Đăng nhập</a> và mua vé để đánh giá!
-                                    </c:when>
-                                    <c:otherwise>
-                                        Bạn cần mua vé và quét mã Check-in xem phim này để có thể đánh giá!
-                                    </c:otherwise>
-                                </c:choose>
-                            </p>
-                        </div>
-                    </c:if>
 
                     <c:choose>
                         <%-- CHƯA CÓ ĐÁNH GIÁ -> FORM THÊM MỚI --%>
@@ -553,6 +525,7 @@
                         </c:otherwise>
                     </c:choose>
                 </div>
+                </c:if>
 
                 <c:if test="${totalReviews > 0}">
                     <!-- UC18: Danh Sách Review -->
@@ -562,9 +535,6 @@
                                 <div style="width: 50px; height: 50px; border-radius: 50%; background: #e0e0e0; overflow: hidden; flex-shrink: 0;">
                                     <c:if test="${not empty r.avatarUrl}">
                                         <img src="${r.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;">
-                                    </c:if>
-                                    <c:if test="${empty r.avatarUrl}">
-                                        <i class="fa-solid fa-user" style="color: #666; font-size: 24px; margin: 13px;"></i>
                                     </c:if>
                                 </div>
                                 <div>
