@@ -16,6 +16,7 @@ public class clsMovie {
     private String description;
     private int duration;
     private java.sql.Timestamp dateAdded; // Thay thế releaseDate
+    private java.sql.Date releaseDate;
     private String budget;
     private String globalBoxOffice;
     private int weeklyRevenueRank;
@@ -36,12 +37,13 @@ public class clsMovie {
     public clsMovie() {
     }
 
-    public clsMovie(int movieId, String movieName, String description, int duration, Timestamp dateAdded, String budget, String globalBoxOffice, int weeklyRevenueRank, int ticketsSoldMilestone, String poster, String trailer, String language, String subtitle, String director, String cast, String country, int ageRestriction, boolean isActive) {
+    public clsMovie(int movieId, String movieName, String description, int duration, Timestamp dateAdded, java.sql.Date releaseDate, String budget, String globalBoxOffice, int weeklyRevenueRank, int ticketsSoldMilestone, String poster, String trailer, String language, String subtitle, String director, String cast, String country, int ageRestriction, boolean isActive) {
         this.movieId = movieId;
         this.movieName = movieName;
         this.description = description;
         this.duration = duration;
         this.dateAdded = dateAdded;
+        this.releaseDate = releaseDate;
         this.budget = budget;
         this.globalBoxOffice = globalBoxOffice;
         this.weeklyRevenueRank = weeklyRevenueRank;
@@ -95,6 +97,14 @@ public class clsMovie {
 
     public void setDateAdded(Timestamp dateAdded) {
         this.dateAdded = dateAdded;
+    }
+
+    public java.sql.Date getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(java.sql.Date releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public String getBudget() {

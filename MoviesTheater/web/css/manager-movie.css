@@ -1,0 +1,32 @@
+/* manager-movie.css */
+/* Shared classes extracted from manager JSP pages */
+
+/* add_movie & edit_movie grid */
+.cgv-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+}
+.cgv-form-full {
+    grid-column: span 2;
+}
+
+/* Common utility classes to replace inline styles */
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.w-100 {
+    width: 100%;
+}
+.mt-24 {
+    margin-top: 24px;
+}
+.mb-24 {
+    margin-bottom: 24px;
+}

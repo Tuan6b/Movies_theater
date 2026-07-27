@@ -36,6 +36,7 @@ public class HomeController extends HttpServlet {
             try { pageShowing = Integer.parseInt(request.getParameter("pageShowing")); } catch (Exception e) {}
         }
         int totalShowing = movieDAO.getTotalPublicMovies("showing", genreShowing, searchKeyword);
+        int absoluteTotalShowing = movieDAO.getTotalPublicMovies("showing", null, null); // For stats panel
         int totalPagesShowing = (int) Math.ceil((double) totalShowing / pageSize);
         List<clsMovie> showingList = movieDAO.getPublicMoviesByPage("showing", (pageShowing - 1) * pageSize, pageSize, genreShowing, searchKeyword);
         
@@ -58,6 +59,8 @@ public class HomeController extends HttpServlet {
         
         request.setAttribute("pageUpcoming", pageUpcoming);
         request.setAttribute("totalPagesUpcoming", totalPagesUpcoming);
+        
+        request.setAttribute("totalShowingMovies", absoluteTotalShowing);
         
         request.setAttribute("genreShowing", genreShowing);
         request.setAttribute("genreUpcoming", genreUpcoming);

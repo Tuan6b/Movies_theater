@@ -1,0 +1,928 @@
+SOFTWARE DESIGN SPECIFICATION
+Movies Theater Online Booking System (MoviesTheater)
+– Hanoi, July 2026 –
+Table of Contents
+I. Record of Changes
+II. Software Design Document
+1. High Level Design
+1.1 Software Architecture
+1.2 Package Diagram
+1.3 Database Design
+1.3.1 Role
+1.3.2 Account
+1.3.3 UserProfile
+1.3.4 UnlockRequest
+1.3.5 Movie
+1.3.6 Genre
+1.3.7 MovieGenre
+1.3.8 MovieReview
+1.3.9 Room
+1.3.10 Seat
+1.3.11 Schedule
+1.3.12 Food
+1.3.13 Promotion
+1.3.14 Invoice
+1.3.15 Ticket
+1.3.16 InvoiceFood
+1.3.17 WorkShift
+1.3.18 ShiftExchangeRequest
+1.3.19 SystemLog
+1.3.20 Notification
+1.3.21 SystemConfig
+2. State Transition Diagrams
+2.1 Seat / Ticket Booking State
+2.2 Promotion Status State
+2.3 Invoice Payment Status State
+3. Detailed Design
+3.1 Authentication & Account Management
+3.1.1 Class Diagram
+3.1.2 Login Sequence Diagram
+3.1.3 Register Sequence Diagram
+3.2 Ticket Booking & Payment
+3.2.1 Class Diagram
+3.2.2 Seat Selection Sequence Diagram
+3.2.3 Checkout / Payment Sequence Diagram
+3.3 Movie & Schedule Management (Admin)
+3.3.1 Class Diagram
+3.3.2 Add Movie Sequence Diagram
+3.4 Promotion Management
+3.4.1 Class Diagram
+3.4.2 Create Promotion Sequence Diagram
+I. Record of Changes
+*A - Added M - Modified D - Deleted
+II. Software Design Document
+1. High Level Design
+1.1 Software Architecture
+The system follows a layered MVC architecture on top of the Jakarta Servlet API (Java 21, deployed on Apache Tomcat). The browser talks to Controller servlets under com.cinema.controller (e.g. LoginController, BookingController, MovieController, PromotionServlet); AuthFilter and EncodingFilter (com.cinema.filter) intercept every request first to enforce session authentication/authorization and UTF-8 encoding. Controllers call the Service/DAO layer (com.cinema.dao) for business logic and JDBC data access, which in turn populates Model beans (com.cinema.model) and reads/writes the CinemaBookingDB SQL Server database through DBContext/DBUtils (com.cinema.util). Controllers forward request-scoped data to JSP views under /view for rendering. A background ServletContextListener, PromotionStatusScheduler (com.cinema.listener), periodically recomputes Promotion.Status (upcoming / active / expired) independently of any user request.
+Figure 1.1 — System Architecture
+1.2 Package Diagram
+Source code is organized under the com.cinema root package. Controllers depend on DAOs and Models; DAOs depend on the util package for the JDBC connection and password hashing helpers; the filter package intercepts controller calls; the listener package triggers scheduled DAO calls outside the request/response cycle; and the exception package holds the custom exceptions (ValidationException, NotFoundException, ConflictException) that controllers throw and catch to return proper HTTP/JSP error responses.
+Figure 1.2 — Package Diagram
+Package descriptions
+No
+Package
+Description
+01
+com.cinema.controller
+HttpServlet controllers (Presentation Logic Layer): routes HTTP requests, validates input, calls DAOs/services, and forwards to JSP views. E.g. LoginController, BookingController, MovieController, PromotionServlet, AdminServlet.
+02
+com.cinema.dao
+Data Access Objects: raw JDBC (PreparedStatement) access to SQL Server. E.g. AccountDAO, TicketDAO, tbMovie, ScheduleDAO, PromotionDAO.
+03
+com.cinema.model
+Plain Java beans mirroring the database entities (Account, Movie, Ticket, Invoice, Promotion, Seat, Schedule, ...) plus view/DTO-style helper beans (SeatView, BookingScheduleView, BookingCart).
+04
+com.cinema.service
+Cross-cutting business services used by multiple controllers, e.g. NotificationService.
+05
+com.cinema.util
+Shared utilities: DBContext/DBUtils (JDBC connection pooling), PasswordHash, SystemLogService (audit log), GoogleOAuthConfig, TMDBService.
+06
+com.cinema.filter
+Servlet filters applied to every request: AuthFilter (session/role check) and EncodingFilter (UTF-8).
+07
+com.cinema.listener
+ServletContextListener implementations that run background/scheduled logic, e.g. PromotionStatusScheduler.
+08
+com.cinema.exception
+Custom checked/unchecked exceptions used across the DAO/controller layers: ValidationException, NotFoundException, ConflictException.
+1.3 Database Design
+The system uses a single SQL Server database, CinemaBookingDB, made up of 21 tables grouped into five functional areas: Role & Account Management, Movie Information, Cinema Layout & Scheduling, Booking & Transactions, and Employee Management & Logging. The grouping and the main foreign-key relationships between tables are shown below; the full column-level definition of every table follows in sections 1.3.1–1.3.21.
+Figure 1.3 — Database table grouping and relationships
+* PK = Primary Key; FK = Foreign Key; UN = Unique; NN = Not Null.
+1.3.1 Role
+Lookup table defining the account roles used for access control (Guest, Customer, Employee, Manager, SystemAdmin).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+RoleID
+x
+x
+Primary key, auto-increment.
+02
+RoleName
+x
+x
+Unique role name (e.g. 'Customer', 'Employee').
+1.3.2 Account
+Core login credentials and account state for every user of the system (customer, employee, manager, admin).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+AccountID
+x
+x
+Primary key, auto-increment.
+02
+Email
+x
+x
+Unique login email.
+03
+Password
+x
+Hashed password (see PasswordHash util).
+04
+RoleID
+x
+x
+FK -> Role.RoleID.
+05
+IsBlocked
+x
+1 if the account has been locked by an admin. Default 0.
+06
+AccountStatus
+x
+Employee onboarding status (e.g. 'noneed', 'pending_setup'). Default 'noneed'.
+07
+CreatedAt
+x
+Row creation timestamp. Default GETDATE().
+08
+ResetToken
+One-time token issued for a password-reset request.
+09
+ResetTokenExpiry
+Expiry timestamp for ResetToken.
+1.3.3 UserProfile
+Extended personal profile information for an Account (1:1).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+AccountID
+x
+x
+x
+Primary key and FK -> Account.AccountID.
+02
+FullName
+Display name.
+03
+PhoneNumber
+Contact phone number.
+04
+DoB
+Date of birth.
+05
+Address
+Mailing address.
+06
+AvatarURL
+URL of the profile picture.
+1.3.4 UnlockRequest
+Request submitted by a blocked user asking an admin/manager to unblock their Account.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+RequestID
+x
+x
+Primary key, auto-increment.
+02
+AccountID
+x
+x
+FK -> Account.AccountID (the blocked account).
+03
+Reason
+Reason text supplied by the user.
+04
+Status
+x
+'Pending' / 'Approved' / 'Rejected'. Default 'Pending'.
+05
+ReviewedBy
+x
+FK -> Account.AccountID (the reviewing admin).
+06
+CreatedAt
+x
+Request creation timestamp.
+07
+ReviewedAt
+Timestamp the request was reviewed.
+1.3.5 Movie
+Metadata for a movie title available at the cinema.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+MovieID
+x
+x
+Primary key, auto-increment.
+02
+MovieName
+x
+Title of the movie.
+03
+Description
+Synopsis.
+04
+Duration
+x
+Runtime in minutes.
+05
+ReleaseDate
+Release date.
+06
+Poster
+Poster image URL.
+07
+Trailer
+Trailer video URL.
+08
+Language
+Audio language.
+09
+Subtitle
+Subtitle language.
+10
+Director
+Director name.
+11
+Cast
+Leading cast.
+12
+Country
+Country of origin.
+13
+AgeRestriction
+x
+Minimum viewer age. Default 0.
+14
+IsActive
+x
+Whether the movie is currently listed. Default 1.
+15
+DateAdded
+Timestamp the movie was added to the catalog.
+16
+Budget
+Production budget (display text, TMDB import).
+17
+GlobalBoxOffice
+Worldwide box-office figure (display text, TMDB import).
+18
+WeeklyRevenueRank
+Cached ranking used on the homepage. Default 0.
+19
+TicketsSoldMilestone
+Cached milestone counter for marketing badges. Default 0.
+1.3.6 Genre
+Lookup table of movie genres.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+GenreID
+x
+x
+Primary key, auto-increment.
+02
+GenreName
+x
+x
+Unique genre name.
+1.3.7 MovieGenre
+Junction table implementing the Movie <-> Genre many-to-many relationship.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+MovieID
+x
+x
+x
+FK -> Movie.MovieID (composite PK).
+02
+GenreID
+x
+x
+x
+FK -> Genre.GenreID (composite PK).
+1.3.8 MovieReview
+Customer rating/comment for a movie, tied to a specific paid Ticket (one review per ticket).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+ReviewID
+x
+x
+Primary key, auto-increment.
+02
+MovieID
+x
+x
+FK -> Movie.MovieID.
+03
+AccountID
+x
+x
+FK -> Account.AccountID (reviewer).
+04
+TicketID
+x
+x
+x
+FK -> Ticket.TicketID; unique, so each ticket yields at most one review.
+05
+RatingValue
+x
+Star rating, 1-5 (CHECK constraint).
+06
+Comment
+Free-text review comment.
+07
+CreatedAt
+x
+Timestamp the review was submitted.
+1.3.9 Room
+A physical screening room (auditorium) in the cinema.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+RoomID
+x
+x
+Primary key, auto-increment.
+02
+RoomNumber
+x
+x
+Unique room code (e.g. 'P01').
+03
+RoomType
+x
+'2D' / '3D' / 'IMAX' / '4DX' (CHECK constraint). Default '2D'.
+04
+Capacity
+x
+Total seat count.
+05
+NumberOfRows
+x
+Number of seat rows. Default 5.
+06
+SeatsPerRow
+x
+Seats per row. Default 10.
+07
+IsActive
+x
+Whether the room is in service. Default 1.
+1.3.10 Seat
+A single physical seat inside a Room.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+SeatID
+x
+x
+Primary key, auto-increment.
+02
+RoomID
+x
+x
+FK -> Room.RoomID.
+03
+RowChar
+x
+Row letter (e.g. 'A'). Combined with ColNumber, unique per room.
+04
+ColNumber
+x
+Column number within the row.
+05
+SeatType
+x
+'Normal' / 'VIP' / 'Couple' (CHECK constraint). Default 'Normal'.
+06
+IsActive
+x
+Whether the seat is bookable. Default 1.
+1.3.11 Schedule
+A single showtime: a Movie screened in a Room at a given time.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+ScheduleID
+x
+x
+Primary key, auto-increment.
+02
+RoomID
+x
+x
+FK -> Room.RoomID.
+03
+MovieID
+x
+x
+FK -> Movie.MovieID.
+04
+StartTime
+x
+Showtime start.
+05
+EndTime
+x
+Showtime end (denormalized for query performance; CHECK EndTime > StartTime).
+06
+BaseTicketPrice
+x
+Base price for a Normal seat; VIP/Couple seats apply a multiplier.
+07
+Status
+x
+'Scheduled' / 'Ongoing' / 'Finished' / 'Cancelled' (CHECK constraint). Default 'Scheduled'.
+1.3.12 Food
+A concession item (popcorn, drink, combo, ...) that can be added to a booking.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+FoodID
+x
+x
+Primary key, auto-increment.
+02
+FoodName
+x
+Item name.
+03
+Price
+x
+Unit price.
+04
+Image
+Item image URL.
+05
+IsActive
+x
+Whether the item is currently sellable. Default 1.
+1.3.13 Promotion
+A discount code with usage limits and a validity window.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+PromotionID
+x
+x
+Primary key, auto-increment.
+02
+PromotionCode
+x
+x
+Unique code entered by the customer.
+03
+Description
+Human-readable description.
+04
+DiscountType
+x
+'Percentage' / 'FlatAmount' (CHECK constraint).
+05
+DiscountValue
+x
+Discount magnitude (percent or flat VND amount; CHECK > 0).
+06
+MinOrderAmount
+x
+Minimum subtotal required to apply the code. Default 0.
+07
+MaxDiscountAmount
+Cap on the discount amount for percentage-type codes.
+08
+StartDate
+x
+Validity start (CHECK EndDate > StartDate).
+09
+EndDate
+x
+Validity end.
+10
+UsageLimit
+Maximum number of times the code can be used, if capped.
+11
+UsedCount
+x
+Running count of successful uses. Default 0.
+12
+IsActive
+x
+Manually toggled on/off by staff. Default 1.
+13
+Status
+x
+Derived lifecycle state: 'upcoming' / 'active' / 'expired' / 'inactive' (CHECK constraint), kept in sync by PromotionStatusScheduler.
+1.3.14 Invoice
+A payable order: one or more Tickets (and optional Food) purchased together.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+InvoiceID
+x
+x
+Primary key, auto-increment.
+02
+AccountID
+x
+x
+FK -> Account.AccountID (the buyer).
+03
+PromotionID
+x
+FK -> Promotion.PromotionID, if a code was applied.
+04
+SubTotal
+x
+Sum of ticket + food prices before discount.
+05
+DiscountAmount
+x
+Amount deducted by the applied promotion. Default 0.
+06
+TotalAmount
+x
+SubTotal minus DiscountAmount.
+07
+PaymentMethod
+x
+'Cash' / 'VNPay' / 'MoMo' / 'ZaloPay'.
+08
+PaymentStatus
+x
+'Pending' / 'Paid' / 'Failed' / 'Refunded' (CHECK constraint). Default 'Pending'.
+09
+CreatedAt
+x
+Order timestamp. Default GETDATE().
+1.3.15 Ticket
+A single booked seat for a Schedule, linked to the Invoice that paid for it.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+TicketID
+x
+x
+Primary key, auto-increment.
+02
+ScheduleID
+x
+x
+FK -> Schedule.ScheduleID.
+03
+SeatID
+x
+x
+FK -> Seat.SeatID.
+04
+InvoiceID
+x
+x
+FK -> Invoice.InvoiceID.
+05
+PriceAtBooking
+x
+Seat price captured at booking time (survives later price changes).
+06
+Code
+x
+x
+Unique QR/ticket code shown at check-in.
+07
+IsCheckedIn
+x
+1 once the ticket has been scanned at the door. Default 0.
+08
+CheckedInAt
+Check-in timestamp.
+1.3.16 InvoiceFood
+Junction table implementing the Invoice <-> Food many-to-many relationship (food items purchased per invoice).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+InvoiceID
+x
+x
+x
+FK -> Invoice.InvoiceID (composite PK).
+02
+FoodID
+x
+x
+x
+FK -> Food.FoodID (composite PK).
+03
+Quantity
+x
+Quantity purchased (CHECK > 0). Default 1.
+04
+PriceAtBooking
+x
+Unit price captured at purchase time.
+1.3.17 WorkShift
+A scheduled work shift assigned to an employee Account.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+ShiftID
+x
+x
+Primary key, auto-increment.
+02
+EmployeeID
+x
+x
+FK -> Account.AccountID.
+03
+ShiftDate
+x
+Calendar date of the shift.
+04
+StartTime
+x
+Shift start time.
+05
+EndTime
+x
+Shift end time.
+06
+Status
+x
+'Scheduled' / 'Completed' / 'Absent' (CHECK constraint). Default 'Scheduled'.
+07
+Notes
+Free-text notes.
+08
+CreatedAt
+x
+Row creation timestamp.
+1.3.18 ShiftExchangeRequest
+A request from one employee to swap a WorkShift with another employee.
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+RequestID
+x
+x
+Primary key, auto-increment.
+02
+ShiftID
+x
+x
+FK -> WorkShift.ShiftID (ON DELETE CASCADE).
+03
+RequesterID
+x
+x
+FK -> Account.AccountID (employee requesting the swap).
+04
+TargetEmpID
+x
+x
+FK -> Account.AccountID (employee asked to take the shift).
+05
+Message
+Optional message from the requester.
+06
+Status
+x
+'Pending' / 'Accepted' / 'Rejected' / 'Cancelled' (CHECK constraint). Default 'Pending'.
+07
+CreatedAt
+x
+Request creation timestamp.
+08
+RespondedAt
+Timestamp the target employee responded.
+1.3.19 SystemLog
+Audit log entry for security- and account-relevant actions (login success/failure, blocking, etc.).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+LogID
+x
+x
+Primary key, auto-increment.
+02
+AccountID
+x
+FK -> Account.AccountID; nullable for anonymous events.
+03
+ActionType
+x
+Short action code, e.g. 'LOGIN_SUCCESS', 'LOGIN_BLOCKED'.
+04
+Description
+Human-readable detail.
+05
+IPAddress
+Client IP address.
+06
+CreatedAt
+x
+Event timestamp.
+1.3.20 Notification
+An in-app notification delivered to an Account (e.g. shift-exchange response, promotion alert).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+NotificationID
+x
+x
+Primary key, auto-increment.
+02
+AccountID
+x
+x
+FK -> Account.AccountID (recipient).
+03
+Type
+x
+Notification category code.
+04
+Title
+x
+Short title.
+05
+Message
+x
+Notification body text.
+06
+ReferenceID
+Optional ID of the related entity (e.g. ShiftExchangeRequest).
+07
+IsRead
+x
+1 once the user has read it. Default 0.
+08
+CreatedAt
+x
+Creation timestamp.
+1.3.21 SystemConfig
+Key/value store for cinema-wide configuration (name, contact info, booking limits, ...).
+No
+Field
+PK
+FK
+UN
+NN
+Description
+01
+ConfigKey
+x
+x
+Primary key: configuration key, e.g. 'max_seats_per_booking'.
+02
+ConfigValue
+Configuration value, stored as text.
+03
+Description
+Human-readable description of the setting.
+04
+UpdatedAt
+x
+Timestamp of the last update.
+05
+UpdatedBy
+x
+FK -> Account.AccountID (admin who last changed it).
+2. State Transition Diagrams
+This section documents the lifecycle of the three entities whose state changes drive the main business rules of the system: a booked Seat/Ticket, a Promotion, and an Invoice's payment status. Each diagram lists the triggering event and, where applicable, the controller/DAO method or database CHECK constraint that enforces it.
+2.1 Seat / Ticket Booking State
+A seat moves from Available to Held while it sits in a customer's BookingCart, to Booked once BookingController/TicketDAO.createManualBooking() has written the Invoice and Ticket rows, and to Sold once Invoice.PaymentStatus becomes 'Paid'. CheckedIn is reached when staff scan the ticket's QR Code at the door (Ticket.IsCheckedIn = 1).
+Figure 2.1 — Seat / Ticket booking state diagram
+2.2 Promotion Status State
+Promotion.Status is a derived field constrained to 'upcoming' / 'active' / 'expired' / 'inactive' by a database CHECK constraint. PromotionServlet updates it directly in response to admin actions (create, deactivate, reactivate, activate-early); the background PromotionStatusScheduler listener re-evaluates every promotion's dates on a timer to move upcoming -> active and active -> expired even without any admin action.
+Figure 2.2 — Promotion status state diagram
+2.3 Invoice Payment Status State
+Invoice.PaymentStatus is constrained to 'Pending' / 'Paid' / 'Failed' / 'Refunded' by a database CHECK constraint. It starts at 'Pending' the moment TicketDAO inserts the Invoice row, and is updated once a payment result (cashier confirmation, gateway callback, or admin cancellation) is known.
+Figure 2.3 — Invoice payment status state diagram
+3. Detailed Design
+3.1 Authentication & Account Management
+Covers login, registration and password recovery. LoginController and RegisterController (com.cinema.controller) delegate credential checks and persistence to AccountDAO, which uses PasswordHash to hash/verify passwords. AuthFilter reads the session-scoped Account on every subsequent request to enforce role-based access.
+3.1.1 Class Diagram
+Figure 3.1.1 — Authentication & Account Management class diagram
+3.1.2 Login Sequence Diagram
+Figure 3.1.2 — Login sequence diagram
+3.1.3 Register Sequence Diagram
+Figure 3.1.3 — Register sequence diagram
+3.2 Ticket Booking & Payment
+Covers seat selection, food add-ons and checkout. BookingController keeps the in-progress selection in a session-scoped BookingCart, backed by BookingScheduleDAO and BookingSeatDAO for read queries. At checkout, TicketDAO.createManualBooking() runs a single JDBC transaction that inserts the Invoice, one Ticket per selected seat, and increments Promotion.UsedCount when a discount code was applied.
+3.2.1 Class Diagram
+Figure 3.2.1 — Ticket Booking & Payment class diagram
+3.2.2 Seat Selection Sequence Diagram
+Figure 3.2.2 — Seat selection sequence diagram
+3.2.3 Checkout / Payment Sequence Diagram
+Figure 3.2.3 — Checkout / payment sequence diagram
+3.3 Movie & Schedule Management (Admin)
+Covers the admin-side CRUD flows for movies, genres, rooms and showtimes. MovieController persists movies via the legacy-named tbMovie DAO onto the clsMovie model; GenreController/GenreDAO, ScheduleController/ScheduleDAO and RoomServlet/RoomDAO follow the same Controller -> DAO -> Model pattern for their respective entities.
+3.3.1 Class Diagram
+Figure 3.3.1 — Movie & Schedule Management class diagram
+3.3.2 Add Movie Sequence Diagram
+Figure 3.3.2 — Add Movie sequence diagram
+3.4 Promotion Management
+Covers creating and maintaining discount codes. PromotionServlet is a single servlet that fans out to private handleCreate/handleUpdate/handleDeactivate/handleReactivate methods based on the 'action' request parameter, using nested PromotionRequestDTO / PromotionResponseDTO classes to shape request and response data; PromotionDAO performs the persistence. PromotionStatusScheduler (see 2.2) keeps Promotion.Status current in the background.
+3.4.1 Class Diagram
+Figure 3.4.1 — Promotion Management class diagram
+3.4.2 Create Promotion Sequence Diagram
+Figure 3.4.2 — Create Promotion sequence diagram

@@ -1,12 +1,13 @@
 package com.cinema.dao;
 
+import com.cinema.util.DBUtils;
 import com.cinema.model.Genre;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import com.cinema.util.DBContext;
 
 /**
  * Data Access Object (DAO) for the Genre entity.
@@ -15,7 +16,7 @@ import com.cinema.util.DBContext;
  * @author CuongPVHE204336
  * @version 1.0 24/05/2026
  */
-public class GenreDAO extends DBContext {
+public class GenreDAO {
     
     /**
      * Retrieves all movie genres from the database.
@@ -25,13 +26,38 @@ public class GenreDAO extends DBContext {
     public List<Genre> getAllGenres() {
         List<Genre> list = new ArrayList<>();
         String sql = "SELECT * FROM Genre ORDER BY GenreID ASC";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
-            ResultSet rs = st.executeQuery();
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement st = connection.prepareStatement(sql);
+             ResultSet rs = st.executeQuery()) {
             while (rs.next()) {
                 int genreID = rs.getInt("GenreID");
                 String genreName = rs.getString("GenreName");
                 list.add(new Genre(genreID, genreName));
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return list;
+    }
+    
+    /**
+     * Retrieves all genres assigned to a specific movie.
+     *
+     * @param movieId The ID of the movie.
+     * @return A list of Genre objects.
+     */
+    public List<Genre> getGenresByMovieId(int movieId) {
+        List<Genre> list = new ArrayList<>();
+        String sql = "SELECT g.GenreID, g.GenreName FROM Genre g JOIN MovieGenre mg ON g.GenreID = mg.GenreID WHERE mg.MovieID = ?";
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, movieId);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    int genreID = rs.getInt("GenreID");
+                    String genreName = rs.getString("GenreName");
+                    list.add(new Genre(genreID, genreName));
+                }
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -48,8 +74,8 @@ public class GenreDAO extends DBContext {
      */
     public boolean addGenre(String genreName) throws Exception {
         String sql = "INSERT INTO Genre (GenreName) VALUES (?)";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement st = connection.prepareStatement(sql)) {
             st.setString(1, genreName);
             int result = st.executeUpdate();
             return result > 0;
@@ -76,19 +102,21 @@ public class GenreDAO extends DBContext {
         Check if the genre is currently used in the MovieGenre junction table or not.
         */
         String checkSql = "SELECT COUNT(*) FROM MovieGenre WHERE GenreID = ?";
-        try {
-            PreparedStatement checkSt = connection.prepareStatement(checkSql);
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement checkSt = connection.prepareStatement(checkSql)) {
             checkSt.setInt(1, genreID);
-            ResultSet rs = checkSt.executeQuery();
-            if (rs.next() && rs.getInt(1) > 0) {
-                throw new Exception("Cannot delete, this genre is being used by a movie");              
+            try (ResultSet rs = checkSt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    throw new Exception("Cannot delete, this genre is being used by a movie");              
+                }
             }
             
             // Delete the genre if no dependencies are found.
             String sql = "DELETE FROM Genre WHERE GenreID = ?";
-            PreparedStatement st = connection.prepareStatement(sql);
-            st.setInt(1, genreID);
-            return st.executeUpdate() > 0;
+            try (PreparedStatement st = connection.prepareStatement(sql)) {
+                st.setInt(1, genreID);
+                return st.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             throw e;
         }
@@ -104,8 +132,8 @@ public class GenreDAO extends DBContext {
      */
     public boolean updateGenre(int genreID, String newName) throws Exception {
         String sql = "UPDATE Genre SET GenreName = ? WHERE GenreID = ?";
-        try {
-            PreparedStatement st = connection.prepareStatement(sql);
+        try (Connection connection = DBUtils.getConnection();
+             PreparedStatement st = connection.prepareStatement(sql)) {
             st.setString(1, newName);
             st.setInt(2, genreID);
             

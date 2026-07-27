@@ -2,7 +2,10 @@ USE master;
 GO
 
 IF EXISTS (SELECT name FROM sys.databases WHERE name = N'CinemaBookingDB')
+BEGIN
+    ALTER DATABASE CinemaBookingDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE CinemaBookingDB;
+END
 GO
 
 CREATE DATABASE CinemaBookingDB;

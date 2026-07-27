@@ -153,41 +153,9 @@
             </div>
         </main>
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-        </script>
 
-        <script>
-            // Hàm hiển thị Form Sửa
-            function enableEdit(id) {
-                document.getElementById('view-mode-' + id).style.display = 'none';
-                document.getElementById('edit-form-' + id).style.display = 'flex';
-            }
 
-            // Hàm Hủy Sửa (Quay lại hiển thị chữ)
-            function cancelEdit(id) {
-                document.getElementById('view-mode-' + id).style.display = 'flex';
-                document.getElementById('edit-form-' + id).style.display = 'none';
-            }
-
-            // Hàm Xác nhận Xóa thể loại
-            function confirmDeleteGenre(id, name) {
-                Swal.fire({
-                    title: 'Cảnh báo xóa!',
-                    html: `Bạn có chắc chắn muốn xóa thể loại <b>${name}</b> không?<br>Hành động này không thể hoàn tác!`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e50914',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Đồng ý Xóa!',
-                    cancelButtonText: 'Hủy bỏ'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Submit cái form Xóa tương ứng
-                        document.getElementById('delete-form-' + id).submit();
-                    }
-                });
-            }
-        </script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
 
     </body>
 </html>
