@@ -54,6 +54,9 @@
                     <c:if test="${param.error eq 'room_number_exists'}">
                         <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
                     </c:if>
+                    <c:if test="${param.error eq 'invalid_dimensions'}">
+                        <div class="cgv-alert cgv-alert-danger">Maximum allowed size is 10 rows and 10 seats per row.</div>
+                    </c:if>
                     <c:if test="${param.error eq 'has_schedules'}">
                         <div class="cgv-alert cgv-alert-danger">This room has existing schedules — all fields are locked.</div>
                     </c:if>
@@ -94,14 +97,14 @@
                             <div class="cgv-field">
                                 <label class="cgv-label">Number of Rows</label>
                                 <input class="cgv-input" type="number" name="numberOfRows"
-                                       value="${room.numberOfRows}" min="1" required
+                                       value="${room.numberOfRows}" min="1" max="10" required
                                        ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Seats per Row</label>
                                 <input class="cgv-input" type="number" name="seatsPerRow"
-                                       value="${room.seatsPerRow}" min="1" required
+                                       value="${room.seatsPerRow}" min="1" max="10" required
                                        ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
                             </div>
 

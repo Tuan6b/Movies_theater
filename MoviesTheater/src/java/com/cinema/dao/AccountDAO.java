@@ -15,7 +15,7 @@ public class AccountDAO {
 
     public Account login(String email, String password) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
                 + "FROM Account a "
                 + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
@@ -90,7 +90,7 @@ public class AccountDAO {
 
     public Account getAccountById(int accountId) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
                 + "FROM Account a "
                 + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
@@ -112,7 +112,7 @@ public class AccountDAO {
 
     public Account getAccountByEmail(String email) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
                 + "FROM Account a "
                 + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
@@ -161,7 +161,7 @@ public class AccountDAO {
 
     public Account getAccountByResetToken(String token) {
         String sql = "SELECT a.AccountID, a.Email, a.Password, a.RoleID, a.IsBlocked, a.AccountStatus, a.CreatedAt, "
-                + "r.RoleName, u.FullName, u.PhoneNumber, u.AvatarURL "
+                + "r.RoleName, u.FullName, u.PhoneNumber, u.Address, u.DoB, u.AvatarURL "
                 + "FROM Account a "
                 + "LEFT JOIN Role r ON a.RoleID = r.RoleID "
                 + "LEFT JOIN UserProfile u ON a.AccountID = u.AccountID "
@@ -235,6 +235,9 @@ public class AccountDAO {
 
         account.setFullName(rs.getNString("FullName"));
         account.setPhoneNumber(rs.getString("PhoneNumber"));
+        account.setAddress(rs.getNString("Address"));
+        java.sql.Date dob = rs.getDate("DoB");
+        if (dob != null) account.setDateOfBirth(dob.toString());
         account.setAvatarUrl(rs.getString("AvatarURL"));
         return account;
     }

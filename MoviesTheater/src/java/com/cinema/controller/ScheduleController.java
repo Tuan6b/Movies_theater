@@ -292,7 +292,7 @@ public class ScheduleController extends HttpServlet {
         return true;
     }
 
-    /** Check if a schedule can be deleted (not Ongoing). */
+    /** Check if a schedule can be deleted (not Ongoing/Finished). */
     private boolean isDeletable(Schedule s) {
         if ("Cancelled".equals(s.getStatus())) return true;
         try {
@@ -301,7 +301,8 @@ public class ScheduleController extends HttpServlet {
             LocalDateTime start = LocalDateTime.parse(startDt);
             LocalDateTime end = LocalDateTime.parse(endDt);
             LocalDateTime now = LocalDateTime.now();
-            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing only
+            if (!now.isBefore(start) && now.isBefore(end)) return false; // Ongoing
+            if (!now.isBefore(end)) return false; // Finished
         } catch (Exception e) { /* allow on parse failure */ }
         return true;
     }
@@ -455,7 +456,7 @@ public class ScheduleController extends HttpServlet {
             movieId = schedule.getMovieID();
             if (!isDeletable(schedule)) {
                 request.getSession().setAttribute("flashError",
-                    "Cannot delete an ongoing schedule.");
+                    "Cannot delete an ongoing or finished schedule.");
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
                 return;
             }
