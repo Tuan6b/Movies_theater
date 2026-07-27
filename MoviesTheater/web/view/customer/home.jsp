@@ -22,8 +22,6 @@
                 <nav class="site-nav">
                     <a href="${pageContext.request.contextPath}/HomeController?status=showing" class="${currentStatus == 'showing' ? 'active' : ''}">Phim Đang Chiếu</a>
                     <a href="${pageContext.request.contextPath}/HomeController?status=upcoming" class="${currentStatus == 'upcoming' ? 'active' : ''}">Phim Sắp Chiếu</a>
-                    <a href="#">Rạp & Giá Vé</a>
-                    <a href="#">Thành Viên</a>
                 </nav>
 
                 <div class="site-header-actions">
