@@ -65,11 +65,11 @@
             </div>
             <div class="info-item">
                 <span class="info-label">Ngày sinh</span>
-                <span class="info-value">Chưa cập nhật</span>
+                <span class="info-value"><%= acc != null && acc.getDateOfBirth() != null ? acc.getDateOfBirth() : "Chưa cập nhật" %></span>
             </div>
             <div class="info-item">
                 <span class="info-label">Địa chỉ</span>
-                <span class="info-value">Chưa cập nhật</span>
+                <span class="info-value"><%= acc != null && acc.getAddress() != null ? acc.getAddress() : "Chưa cập nhật" %></span>
             </div>
             <div class="info-item">
                 <span class="info-label">Vai trò</span>

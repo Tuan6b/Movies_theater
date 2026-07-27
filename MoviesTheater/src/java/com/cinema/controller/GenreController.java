@@ -11,19 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- * Controller servlet handling all HTTP requests related to Genre management.
- * Follows the MVC pattern by processing data via GenreDAO and forwarding to JSP views.
- * 
- * @author CuongPVHE204336
- * @version 1.0 24/05/2026
- */
 public class GenreController extends HttpServlet {
 
-    /**
-     * Kiểm tra quyền Manager (roleId >= 4).
-     * Trả về true nếu KHÔNG có quyền (cần chặn lại).
-     */
     private boolean isNotManager(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession(false);
@@ -38,109 +27,90 @@ public class GenreController extends HttpServlet {
         }
         return false;
     }
-   
-    /** 
-     * Handles the HTTP <code>GET</code> method.
-     * Used for retrieving data and displaying the genre management page.
-     * 
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        
+            throws ServletException, IOException {
         if (isNotManager(request, response)) return;
-        // Initialize the DAO object to interact with the database.
-        GenreDAO dao = new GenreDAO();
-        
-        // Get the complete list of movie genre from database.
-        List<Genre> list = dao.getAllGenres();
-        
-        // Attach the retrieved list to the request scope for the JSP to render.
-        request.setAttribute("genreList", list);
-        
-        // Forward the request to the JSP Page.
-        request.getRequestDispatcher("/view/manager/genre.jsp").forward(request, response);
-    } 
 
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * Used for processing form submissions (Add, Edit, Delete)
-     * 
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            String success = (String) session.getAttribute("flashSuccess");
+            String error = (String) session.getAttribute("flashError");
+            if (success != null) {
+                request.setAttribute("success", success);
+                session.removeAttribute("flashSuccess");
+            }
+            if (error != null) {
+                request.setAttribute("error", error);
+                session.removeAttribute("flashError");
+            }
+        }
+
+        GenreDAO dao = new GenreDAO();
+        List<Genre> list = dao.getAllGenres();
+        request.setAttribute("genreList", list);
+        request.getRequestDispatcher("/view/manager/genre.jsp").forward(request, response);
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         if (isNotManager(request, response)) return;
         request.setCharacterEncoding("UTF-8");
-        
-        // Retrieve the "action" paramenter from the hidden input field.
+
         String action = request.getParameter("action");
         GenreDAO dao = new GenreDAO();
-        
-        // Process logic based on action: Use a try-catch block to catch exceptions.
+        HttpSession session = request.getSession();
+
         try {
-            // "add" case.
             if ("add".equals(action)) {
-                
-                // Retrieve the user input from the text field.
                 String genreName = request.getParameter("genreName");
-                
-                // Make sure user input is not null or empty.
                 if (genreName == null || genreName.trim().isEmpty()) {
-                    request.setAttribute("error", "Tên thể loại không được để trống!");
+                    session.setAttribute("flashError", "Tên thể loại không được để trống!");
+                } else if (dao.addGenre(genreName.trim())) {
+                    session.setAttribute("flashSuccess", "Thể loại đã được thêm thành công!");
                 } else {
-                    // Call DAO method to add new genre into the database.
-                    dao.addGenre(genreName.trim());
-                    request.setAttribute("success", "Thể loại đã được thêm thành công!");
+                    session.setAttribute("flashError", "Thêm thể loại thất bại!");
                 }
-            
-            // "edit" case.
+
             } else if ("edit".equals(action)) {
-                
                 int genreID;
                 try {
                     genreID = Integer.parseInt(request.getParameter("genreID"));
                 } catch (NumberFormatException e) {
-                    throw new Exception("ID thể loại không hợp lệ!");
+                    session.setAttribute("flashError", "ID thể loại không hợp lệ!");
+                    response.sendRedirect(request.getContextPath() + "/manager/genre");
+                    return;
                 }
                 String newName = request.getParameter("genreName");
-                
-                // Check the validility of the new name.
                 if (newName == null || newName.trim().isEmpty()) {
-                    request.setAttribute("error", "Tên thể loại không được để trống!");
+                    session.setAttribute("flashError", "Tên thể loại không được để trống!");
+                } else if (dao.updateGenre(genreID, newName.trim())) {
+                    session.setAttribute("flashSuccess", "Cập nhật thể loại thành công!");
                 } else {
-                    dao.updateGenre(genreID, newName.trim());
-                    request.setAttribute("success", "Cập nhật thể loại thành công!");
-                }    
-                
-            // "delete" case.
+                    session.setAttribute("flashError", "Cập nhật thể loại thất bại!");
+                }
+
             } else if ("delete".equals(action)) {
                 int genreID;
                 try {
                     genreID = Integer.parseInt(request.getParameter("genreID"));
                 } catch (NumberFormatException e) {
-                    throw new Exception("ID thể loại không hợp lệ!");
+                    session.setAttribute("flashError", "ID thể loại không hợp lệ!");
+                    response.sendRedirect(request.getContextPath() + "/manager/genre");
+                    return;
                 }
-                dao.deleteGenre(genreID);
-                request.setAttribute("success", "Thể loại đã được xoá thành công");
+                if (dao.deleteGenre(genreID)) {
+                    session.setAttribute("flashSuccess", "Thể loại đã được xoá thành công!");
+                } else {
+                    session.setAttribute("flashError", "Xoá thể loại thất bại!");
+                }
             }
         } catch (Exception e) {
-            // Catch custom exceptions and display the message to the user.
-            request.setAttribute("error", e.getMessage());
+            session.setAttribute("flashError", e.getMessage());
         }
-        
-        /*
-         * Forwarding back to doGet() make the page to reload the updated list
-         * and display the messages stored in the request attributes.
-         */
-        doGet(request, response);
+
+        response.sendRedirect(request.getContextPath() + "/manager/genre");
     }
 }
