@@ -98,6 +98,7 @@ public class TMDBService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            result.put("error", "Lỗi kết nối TMDB API: " + e.getMessage());
         }
         return result; // Trả Map chứa tất cả thông tin về
     }
@@ -108,6 +109,7 @@ public class TMDBService {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
         
         if (conn.getResponseCode() != 200) {
             throw new RuntimeException("HTTP error code: " + conn.getResponseCode());

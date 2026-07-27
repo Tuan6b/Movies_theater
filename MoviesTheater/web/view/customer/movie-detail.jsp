@@ -257,14 +257,40 @@
                         </c:forEach>
                     </span>
                 </c:if>
-                <span id="tmdb-user-score-badge" style="display:none; align-items:center; gap:5px; border-left: 2px solid var(--cgv-border); padding-left: 15px; margin-left: 5px;">
-                    <i class="fa-solid fa-face-smile" style="color: #ffb400;"></i> 
-                    Điểm số trên TMDB: <strong id="tmdb-user-score-value"></strong>
-                </span>
+
             </div>
 
-            <div class="md-actions">
-                <a href="${pageContext.request.contextPath}/showtimes?movieId=${movie.movieId}" class="btn btn-primary">Mua Vé</a>
+            <div class="md-story" style="margin-bottom: 30px;">
+                <h2 class="md-section-title">Lịch Chiếu Gần Nhất</h2>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    
+                    <c:if test="${not empty availableDates and not empty schedules}">
+                        <c:forEach var="s" items="${schedules}">
+                            <a href="${pageContext.request.contextPath}/booking?action=seat&scheduleId=${s.scheduleId}" 
+                               style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 130px; height: 80px; border: 2px solid var(--cgv-red); border-radius: 8px; text-decoration: none; color: var(--cgv-red); font-weight: bold; background: white; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"
+                               onmouseover="this.style.background='var(--cgv-red)'; this.style.color='white';"
+                               onmouseout="this.style.background='white'; this.style.color='var(--cgv-red)';">
+                                <span style="font-size: 20px;"><fmt:formatDate value="${s.startTime}" pattern="HH:mm"/></span>
+                                <span style="font-size: 11px; margin-top: 4px;"><fmt:formatNumber value="${s.baseTicketPrice}" type="number"/> đ</span>
+                            </a>
+                        </c:forEach>
+                    </c:if>
+
+                    <c:if test="${empty availableDates or empty schedules}">
+                        <div style="display: flex; align-items: center; padding: 0 20px; color: #888; font-style: italic;">
+                            Hôm nay chưa có lịch chiếu.
+                        </div>
+                    </c:if>
+
+                    <a href="${pageContext.request.contextPath}/showtimes?movieId=${movie.movieId}" 
+                       style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 130px; height: 80px; border: 2px solid var(--cgv-red); border-radius: 8px; text-decoration: none; color: white; font-weight: bold; background: var(--cgv-red); transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"
+                       onmouseover="this.style.background='white'; this.style.color='var(--cgv-red)';"
+                       onmouseout="this.style.background='var(--cgv-red)'; this.style.color='white';">
+                        <i class="fa-solid fa-calendar-days" style="font-size: 20px;"></i>
+                        <span style="font-size: 11px; margin-top: 4px; text-transform: uppercase; text-align: center; line-height: 1.2;">Tất Cả<br>Lịch Chiếu</span>
+                    </a>
+
+                </div>
             </div>
 
             <div class="md-story" style="margin-bottom: 30px;">
@@ -275,7 +301,7 @@
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
                                 <c:when test="${not empty movie.budget and movie.budget ne '0' and movie.budget ne ''}">
-                                    <c:out value="${movie.budget}"/>
+                                    <fmt:formatNumber value="${movie.budget}" type="number"/> $
                                 </c:when>
                                 <c:otherwise>--</c:otherwise>
                             </c:choose>
@@ -286,7 +312,7 @@
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
                                 <c:when test="${not empty movie.globalBoxOffice and movie.globalBoxOffice ne '0' and movie.globalBoxOffice ne ''}">
-                                    <c:out value="${movie.globalBoxOffice}"/>
+                                    <fmt:formatNumber value="${movie.globalBoxOffice}" type="number"/> $
                                 </c:when>
                                 <c:otherwise>--</c:otherwise>
                             </c:choose>
@@ -574,8 +600,6 @@
 
 
         <script src="${pageContext.request.contextPath}/js/customer-movie.js"></script>
-        <script>
-            fetchTMDBUserScore('${pageContext.request.contextPath}', '${fn:escapeXml(movie.movieName)}');
-        </script>
+
     </body>
 </html>
