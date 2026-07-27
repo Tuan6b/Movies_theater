@@ -139,12 +139,7 @@
                                                         </a>
                                                     </c:when>
                                                     <c:when test="${s.status eq 'Finished'}">
-                                                        <a href="ScheduleController?action=delete&id=${s.scheduleID}&page=${currentPage}"
-                                                           class="btn--cgv-outline"
-                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
-                                                           onclick="return confirmDelete(${s.scheduleID})">
-                                                            Delete
-                                                        </a>
+                                                        <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">-</span>
                                                     </c:when>
                                                     <c:otherwise>
                                                         <span style="color:rgba(94,63,58,0.35);font-size:12px;padding:4px 0;">Ongoing</span>

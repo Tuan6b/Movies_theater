@@ -131,21 +131,7 @@
                     </div>
                 </div>
 
-                <aside class="cgv-aside">
-                    <div class="cgv-aside-divider">
-                        <div class="cgv-aside-heading">SUMMARY</div>
-                        <div class="cgv-stats-group">
-                            <div>
-                                <div class="cgv-stat-num">${not empty roomList ? roomList.size() : '0'}</div>
-                                <div class="cgv-stat-key">ON THIS PAGE</div>
-                            </div>
-                            <div>
-                                <div class="cgv-stat-num amber">${not empty totalPages ? totalPages : '1'}</div>
-                                <div class="cgv-stat-key">TOTAL PAGES</div>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
+
 
             </div>
         </div>
