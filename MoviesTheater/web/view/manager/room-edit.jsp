@@ -19,6 +19,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Edit Room — CGV Admin</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/room-edit.css">
     </head>
     <body class="cgv-body">
 
@@ -31,7 +32,7 @@
                 <div class="cgv-header-right">
                     <div class="cgv-header-actions">
                         <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}"
-                           class="btn--cgv-outline" style="margin-right:8px;">
+                           class="btn--cgv-outline re-btn-outline">
                             ← Back to Rooms
                         </a>
                         <div class="cgv-header-divider"></div>
@@ -49,7 +50,7 @@
             </header>
 
             <div class="cgv-page">
-                <div class="cgv-list-wrap" style="max-width:640px;">
+                <div class="cgv-list-wrap re-wrap">
 
                     <c:if test="${param.error eq 'room_number_exists'}">
                         <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
@@ -58,20 +59,17 @@
                         <div class="cgv-alert cgv-alert-danger">Maximum allowed size is 10 rows and 10 seats per row.</div>
                     </c:if>
                     <c:if test="${param.error eq 'has_schedules'}">
-                        <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing schedules.</div>
-                    </c:if>
-                    <c:if test="${param.error eq 'cannot_change_layout'}">
-                        <div class="cgv-alert cgv-alert-danger">Cannot change seat layout — room has existing bookings.</div>
+                        <div class="cgv-alert cgv-alert-danger">This room has existing schedules — all fields are locked.</div>
                     </c:if>
 
                     <c:if test="${hasSchedules}">
-                        <div class="cgv-alert cgv-alert-warning" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+                        <div class="cgv-alert cgv-alert-warning re-alert-warning">
                             This room has existing schedules. Seat layout (rows/seats) cannot be changed.
                         </div>
                     </c:if>
 
-                    <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
-                        <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+                    <div class="re-box">
+                        <div class="re-title">
                             ROOM DETAILS
                         </div>
 
@@ -99,26 +97,26 @@
                                 <label class="cgv-label">Number of Rows</label>
                                 <input class="cgv-input" type="number" name="numberOfRows"
                                        value="${room.numberOfRows}" min="1" max="10" required
-                                       ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
+                                       ${hasSchedules ? 'readonly class="re-input-disabled"' : ''}>
                             </div>
 
                             <div class="cgv-field">
                                 <label class="cgv-label">Seats per Row</label>
                                 <input class="cgv-input" type="number" name="seatsPerRow"
                                        value="${room.seatsPerRow}" min="1" max="10" required
-                                       ${hasSchedules ? 'readonly style="background:#f5f5f5;cursor:not-allowed;"' : ''}>
+                                       ${hasSchedules ? 'readonly class="re-input-disabled"' : ''}>
                             </div>
 
-                            <div class="cgv-field" style="flex-direction:row;align-items:center;gap:12px;">
+                            <div class="cgv-field re-field-row">
                                 <input type="checkbox" name="active" id="activeCheck"
                                        ${room.active ? 'checked' : ''}
-                                       style="width:18px;height:18px;accent-color:var(--cgv-red);cursor:pointer;">
-                                <label class="cgv-label" for="activeCheck" style="margin-bottom:0;cursor:pointer;">
+                                       class="re-check-input">
+                                <label class="cgv-label re-check-label" for="activeCheck">
                                     Active (uncheck to deactivate)
                                 </label>
                             </div>
 
-                            <div style="display:flex;gap:12px;margin-top:24px;">
+                            <div class="re-actions">
                                 <button type="submit" class="btn--cgv">Save Changes</button>
                                  <a href="${pageContext.request.contextPath}/RoomServlet?page=${origPage}&filter=${origFilter}"
                                                                        class="btn--cgv-outline">Cancel</a>

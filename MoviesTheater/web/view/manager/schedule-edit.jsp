@@ -9,7 +9,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit Schedule — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/schedule-edit.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/manager/_sidebar.jsp" %>
@@ -21,7 +22,7 @@
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"
-                   class="btn--cgv-outline" style="margin-right:8px;">
+                   class="btn--cgv-outline se-btn-outline">
                     ← Back to Schedules
                 </a>
                 <div class="cgv-header-divider"></div>
@@ -39,7 +40,7 @@
     </header>
 
     <div class="cgv-page">
-        <div class="cgv-list-wrap" style="max-width:640px;">
+        <div class="cgv-list-wrap se-wrap">
 
             <c:if test="${empty schedule}">
                 <div class="cgv-alert cgv-alert-danger">Schedule not found.</div>
@@ -48,17 +49,17 @@
 
             <c:if test="${not empty schedule}">
             <c:if test="${editLocked}">
-                <div class="cgv-alert" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                <div class="cgv-alert se-alert-warning">
                     This schedule has ticket bookings and is view-only. Use <strong>Delete</strong> to cancel it.
                 </div>
             </c:if>
             <c:if test="${priceRoomLocked}">
-                <div class="cgv-alert" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                <div class="cgv-alert se-alert-warning">
                     Room and Price are locked because this schedule has ticket bookings.
                 </div>
             </c:if>
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
-                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+            <div class="se-box">
+                <div class="se-title">
                     SCHEDULE DETAILS
                 </div>
 
@@ -69,7 +70,7 @@
                     <input type="hidden" name="movieId" value="${schedule.movieID}">
                     <div class="cgv-field">
                         <label class="cgv-label">Movie</label>
-                        <div style="padding:8px 0;font-weight:600;">${not empty editMovieName ? editMovieName : 'Movie #' + schedule.movieID}</div>
+                        <div class="se-label">${not empty editMovieName ? editMovieName : 'Movie #' + schedule.movieID}</div>
                     </div>
 
                     <div class="cgv-field">
@@ -128,7 +129,7 @@
                         </c:if>
                     </div>
 
-                    <div style="display:flex;gap:12px;margin-top:24px;">
+                    <div class="se-actions">
                         <c:choose>
                             <c:when test="${editLocked}">
                                 <a href="${pageContext.request.contextPath}/ScheduleController?movieId=${schedule.movieID}"

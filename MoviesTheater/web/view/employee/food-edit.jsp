@@ -9,7 +9,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit Food — CGV Staff</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/employee/food-edit.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/employee/_sidebar.jsp" %>
@@ -35,14 +36,14 @@
     </header>
 
     <div class="cgv-page">
-        <div class="cgv-list-wrap" style="max-width:640px;">
+        <div class="cgv-list-wrap fe-wrap">
 
             <c:if test="${not empty requestScope.flashError}">
                 <div class="cgv-alert cgv-alert-danger">${requestScope.flashError}</div>
             </c:if>
 
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
-                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+            <div class="fe-box">
+                <div class="fe-title">
                     FOOD ITEM DETAILS
                 </div>
 
@@ -70,7 +71,7 @@
                         <input class="cgv-input" type="text" name="image"
                                value="${food.image}" placeholder="https://example.com/image.jpg">
                         <c:if test="${not empty food.image}">
-                            <div style="margin-top:8px;">
+                            <div class="fe-img-wrap">
                                 <img src="${food.image}" alt="${food.foodName}"
                                      onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/Image/cgv_combo.svg';"
                                      style="max-width:120px;max-height:80px;border-radius:6px;border:1px solid var(--cgv-border);">
@@ -78,7 +79,7 @@
                         </c:if>
                     </div>
 
-                    <div style="display:flex;gap:12px;margin-top:24px;">
+                    <div class="fe-actions">
                         <button type="submit" class="btn--cgv">Update</button>
                         <a href="${pageContext.request.contextPath}/FoodController?type=${currentType}" class="btn--cgv-outline">Cancel</a>
                     </div>

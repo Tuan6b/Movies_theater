@@ -9,7 +9,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Food Management — CGV Staff</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/employee/food-list.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/employee/_sidebar.jsp" %>
@@ -52,7 +53,7 @@
                     <a href="${pageContext.request.contextPath}/FoodController?type=combo"
                        class="cgv-pill ${currentType eq 'combo' ? 'active' : ''}">Combo</a>
                 </div>
-                <a href="${pageContext.request.contextPath}/FoodController?action=showAddForm&amp;type=${currentType}" class="btn--cgv" style="margin-left:auto;">
+                <a href="${pageContext.request.contextPath}/FoodController?action=showAddForm&amp;type=${currentType}" class="btn--cgv fl-btn-right">
                     + Add Food
                 </a>
             </div>
@@ -74,49 +75,46 @@
                             <c:when test="${not empty foodList}">
                                 <c:forEach var="item" items="${foodList}" varStatus="st">
                                     <tr>
-                                        <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
+                                        <td class="fl-td-index">${st.index + 1}</td>
                                         <td>
                                             <c:choose>
                                                 <c:when test="${not empty item.image}">
                                                     <img src="${item.image}" alt="${item.foodName}"
-                                                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/Image/cgv_combo.svg';"
-                                                         style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--cgv-border);">
+                                                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/Image/cgv_combo.svg';" class="fl-img-preview">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span style="color:rgba(94,63,58,0.2);font-size:11px;">—</span>
+                                                    <span class="fl-sep">—</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td style="font-weight:600;">${item.foodName}</td>
+                                        <td class="fl-td-bold">${item.foodName}</td>
                                         <td><fmt:formatNumber value="${item.price}" pattern="#,###"/> VND</td>
                                         <td>
                                             <span class="cgv-badge ${item.active ? 'active' : 'inactive'}">${item.active ? 'Active' : 'Inactive'}</span>
                                         </td>
                                         <td>
-                                            <div style="display:flex;gap:8px;">
+                                            <div class="fl-actions-wrap">
                                                 <a href="${pageContext.request.contextPath}/FoodController?action=showEditForm&amp;id=${item.foodId}&amp;type=${currentType}" class="btn--cgv-outline">
                                                     Edit
                                                 </a>
                                                 <c:choose>
                                                     <c:when test="${item.active}">
-                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
+                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" class="fl-form-inline">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="id" value="${item.foodId}">
                                                             <input type="hidden" name="type" value="${currentType}">
-                                                            <button type="submit" class="btn--cgv-outline"
-                                                                    style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                            <button type="submit" class="btn--cgv-outline fl-btn-danger"
                                                                     onclick="return confirm('Deactivate ${item.foodName}?')">
                                                                 Deactivate
                                                             </button>
                                                         </form>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" style="display:inline;">
+                                                        <form method="post" action="${pageContext.request.contextPath}/FoodController" class="fl-form-inline">
                                                             <input type="hidden" name="action" value="restore">
                                                             <input type="hidden" name="id" value="${item.foodId}">
                                                             <input type="hidden" name="type" value="${currentType}">
-                                                            <button type="submit" class="btn--cgv-outline"
-                                                                    style="color:var(--success);border-color:var(--success);">
+                                                            <button type="submit" class="btn--cgv-outline fl-btn-success">
                                                                 Restore
                                                             </button>
                                                         </form>
@@ -129,7 +127,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="6" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                    <td colspan="6" class="fl-empty-row">
                                         No food items yet.
                                     </td>
                                 </tr>

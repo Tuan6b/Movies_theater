@@ -234,7 +234,7 @@ public class MovieController extends HttpServlet {
                         movie.setDuration(existingMovie.getDuration());
                         movie.setPoster(existingMovie.getPoster());
                         movie.setDateAdded(existingMovie.getDateAdded());
-                        movie.setIsActive(existingMovie.isIsActive()); // KHÓA trạng thái hiển thị
+                        movie.setActive(existingMovie.isActive()); // KHÓA trạng thái hiển thị
                     }
                     
                     isSuccess = movieDAO.updateMovie(movie);

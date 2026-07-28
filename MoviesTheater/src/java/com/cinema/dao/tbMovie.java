@@ -51,7 +51,7 @@ public class tbMovie {
         movie.setCast(rs.getString("Cast"));
         movie.setCountry(rs.getString("Country"));
         movie.setAgeRestriction(rs.getInt("AgeRestriction"));
-        movie.setIsActive(rs.getBoolean("IsActive"));
+        movie.setActive(rs.getBoolean("IsActive"));
 
         return movie;
     }
@@ -171,7 +171,7 @@ public class tbMovie {
             ps.setString(15, movie.getCast());
             ps.setString(16, movie.getCountry());
             ps.setInt(17, movie.getAgeRestriction());
-            ps.setBoolean(18, movie.isIsActive());
+            ps.setBoolean(18, movie.isActive());
             ps.setInt(19, movie.getMovieId());
 
             return ps.executeUpdate() > 0;
@@ -352,7 +352,7 @@ public class tbMovie {
             ps.setString(15, movie.getCast());
             ps.setString(16, movie.getCountry());
             ps.setInt(17, movie.getAgeRestriction());
-            ps.setBoolean(18, movie.isIsActive());
+            ps.setBoolean(18, movie.isActive());
             ps.executeUpdate();
 
             // Lấy ID vừa tạo ra
