@@ -117,6 +117,39 @@ public class EmployeeDAO {
         return null;
     }
 
+    /**
+     * True when another employee already holds this phone number.
+     *
+     * UserProfile.PhoneNumber has no unique constraint, and it cannot easily get
+     * one: the column is shared with customers, where blanks are normal and SQL
+     * Server allows a unique index only one NULL. So the rule lives here instead,
+     * scoped to employees — a customer and an employee may share a number, two
+     * employees may not.
+     *
+     * The stored value is compared as-is; the caller normalises the input first
+     * (EmployeeServlet.normalizePhone), so "090 000 0003" cannot slip past a row
+     * holding "0900000003".
+     */
+    public boolean isPhoneExist(String phone, int excludeAccountId) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "SELECT COUNT(*) FROM UserProfile u "
+                + "JOIN Account a ON u.AccountID = a.AccountID "
+                + "WHERE a.RoleID = " + ROLE_EMPLOYEE + " AND u.PhoneNumber = ? AND u.AccountID != ?";
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone.trim());
+            ps.setInt(2, excludeAccountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean isEmailExist(String email, int excludeAccountId) {
         String sql = "SELECT COUNT(*) FROM Account WHERE Email = ? AND AccountID != ?";
         try (Connection conn = DBUtils.getConnection();
