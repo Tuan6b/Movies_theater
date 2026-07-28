@@ -80,7 +80,7 @@ public class GenreController extends HttpServlet {
                     genreID = Integer.parseInt(request.getParameter("genreID"));
                 } catch (NumberFormatException e) {
                     session.setAttribute("flashError", "ID thể loại không hợp lệ!");
-                    response.sendRedirect(request.getContextPath() + "/manager/genre");
+                    response.sendRedirect(request.getContextPath() + "/GenreController");
                     return;
                 }
                 String newName = request.getParameter("genreName");
@@ -98,7 +98,7 @@ public class GenreController extends HttpServlet {
                     genreID = Integer.parseInt(request.getParameter("genreID"));
                 } catch (NumberFormatException e) {
                     session.setAttribute("flashError", "ID thể loại không hợp lệ!");
-                    response.sendRedirect(request.getContextPath() + "/manager/genre");
+                    response.sendRedirect(request.getContextPath() + "/GenreController");
                     return;
                 }
                 if (dao.deleteGenre(genreID)) {
@@ -111,6 +111,6 @@ public class GenreController extends HttpServlet {
             session.setAttribute("flashError", e.getMessage());
         }
 
-        response.sendRedirect(request.getContextPath() + "/manager/genre");
+        response.sendRedirect(request.getContextPath() + "/GenreController");
     }
 }

@@ -15,10 +15,7 @@
         <servlet-name>EmployeeDashboardServlet</servlet-name>
         <servlet-class>com.cinema.controller.EmployeeDashboardServlet</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>TMDBController</servlet-name>
-        <servlet-class>com.cinema.controller.TMDBController</servlet-class>
-    </servlet>
+
     <servlet>
         <servlet-name>ReviewController</servlet-name>
         <servlet-class>com.cinema.controller.ReviewController</servlet-class>
@@ -223,10 +220,7 @@
         <servlet-name>ShiftExchangeServlet</servlet-name>
         <url-pattern>/manager/shift-exchanges</url-pattern>
     </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>TMDBController</servlet-name>
-        <url-pattern>/TMDBController</url-pattern>
-    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>ReviewController</servlet-name>
         <url-pattern>/ReviewController</url-pattern>

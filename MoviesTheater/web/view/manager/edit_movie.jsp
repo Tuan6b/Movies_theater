@@ -167,7 +167,7 @@
 
                             <div class="cgv-field cgv-form-full">
                                 <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: #999; cursor: not-allowed;">
-                                    <input type="checkbox" checked="${movie.isActive ? 'checked' : ''}" disabled style="width: 18px; height: 18px; accent-color: var(--cgv-red); cursor: not-allowed;">
+                                    <input type="checkbox" ${movie.active ? 'checked' : ''} disabled style="width: 18px; height: 18px; accent-color: var(--cgv-red); cursor: not-allowed;">
                                     Trạng thái hiển thị (Đã khóa - Dùng nút Bật/Tắt bên ngoài danh sách)
                                 </label>
                             </div>
@@ -185,6 +185,6 @@
 
 
 
-        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js" charset="UTF-8"></script>
     </body>
 </html>

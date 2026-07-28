@@ -7,3 +7,5 @@ MoviesTheater/nbproject/build-impl.xml
 /MoviesTheater/out
 /MoviesTheater/allowedlib
 /TaiLieu/
+MoviesTheater/src/java/com/cinema/util/DBContext.java
+MoviesTheater/src/java/com/cinema/util/DBUtils.java

@@ -162,6 +162,6 @@
             </div>
         </main>
 
-        <script src="${pageContext.request.contextPath}/js/manager-movie.js"></script>
+        <script src="${pageContext.request.contextPath}/js/manager-movie.js" charset="UTF-8"></script>
     </body>
 </html>
