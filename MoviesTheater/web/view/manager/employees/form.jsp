@@ -99,10 +99,8 @@
 
                         <div class="cgv-field">
                             <label class="cgv-label">Date of Birth <span style="color:var(--cgv-red)">*</span></label>
-                            <%-- max chặn sẵn ngày sinh chưa đủ 18 tuổi ngay trên trình duyệt;
-                                 server vẫn kiểm tra lại vì thuộc tính này sửa được. --%>
                             <input class="cgv-input" type="date" name="dateOfBirth"
-                                   value="${employee.dateOfBirth}" max="${maxDateOfBirth}">
+                                   value="${employee.dateOfBirth}">
                             <c:choose>
                                 <c:when test="${not empty errors['dateOfBirth']}">
                                     <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['dateOfBirth']}</div>
