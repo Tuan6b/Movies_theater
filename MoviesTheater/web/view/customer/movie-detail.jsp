@@ -183,16 +183,10 @@
             .star-rating input[type="radio"]:checked ~ label {
                 color: #ffb400;
             }
-            @keyframes fillBar {
-                from {
-                    width: 0;
-                }
-            }
             .rating-bar-fill {
                 height: 100%;
                 background: #ffb400;
                 border-radius: 4px;
-                animation: fillBar 1.5s ease-out forwards;
             }
         </style>
     </head>
