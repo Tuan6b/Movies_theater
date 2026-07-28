@@ -1595,6 +1595,7 @@ table.cgv-dt tbody tr:last-child td { border-bottom: none; }
 
 .cgv-pager-btn:hover { background: #f8f4f3; }
 .cgv-pager-btn.active { background: var(--cgv-red); color: #fff; border-color: var(--cgv-red); }
+.cgv-pager-btn:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; }
 
 /* --- CGV form fields --- */
 .cgv-field {

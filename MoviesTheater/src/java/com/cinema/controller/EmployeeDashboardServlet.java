@@ -536,33 +536,88 @@ public class EmployeeDashboardServlet extends HttpServlet {
         }
         String q = request.getParameter("q"); // ticket code or email
 
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+                if (page < 1) page = 1;
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+        int pageSize = 10;
+        int offset = (page - 1) * pageSize;
+
         List<BookingView> bookingList = new ArrayList<>();
-        String sql = CHECKIN_SELECT + " WHERE 1=1";
+        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
 
         List<Object> params = new ArrayList<>();
         if ("today".equalsIgnoreCase(filter)) {
-            sql += " AND CAST(sc.StartTime AS DATE) = CAST(GETDATE() AS DATE)";
+            whereClause.append(" AND CAST(sc.StartTime AS DATE) = CAST(GETDATE() AS DATE)");
         } else if ("pending".equalsIgnoreCase(filter)) {
-            sql += " AND t.IsCheckedIn = 0";
+            whereClause.append(" AND t.IsCheckedIn = 0");
         } else if ("checked".equalsIgnoreCase(filter)) {
-            sql += " AND t.IsCheckedIn = 1";
+            whereClause.append(" AND t.IsCheckedIn = 1");
         }
 
         if (q != null && !q.trim().isEmpty()) {
-            sql += " AND (t.Code LIKE ? OR a.Email LIKE ? OR u.FullName LIKE ?)";
+            whereClause.append(" AND (t.Code LIKE ? OR a.Email LIKE ? OR u.FullName LIKE ?)");
             String likeParam = "%" + q.trim() + "%";
             params.add(likeParam);
             params.add(likeParam);
             params.add(likeParam);
         }
 
-        sql += " ORDER BY sc.StartTime DESC, s.RowChar, s.ColNumber";
+        // Count total matching records for pagination
+        int totalRecords = 0;
+        String countSql = """
+            SELECT COUNT(*)
+            FROM Ticket t
+            INNER JOIN Schedule sc ON t.ScheduleID = sc.ScheduleID
+            INNER JOIN Movie m ON sc.MovieID = m.MovieID
+            INNER JOIN Seat s ON t.SeatID = s.SeatID
+            INNER JOIN Invoice i ON t.InvoiceID = i.InvoiceID
+            INNER JOIN Account a ON i.AccountID = a.AccountID
+            LEFT JOIN UserProfile u ON a.AccountID = u.AccountID
+            """ + whereClause.toString();
 
         try (Connection conn = DBUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(countSql)) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    totalRecords = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        if (page > totalPages) {
+            page = totalPages;
+            offset = (page - 1) * pageSize;
+        }
+
+        String sql = CHECKIN_SELECT + whereClause.toString()
+                + " ORDER BY sc.StartTime DESC, s.RowChar, s.ColNumber"
+                + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int paramIndex = 1;
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(paramIndex++, params.get(i));
+            }
+            ps.setInt(paramIndex++, offset);
+            ps.setInt(paramIndex, pageSize);
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     bookingList.add(mapBookingView(rs));
@@ -594,6 +649,8 @@ public class EmployeeDashboardServlet extends HttpServlet {
         request.setAttribute("todayTotal", todayTotal);
         request.setAttribute("checkedInCount", checkedInCount);
         request.setAttribute("pendingCount", pendingCount);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
 
         // Verify/Lookup single code if parameter "code" is provided
         String verifyCode = request.getParameter("code");
