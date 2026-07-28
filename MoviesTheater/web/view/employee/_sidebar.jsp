@@ -44,7 +44,7 @@
                 <line x1="10" y1="1" x2="10" y2="4"/>
                 <line x1="14" y1="1" x2="14" y2="4"/>
             </svg>
-            Đồ ăn
+            Foods
         </a>
 
         <a href="${pageContext.request.contextPath}/employee/checkin"
@@ -67,7 +67,7 @@
                 <line x1="3"  y1="10" x2="21" y2="10"/>
                 <polyline points="9 16 11 18 15 14"/>
             </svg>
-            Ca Làm Việc
+            Work Shift
         </a>
 
         <a href="${pageContext.request.contextPath}/employee/profile"
