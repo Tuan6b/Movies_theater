@@ -91,9 +91,11 @@ public class EmployeeServlet extends HttpServlet {
             transferFlash(session, request, "flashError");
         }
 
-        List<Account> employees = employeeDAO.getAll(keyword, page, PAGE_SIZE, sortField, sortDir);
         int totalItems  = employeeDAO.countAll(keyword);
         int totalPages  = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
+        if (page > totalPages) page = totalPages;
+
+        List<Account> employees = employeeDAO.getAll(keyword, page, PAGE_SIZE, sortField, sortDir);
 
         request.setAttribute("employees", employees);
         request.setAttribute("totalItems", totalItems);

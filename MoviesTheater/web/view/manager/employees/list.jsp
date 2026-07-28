@@ -180,15 +180,27 @@
 
                 <div class="cgv-pager">
                     <span>
-                        Showing ${not empty employees ? employees.size() : 0}
-                        of ${not empty totalItems ? totalItems : 0} employees
+                        <c:choose>
+                            <c:when test="${not empty totalItems and totalItems gt 0}">
+                                Showing ${(currentPage - 1) * 10 + 1} – ${currentPage * 10 gt totalItems ? totalItems : currentPage * 10} of ${totalItems} employees
+                            </c:when>
+                            <c:otherwise>
+                                Showing 0 employees
+                            </c:otherwise>
+                        </c:choose>
                     </span>
-                    <div class="cgv-pager-pages">
-                        <c:forEach begin="1" end="${not empty totalPages ? totalPages : 1}" var="pg">
-                            <button class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
-                                    onclick="location.href='?page=${pg}&keyword=${keyword}&sort=${sortField}&dir=${sortDir}'">${pg}</button>
-                        </c:forEach>
-                    </div>
+                    <c:if test="${not empty totalPages and totalPages gt 1}">
+                        <div class="cgv-pager-pages">
+                            <button type="button" class="cgv-pager-btn" ${currentPage eq 1 ? 'disabled' : ''}
+                                    onclick="location.href='?page=${currentPage - 1}&keyword=${keyword}&sort=${sortField}&dir=${sortDir}'">&lsaquo;</button>
+                            <c:forEach begin="1" end="${totalPages}" var="pg">
+                                <button type="button" class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
+                                        onclick="location.href='?page=${pg}&keyword=${keyword}&sort=${sortField}&dir=${sortDir}'">${pg}</button>
+                            </c:forEach>
+                            <button type="button" class="cgv-pager-btn" ${currentPage eq totalPages ? 'disabled' : ''}
+                                    onclick="location.href='?page=${currentPage + 1}&keyword=${keyword}&sort=${sortField}&dir=${sortDir}'">&rsaquo;</button>
+                        </div>
+                    </c:if>
                 </div>
             </div>
         </div>

@@ -31,13 +31,13 @@ SET NOCOUNT ON;
 /* ---------------------------------------------------------------------------
    THAM SỐ — chỉnh ở đây nếu muốn nhiều/ít dữ liệu hơn
    --------------------------------------------------------------------------- */
-DECLARE @Employees          INT = 20;   -- nhân viên (role 3)
-DECLARE @Customers          INT = 60;   -- khách hàng (role 2)
-DECLARE @DaysBack           INT = 120;  -- số ngày lịch chiếu trong quá khứ
-DECLARE @DaysForward        INT = 21;   -- số ngày lịch chiếu sắp tới
-DECLARE @ShowsPerRoomPerDay INT = 3;    -- suất/phòng/ngày (10h, 14h, 18h)
-DECLARE @ShiftDaysBack      INT = 45;   -- số ngày phân ca trong quá khứ
-DECLARE @ShiftDaysForward   INT = 30;   -- số ngày phân ca sắp tới
+DECLARE @Employees          INT = 50;   -- nhân viên (role 3)
+DECLARE @Customers          INT = 200;  -- khách hàng (role 2)
+DECLARE @DaysBack           INT = 180;  -- số ngày lịch chiếu trong quá khứ
+DECLARE @DaysForward        INT = 30;   -- số ngày lịch chiếu sắp tới
+DECLARE @ShowsPerRoomPerDay INT = 4;    -- suất/phòng/ngày (10h, 14h, 18h, 22h)
+DECLARE @ShiftDaysBack      INT = 90;   -- số ngày phân ca trong quá khứ
+DECLARE @ShiftDaysForward   INT = 45;   -- số ngày phân ca sắp tới
 
 /* Hash của mật khẩu "123456" — cùng chuỗi mà file seed gốc dùng cho mọi tài khoản */
 DECLARE @Pwd VARCHAR(255) = 'GxBf2JiV8tjQ8Va47w2dSN5/j3WSWL+1a3KSEDF3M16MFlGFj84AJfS2IW/J8XbL';
@@ -150,7 +150,7 @@ JOIN @Ten t ON t.i = (x.n + 7) % 16
 WHERE x.n BETWEEN 1 AND @Customers;
 
 /* ===========================================================================
-   5. LỊCH CHIẾU — mỗi phòng @ShowsPerRoomPerDay suất/ngày, khung 10h/14h/18h
+   5. LỊCH CHIẾU — sinh ĐÚNG 20 suất chiếu thử nghiệm
       Giá để phần lẻ .01 làm dấu nhận biết dòng seed.
    =========================================================================== */
 DECLARE @Rooms TABLE (rn INT, RoomID INT, Price DECIMAL(10,2));
@@ -166,83 +166,100 @@ SELECT ROW_NUMBER() OVER (ORDER BY MovieID) - 1, MovieID, Duration
 FROM Movie WHERE IsActive = 1;
 
 DECLARE @MovieCount INT = (SELECT COUNT(*) FROM @Movies);
+DECLARE @RoomCount INT = (SELECT COUNT(*) FROM @Rooms);
 
 INSERT INTO Schedule (RoomID, MovieID, StartTime, EndTime, BaseTicketPrice, Status)
-SELECT r.RoomID, m.MovieID,
-       DATEADD(HOUR, 10 + s.n * 4, CAST(DATEADD(DAY, d.n - @DaysBack, @Today) AS DATETIME)),
+SELECT TOP (20) r.RoomID, m.MovieID,
+       DATEADD(HOUR, 8 + (x.n % 4) * 4, CAST(DATEADD(DAY, (x.n / 4) - 2, @Today) AS DATETIME)),
        DATEADD(MINUTE, m.Duration,
-           DATEADD(HOUR, 10 + s.n * 4, CAST(DATEADD(DAY, d.n - @DaysBack, @Today) AS DATETIME))),
+           DATEADD(HOUR, 8 + (x.n % 4) * 4, CAST(DATEADD(DAY, (x.n / 4) - 2, @Today) AS DATETIME))),
        r.Price,
        CASE WHEN DATEADD(MINUTE, m.Duration,
-                    DATEADD(HOUR, 10 + s.n * 4,
-                        CAST(DATEADD(DAY, d.n - @DaysBack, @Today) AS DATETIME))) < GETDATE()
+                    DATEADD(HOUR, 8 + (x.n % 4) * 4,
+                        CAST(DATEADD(DAY, (x.n / 4) - 2, @Today) AS DATETIME))) < GETDATE()
             THEN 'Finished' ELSE 'Scheduled' END
-FROM #N d
-CROSS JOIN @Rooms r
-JOIN #N s ON s.n < @ShowsPerRoomPerDay
-JOIN @Movies m ON m.rn = (d.n + r.rn + s.n) % @MovieCount
-WHERE d.n <= @DaysBack + @DaysForward;
+FROM #N x
+JOIN @Rooms r ON r.rn = x.n % ISNULL(NULLIF(@RoomCount, 0), 1)
+JOIN @Movies m ON m.rn = (x.n / 2) % ISNULL(NULLIF(@MovieCount, 0), 1)
+WHERE x.n < 20;
 
 /* ===========================================================================
-   6. HOÁ ĐƠN + VÉ cho các suất đã chiếu
-      Mỗi suất đã chiếu -> 1 hoá đơn của 1 khách, kèm 4–12 vé (ghế liền nhau).
-      MERGE ... OUTPUT là cách duy nhất lấy được InvoiceID vừa sinh kèm theo
-      ScheduleID nguồn, để bước sau gắn vé vào đúng hoá đơn.
+   6. HOÁ ĐƠN + VÉ — sinh ĐÚNG 50 vé thử nghiệm
    =========================================================================== */
 IF OBJECT_ID('tempdb..#Inv') IS NOT NULL DROP TABLE #Inv;
-CREATE TABLE #Inv (ScheduleID INT PRIMARY KEY, InvoiceID INT, Seats INT, Price DECIMAL(10,2));
+CREATE TABLE #Inv (ScheduleID INT PRIMARY KEY, InvoiceID INT, Price DECIMAL(10,2));
 
 DECLARE @CustFrom INT = (SELECT MIN(AccountID) FROM Account WHERE Email LIKE 'seed.kh%');
+IF @CustFrom IS NULL SET @CustFrom = 1;
 
 MERGE INTO Invoice AS tgt
 USING (
     SELECT sc.ScheduleID,
-           @CustFrom + (sc.ScheduleID % @Customers) AS AccountID,
-           4 + (sc.ScheduleID % 9)                  AS Seats,
+           @CustFrom + (sc.ScheduleID % ISNULL(NULLIF(@Customers,0), 1)) AS AccountID,
            sc.BaseTicketPrice                       AS Price,
            DATEADD(MINUTE, -(30 + sc.ScheduleID % 300), sc.StartTime) AS CreatedAt,
            CASE sc.ScheduleID % 4 WHEN 0 THEN 'Cash' WHEN 1 THEN 'Card'
                                   WHEN 2 THEN 'VNPay' ELSE 'MoMo' END AS PaymentMethod
     FROM Schedule sc
     WHERE ABS(sc.BaseTicketPrice - FLOOR(sc.BaseTicketPrice) - 0.01) < 0.001
-      AND sc.EndTime < GETDATE()
 ) AS src
 ON 1 = 0
 WHEN NOT MATCHED THEN
     INSERT (AccountID, PromotionID, SubTotal, DiscountAmount, TotalAmount,
             PaymentMethod, PaymentStatus, CreatedAt)
-    VALUES (src.AccountID, NULL, src.Seats * src.Price, 0, src.Seats * src.Price,
+    VALUES (src.AccountID, NULL, 0, 0, 0,
             src.PaymentMethod,
-            /* ~1/25 hoá đơn chưa thanh toán, để báo cáo doanh thu có cả dữ liệu bị loại */
-            CASE WHEN src.ScheduleID % 25 = 0 THEN 'Pending' ELSE 'Paid' END,
+            'Paid',
             src.CreatedAt)
-OUTPUT inserted.InvoiceID, src.ScheduleID, src.Seats, src.Price
-  INTO #Inv (InvoiceID, ScheduleID, Seats, Price);
+OUTPUT inserted.InvoiceID, src.ScheduleID, src.Price
+  INTO #Inv (InvoiceID, ScheduleID, Price);
 
 WITH SeatRank AS (
     SELECT SeatID, RoomID, ROW_NUMBER() OVER (PARTITION BY RoomID ORDER BY SeatID) AS rn
     FROM Seat WHERE IsActive = 1
+),
+CandidateTickets AS (
+    SELECT i.ScheduleID, s.SeatID, i.InvoiceID, i.Price, sc.StartTime,
+           ROW_NUMBER() OVER (ORDER BY i.ScheduleID, s.rn) AS TicketSeq
+    FROM #Inv i
+    JOIN Schedule sc ON sc.ScheduleID = i.ScheduleID
+    JOIN SeatRank s  ON s.RoomID = sc.RoomID
 )
 INSERT INTO Ticket (ScheduleID, SeatID, InvoiceID, PriceAtBooking, Code, IsCheckedIn, CheckedInAt)
-SELECT i.ScheduleID, s.SeatID, i.InvoiceID, i.Price,
-       'SEED-' + RIGHT('00000000' + CAST(ROW_NUMBER() OVER (ORDER BY i.InvoiceID, s.rn) AS VARCHAR(10)), 8),
-       CASE WHEN (i.ScheduleID + s.rn) % 10 < 7 THEN 1 ELSE 0 END,
-       CASE WHEN (i.ScheduleID + s.rn) % 10 < 7
-            THEN DATEADD(MINUTE, -20, sc.StartTime) ELSE NULL END
-FROM #Inv i
-JOIN Schedule sc ON sc.ScheduleID = i.ScheduleID
-JOIN SeatRank s  ON s.RoomID = sc.RoomID AND s.rn <= i.Seats;
+SELECT TOP (50)
+       c.ScheduleID, c.SeatID, c.InvoiceID, c.Price,
+       'SEED-' + RIGHT('00000000' + CAST(c.TicketSeq AS VARCHAR(10)), 8),
+       CASE WHEN c.TicketSeq % 3 <> 0 THEN 1 ELSE 0 END,
+       CASE WHEN c.TicketSeq % 3 <> 0 THEN DATEADD(MINUTE, -15, c.StartTime) ELSE NULL END
+FROM CandidateTickets c
+WHERE c.TicketSeq <= 50;
 
-/* Bắp nước kèm theo, cứ 4 hoá đơn thì 1 hoá đơn có mua */
+/* Cập nhật lại SubTotal và TotalAmount cho các Invoice dựa trên 50 vé vừa tạo */
+UPDATE i
+SET i.SubTotal = t.Total,
+    i.TotalAmount = t.Total
+FROM Invoice i
+JOIN (
+    SELECT InvoiceID, SUM(PriceAtBooking) AS Total
+    FROM Ticket
+    WHERE Code LIKE 'SEED-%'
+    GROUP BY InvoiceID
+) t ON t.InvoiceID = i.InvoiceID;
+
+/* Bắp nước kèm theo cho một số hoá đơn seed */
+WITH F AS (
+    SELECT FoodID, Price,
+           ROW_NUMBER() OVER (ORDER BY FoodID) - 1 AS rn,
+           COUNT(*) OVER ()                        AS cnt
+    FROM Food WHERE IsActive = 1
+)
 INSERT INTO InvoiceFood (InvoiceID, FoodID, Quantity, PriceAtBooking)
 SELECT i.InvoiceID, f.FoodID, 1 + (i.InvoiceID % 3), f.Price
 FROM #Inv i
-JOIN Food f ON f.FoodID = (SELECT MIN(FoodID) FROM Food WHERE IsActive = 1)
-             + (i.InvoiceID % NULLIF((SELECT COUNT(*) FROM Food WHERE IsActive = 1), 0))
-WHERE i.InvoiceID % 4 = 0
-  AND EXISTS (SELECT 1 FROM Food WHERE FoodID = f.FoodID);
+JOIN F f ON f.rn = i.InvoiceID % f.cnt
+WHERE i.InvoiceID % 2 = 0;
 
-/* Đánh giá phim cho một phần vé đã check-in (1 vé chỉ được 1 đánh giá) */
+/* Đánh giá phim cho một phần vé đã check-in */
 INSERT INTO MovieReview (MovieID, AccountID, TicketID, RatingValue, Comment, CreatedAt)
 SELECT sc.MovieID, inv.AccountID, t.TicketID,
        3 + (t.TicketID % 3),
@@ -251,7 +268,7 @@ SELECT sc.MovieID, inv.AccountID, t.TicketID,
 FROM Ticket t
 JOIN Invoice inv ON inv.InvoiceID = t.InvoiceID
 JOIN Schedule sc ON sc.ScheduleID = t.ScheduleID
-WHERE t.Code LIKE 'SEED-%' AND t.IsCheckedIn = 1 AND t.TicketID % 17 = 0
+WHERE t.Code LIKE 'SEED-%' AND t.IsCheckedIn = 1 AND t.TicketID % 3 = 0
   AND NOT EXISTS (SELECT 1 FROM MovieReview r WHERE r.TicketID = t.TicketID);
 
 /* ===========================================================================

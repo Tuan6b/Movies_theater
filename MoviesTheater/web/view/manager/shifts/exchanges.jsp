@@ -189,6 +189,7 @@
                                                             <input type="hidden" name="action"    value="approve">
                                                             <input type="hidden" name="requestId" value="${req.requestId}">
                                                             <input type="hidden" name="status"    value="${selectedStatus}">
+                                                            <input type="hidden" name="page"      value="${currentPage}">
                                                             <button type="submit" class="btn--cgv"
                                                                     onclick="return confirm('Duyệt chuyển ca ngày ${req.shiftDate} từ ${req.requesterName} sang ${req.targetName}?')">
                                                                 Duyệt
@@ -200,6 +201,7 @@
                                                             <input type="hidden" name="action"    value="reject">
                                                             <input type="hidden" name="requestId" value="${req.requestId}">
                                                             <input type="hidden" name="status"    value="${selectedStatus}">
+                                                            <input type="hidden" name="page"      value="${currentPage}">
                                                             <button type="submit" class="btn--cgv-outline"
                                                                     style="color:var(--cgv-red);border-color:var(--cgv-red);"
                                                                     onclick="return confirm('Từ chối yêu cầu đổi ca này?')">
@@ -233,6 +235,30 @@
                         </c:choose>
                     </tbody>
                 </table>
+                <div class="cgv-pager">
+                    <span>
+                        <c:choose>
+                            <c:when test="${not empty totalItems and totalItems gt 0}">
+                                Hiển thị ${(currentPage - 1) * 10 + 1} – ${currentPage * 10 gt totalItems ? totalItems : currentPage * 10} trên tổng số ${totalItems} yêu cầu
+                            </c:when>
+                            <c:otherwise>
+                                Hiển thị 0 yêu cầu
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
+                    <c:if test="${not empty totalPages and totalPages gt 1}">
+                        <div class="cgv-pager-pages">
+                            <button type="button" class="cgv-pager-btn" ${currentPage eq 1 ? 'disabled' : ''}
+                                    onclick="location.href='${pageContext.request.contextPath}/manager/shift-exchanges?status=${selectedStatus}&page=${currentPage - 1}'">&lsaquo;</button>
+                            <c:forEach begin="1" end="${totalPages}" var="pg">
+                                <button type="button" class="cgv-pager-btn ${pg eq currentPage ? 'active' : ''}"
+                                        onclick="location.href='${pageContext.request.contextPath}/manager/shift-exchanges?status=${selectedStatus}&page=${pg}'">${pg}</button>
+                            </c:forEach>
+                            <button type="button" class="cgv-pager-btn" ${currentPage eq totalPages ? 'disabled' : ''}
+                                    onclick="location.href='${pageContext.request.contextPath}/manager/shift-exchanges?status=${selectedStatus}&page=${currentPage + 1}'">&rsaquo;</button>
+                        </div>
+                    </c:if>
+                </div>
             </div>
 
         </div>

@@ -78,7 +78,7 @@
                     <div class="cgv-field">
                         <label class="cgv-label">Base Ticket Price</label>
                         <input class="cgv-input" type="number" name="baseTicketPrice"
-                               step="0.01" min="0" required>
+                               step="1000" min="0" required>
                     </div>
 
                     <div class="cgv-field">

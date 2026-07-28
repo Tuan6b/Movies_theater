@@ -175,6 +175,12 @@ public class ScheduleController extends HttpServlet {
             String status = request.getParameter("status");
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
 
+            if (baseTicketPrice > 0 && baseTicketPrice % 1000 != 0) {
+                request.getSession().setAttribute("flashError", "Base ticket price must be a multiple of 1,000 VND.");
+                response.sendRedirect("ScheduleController?action=showAddForm&movieId=" + movieId);
+                return;
+            }
+
             if (roomIdArr == null || roomIdArr.length == 0) {
                 request.getSession().setAttribute("flashError", "Please select at least one room.");
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
@@ -387,6 +393,12 @@ public class ScheduleController extends HttpServlet {
             String status = request.getParameter("status");
 
             double baseTicketPrice = Double.parseDouble(request.getParameter("baseTicketPrice"));
+            
+            if (baseTicketPrice > 0 && baseTicketPrice % 1000 != 0) {
+                request.getSession().setAttribute("flashError", "Base ticket price must be a multiple of 1,000 VND.");
+                response.sendRedirect("ScheduleController?action=edit&id=" + id);
+                return;
+            }
 
             if (hasBookedTickets && "Cancelled".equals(existing.getStatus())) {
                 if (roomId != existing.getRoomID()
