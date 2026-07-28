@@ -128,7 +128,7 @@ public class FoodController extends HttpServlet {
                 Food food = foodDAO.getFoodById(id);
                 if (food != null) {
                     request.setAttribute("food", food);
-                    request.setAttribute("currentType", food.isIsCombo() ? "combo" : "retail");
+                    request.setAttribute("currentType", food.isCombo() ? "combo" : "retail");
                 }
             } catch (NumberFormatException ignored) {
             }
@@ -258,11 +258,11 @@ public class FoodController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    //@Override
-    /*protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
-    }*/
+    }
 
     /**
      * Returns a short description of the servlet.

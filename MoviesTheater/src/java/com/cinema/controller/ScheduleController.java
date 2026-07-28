@@ -201,7 +201,7 @@ public class ScheduleController extends HttpServlet {
                 int roomId = Integer.parseInt(roomIdStr);
                 Room currentRoom = roomMap.get(roomId);
                 if (currentRoom == null || !currentRoom.isActive()) {
-                    errors.add("Room " + roomId + " ΓÇö room is deactivated, skipped.");
+                    errors.add("Room " + roomId + " — room is deactivated, skipped.");
                     skipped++;
                     continue;
                 }
@@ -209,7 +209,7 @@ public class ScheduleController extends HttpServlet {
 
                 String[] startTimes = request.getParameterValues("startTime_" + roomId);
                 if (startTimes == null || startTimes.length == 0) {
-                    errors.add(roomLabel + " ΓÇö no start times, skipped.");
+                    errors.add(roomLabel + " — no start times, skipped.");
                     skipped++;
                     continue;
                 }
@@ -222,7 +222,7 @@ public class ScheduleController extends HttpServlet {
 
                     LocalDateTime startDT = LocalDateTime.parse(showDate + "T" + cleanStart + ":00");
                     if (startDT.isBefore(LocalDateTime.now())) {
-                        errors.add(roomLabel + " @ " + cleanStart + " ΓÇö time has already passed, skipped.");
+                        errors.add(roomLabel + " @ " + cleanStart + " — time has already passed, skipped.");
                         skipped++;
                         continue;
                     }
@@ -234,7 +234,7 @@ public class ScheduleController extends HttpServlet {
                     String endDateTime = endDate + " " + endTime;
 
                     if (scheduleDAO.hasOverlappingSchedule(roomId, startDateTime, endDateTime, -1)) {
-                        errors.add(roomLabel + " @ " + cleanStart + " ΓÇö time conflict, skipped.");
+                        errors.add(roomLabel + " @ " + cleanStart + " — time conflict, skipped.");
                         skipped++;
                         continue;
                     }
@@ -244,7 +244,7 @@ public class ScheduleController extends HttpServlet {
                     if (scheduleDAO.addSchedule(s)) {
                         created++;
                     } else {
-                        errors.add(roomLabel + " @ " + cleanStart + " ΓÇö DB error, skipped.");
+                        errors.add(roomLabel + " @ " + cleanStart + " — DB error, skipped.");
                         skipped++;
                     }
                 }
