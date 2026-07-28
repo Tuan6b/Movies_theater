@@ -7,7 +7,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${movie.movieName} - CGV Cinemas</title>
+        <title>${movie.movieName} - MVC Cinemas</title>
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -201,8 +201,8 @@
         <header class="site-header">
             <div class="site-header-inner">
                 <a href="${pageContext.request.contextPath}/HomeController" class="site-logo">
-                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV">
-                    <span class="site-logo-text">CGV CINEMA</span>
+                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="MVC">
+                    <span class="site-logo-text">MVC CINEMA</span>
                 </a>
 
                 <div class="site-header-actions">

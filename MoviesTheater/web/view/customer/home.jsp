@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>CGV Cinema — Trải nghiệm điện ảnh đỉnh cao</title>
+        <title>MVC Cinema — Trải nghiệm điện ảnh đỉnh cao</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
@@ -15,8 +15,8 @@
         <header class="site-header">
             <div class="site-header-inner">
                 <a href="${pageContext.request.contextPath}/HomeController" class="site-logo">
-                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="CGV">
-                    <span class="site-logo-text">CGV CINEMA</span>
+                    <img src="${pageContext.request.contextPath}/Image/Icon/cgvlogo.png" alt="MVC">
+                    <span class="site-logo-text">MVC CINEMA</span>
                 </a>
 
                 <nav class="site-nav">
@@ -275,7 +275,7 @@
 
         <section class="experience-strip">
             <div class="section-inner">
-                <div class="section-eyebrow">Tại sao chọn CGV?</div>
+                <div class="section-eyebrow">Tại sao chọn MVC?</div>
                 <h2 class="section-title">Trải nghiệm khác biệt</h2>
                 <div class="experience-grid">
                     <div class="experience-card">
@@ -321,9 +321,9 @@
         <footer class="site-footer">
             <div class="footer-inner">
                 <a href="#" class="footer-brand">
-                    <span class="footer-brand-text">CGV CINEMA VIETNAM</span>
+                    <span class="footer-brand-text">MVC CINEMA VIETNAM</span>
                 </a>
-                <p class="footer-copy">&copy; 2026 CGV. Demo Website Booking.</p>
+                <p class="footer-copy">&copy; 2026 MVC. Demo Website Booking.</p>
                 <div class="footer-links">
                     <a href="#">Điều khoản</a>
                     <a href="#">Chính sách</a>
