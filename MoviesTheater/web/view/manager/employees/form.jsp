@@ -83,15 +83,34 @@
                         </div>
 
                         <div class="cgv-field">
-                            <label class="cgv-label">Phone Number</label>
+                            <label class="cgv-label">Phone Number <span style="color:var(--cgv-red)">*</span></label>
                             <input class="cgv-input" type="text" name="phoneNumber"
-                                   value="${employee.phoneNumber}" placeholder="Enter phone number">
+                                   value="${employee.phoneNumber}" placeholder="VD: 0901234567"
+                                   maxlength="20" inputmode="tel">
+                            <c:choose>
+                                <c:when test="${not empty errors['phoneNumber']}">
+                                    <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['phoneNumber']}</div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div style="font-size:12px;color:rgba(94,63,58,0.45);margin-top:4px;">10 chữ số, bắt đầu bằng 0, không trùng nhân viên khác</div>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
                         <div class="cgv-field">
-                            <label class="cgv-label">Date of Birth</label>
+                            <label class="cgv-label">Date of Birth <span style="color:var(--cgv-red)">*</span></label>
+                            <%-- max chặn sẵn ngày sinh chưa đủ 18 tuổi ngay trên trình duyệt;
+                                 server vẫn kiểm tra lại vì thuộc tính này sửa được. --%>
                             <input class="cgv-input" type="date" name="dateOfBirth"
-                                   value="${employee.dateOfBirth}">
+                                   value="${employee.dateOfBirth}" max="${maxDateOfBirth}">
+                            <c:choose>
+                                <c:when test="${not empty errors['dateOfBirth']}">
+                                    <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['dateOfBirth']}</div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div style="font-size:12px;color:rgba(94,63,58,0.45);margin-top:4px;">Phải đủ 18 tuổi theo Bộ luật Lao động</div>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
                     </div>
@@ -99,7 +118,10 @@
                     <div class="cgv-field">
                         <label class="cgv-label">Address</label>
                         <input class="cgv-input" type="text" name="address"
-                               value="${employee.address}" placeholder="Enter home address">
+                               value="${employee.address}" placeholder="Enter home address" maxlength="255">
+                        <c:if test="${not empty errors['address']}">
+                            <div style="font-size:12px;color:var(--cgv-red);margin-top:4px;">${errors['address']}</div>
+                        </c:if>
                     </div>
 
                     <c:if test="${formAction eq 'create'}">

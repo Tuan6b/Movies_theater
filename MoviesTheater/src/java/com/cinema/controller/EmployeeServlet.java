@@ -105,11 +105,23 @@ public class EmployeeServlet extends HttpServlet {
         request.getRequestDispatcher(LIST_JSP).forward(request, response);
     }
 
+    /**
+     * Renders the employee form. maxDateOfBirth feeds the date input's max
+     * attribute so the picker cannot even offer an under-age date; the server
+     * still re-checks, since that attribute is trivial to edit away.
+     */
+    private void forwardToForm(HttpServletRequest request, HttpServletResponse response,
+            String formAction, String pageTitle) throws ServletException, IOException {
+        request.setAttribute("formAction", formAction);
+        request.setAttribute("pageTitle", pageTitle);
+        request.setAttribute("maxDateOfBirth",
+                java.time.LocalDate.now().minusYears(MIN_AGE).toString());
+        request.getRequestDispatcher(FORM_JSP).forward(request, response);
+    }
+
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("formAction", "create");
-        request.setAttribute("pageTitle", "Add New Employee");
-        request.getRequestDispatcher(FORM_JSP).forward(request, response);
+        forwardToForm(request, response, "create", "Add New Employee");
     }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
@@ -125,9 +137,7 @@ public class EmployeeServlet extends HttpServlet {
             return;
         }
         request.setAttribute("employee", employee);
-        request.setAttribute("formAction", "update");
-        request.setAttribute("pageTitle", "Edit Employee");
-        request.getRequestDispatcher(FORM_JSP).forward(request, response);
+        forwardToForm(request, response, "update", "Edit Employee");
     }
 
     private void handleCreate(HttpServletRequest request, HttpServletResponse response)
@@ -138,9 +148,7 @@ public class EmployeeServlet extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("employee", account);
             request.setAttribute("errors", errors);
-            request.setAttribute("formAction", "create");
-            request.setAttribute("pageTitle", "Add New Employee");
-            request.getRequestDispatcher(FORM_JSP).forward(request, response);
+            forwardToForm(request, response, "create", "Add New Employee");
             return;
         }
 
@@ -181,9 +189,7 @@ public class EmployeeServlet extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("employee", account);
             request.setAttribute("errors", errors);
-            request.setAttribute("formAction", "update");
-            request.setAttribute("pageTitle", "Edit Employee");
-            request.getRequestDispatcher(FORM_JSP).forward(request, response);
+            forwardToForm(request, response, "update", "Edit Employee");
             return;
         }
 
@@ -213,35 +219,56 @@ public class EmployeeServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + LIST_URL);
     }
 
+    /** UserProfile.FullName is NVARCHAR(100); Address is NVARCHAR(255). */
+    private static final int MAX_FULL_NAME = 100;
+    private static final int MAX_ADDRESS   = 255;
+
+    /** Bộ luật Lao động 2019, Điều 3: a worker must be at least 15, and the roles
+     *  this cinema hires for are restricted to adults, so 18 is the floor here. */
+    static final int MIN_AGE = 18;
+
+    /** Nobody plausibly starts a counter job at this age — catches typo'd years. */
+    private static final int MAX_AGE = 70;
+
     private Map<String, String> validateForCreate(Account account) {
-        Map<String, String> errors = new LinkedHashMap<>();
-        validateEmail(account.getEmail(), 0, errors);
-        // Full name is required here, not optional: first-login setup only replaces
-        // the temporary password now, so this form is the sole place the profile is
-        // entered and a blank name would leave the account nameless for good.
+        // Same rules as update: this form is the only place an employee profile is
+        // entered now that first-login setup does nothing but replace the password,
+        // so a field left loose on create can never be corrected by the employee.
         // The password stays out of it — EmployeeDAO.add() generates a temporary one.
-        validateFullName(account.getFullName(), errors);
-        return errors;
+        return validateProfile(account, 0);
     }
 
     private Map<String, String> validateForUpdate(Account account, int id) {
+        return validateProfile(account, id);
+    }
+
+    /**
+     * @param excludeId the account being edited, so its own email and phone do not
+     *                  count as duplicates; 0 when creating.
+     */
+    private Map<String, String> validateProfile(Account account, int excludeId) {
         Map<String, String> errors = new LinkedHashMap<>();
-        validateEmail(account.getEmail(), id, errors);
         validateFullName(account.getFullName(), errors);
+        validateEmail(account.getEmail(), excludeId, errors);
+        validatePhone(account.getPhoneNumber(), excludeId, errors);
+        validateDateOfBirth(account.getDateOfBirth(), errors);
+        validateAddress(account.getAddress(), errors);
         return errors;
     }
 
     private void validateEmail(String email, int excludeId, Map<String, String> errors) {
         if (email == null || email.trim().isEmpty()) {
-            errors.put("email", "Email is required");
+            errors.put("email", "Vui lòng nhập email");
             return;
         }
         if (!isValidEmailFormat(email)) {
-            errors.put("email", "Invalid email format");
+            errors.put("email", "Email không hợp lệ (ví dụ: nhanvien@cinema.vn)");
             return;
         }
+        // Account.Email also carries a UNIQUE constraint, so this check is about
+        // showing a field error instead of letting the insert blow up on it.
         if (employeeDAO.isEmailExist(email.trim(), excludeId)) {
-            errors.put("email", "Email already in use");
+            errors.put("email", "Email này đã được dùng cho tài khoản khác");
         }
     }
 
@@ -253,20 +280,119 @@ public class EmployeeServlet extends HttpServlet {
 
     private void validateFullName(String fullName, Map<String, String> errors) {
         if (fullName == null || fullName.trim().isEmpty()) {
-            errors.put("fullName", "Full name is required");
+            errors.put("fullName", "Vui lòng nhập họ và tên");
+        } else if (fullName.trim().length() > MAX_FULL_NAME) {
+            errors.put("fullName", "Họ và tên tối đa " + MAX_FULL_NAME + " ký tự");
         }
+    }
+
+    private void validatePhone(String phone, int excludeId, Map<String, String> errors) {
+        String normalized = normalizePhone(phone);
+        if (normalized.isEmpty()) {
+            errors.put("phoneNumber", "Vui lòng nhập số điện thoại");
+            return;
+        }
+        if (!isValidPhoneFormat(normalized)) {
+            errors.put("phoneNumber", "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0");
+            return;
+        }
+        if (employeeDAO.isPhoneExist(normalized, excludeId)) {
+            errors.put("phoneNumber", "Số điện thoại này đã thuộc về một nhân viên khác");
+        }
+    }
+
+    private void validateDateOfBirth(String dateOfBirth, Map<String, String> errors) {
+        if (dateOfBirth == null || dateOfBirth.trim().isEmpty()) {
+            // Required, otherwise the age rule below could be skipped just by
+            // leaving the field empty.
+            errors.put("dateOfBirth", "Vui lòng nhập ngày sinh");
+            return;
+        }
+        java.time.LocalDate dob;
+        try {
+            dob = java.time.LocalDate.parse(dateOfBirth.trim());
+        } catch (java.time.format.DateTimeParseException e) {
+            errors.put("dateOfBirth", "Ngày sinh không hợp lệ");
+            return;
+        }
+        java.time.LocalDate today = java.time.LocalDate.now();
+        if (!dob.isBefore(today)) {
+            errors.put("dateOfBirth", "Ngày sinh phải là ngày trong quá khứ");
+            return;
+        }
+        if (!isOldEnough(dob, today)) {
+            errors.put("dateOfBirth",
+                    "Nhân viên phải đủ " + MIN_AGE + " tuổi theo Bộ luật Lao động");
+            return;
+        }
+        if (java.time.Period.between(dob, today).getYears() > MAX_AGE) {
+            errors.put("dateOfBirth", "Ngày sinh không hợp lý (trên " + MAX_AGE + " tuổi)");
+        }
+    }
+
+    private void validateAddress(String address, Map<String, String> errors) {
+        if (address != null && address.trim().length() > MAX_ADDRESS) {
+            errors.put("address", "Địa chỉ tối đa " + MAX_ADDRESS + " ký tự");
+        }
+    }
+
+    /**
+     * Strips the spaces, dots, hyphens and brackets people type into a phone field
+     * and rewrites a +84/84 prefix as a leading 0. Without this, "090 000 0003",
+     * "+84900000003" and "0900000003" are three different strings in the database
+     * and the duplicate check never fires.
+     *
+     * Package-private so EmployeeServletValidateProfileTest can call it directly.
+     *
+     * @return the digits-only form, or "" when there is nothing to normalise
+     */
+    static String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        String digits = phone.replaceAll("[\\s.\\-()]", "");
+        if (digits.startsWith("+84")) {
+            digits = "0" + digits.substring(3);
+        } else if (digits.startsWith("84") && digits.length() > 10) {
+            digits = "0" + digits.substring(2);
+        }
+        return digits;
+    }
+
+    /** Vietnamese subscriber numbers have been a flat 10 digits starting 0 since 2018. */
+    static boolean isValidPhoneFormat(String normalizedPhone) {
+        return normalizedPhone != null && normalizedPhone.matches("0\\d{9}");
+    }
+
+    /**
+     * Whether someone born on {@code dob} has reached MIN_AGE by {@code today}.
+     * Takes the reference date rather than reading the clock so the test does not
+     * depend on when it runs, and so the birthday itself counts as old enough.
+     */
+    static boolean isOldEnough(java.time.LocalDate dob, java.time.LocalDate today) {
+        return dob != null && !dob.plusYears(MIN_AGE).isAfter(today);
     }
 
     private Account buildAccountFromRequest(HttpServletRequest request) {
         Account account = new Account();
-        account.setEmail(request.getParameter("email"));
-        account.setFullName(request.getParameter("fullName"));
-        account.setPhoneNumber(request.getParameter("phoneNumber"));
-        account.setAddress(request.getParameter("address"));
-        account.setDateOfBirth(request.getParameter("dateOfBirth"));
+        // Trimmed here rather than only inside the validators: EmployeeDAO writes
+        // whatever this object holds, so an untrimmed value would be validated in
+        // one form and stored in another — enough for " a@b.vn" to sit alongside
+        // "a@b.vn" and defeat both duplicate checks.
+        account.setEmail(trimToNull(request.getParameter("email")));
+        account.setFullName(trimToNull(request.getParameter("fullName")));
+        account.setPhoneNumber(normalizePhone(request.getParameter("phoneNumber")));
+        account.setAddress(trimToNull(request.getParameter("address")));
+        account.setDateOfBirth(trimToNull(request.getParameter("dateOfBirth")));
         String pwd = request.getParameter("password");
         account.setPassword(pwd != null ? pwd.trim() : null);
         return account;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private void transferFlash(HttpSession session, HttpServletRequest request, String key) {
