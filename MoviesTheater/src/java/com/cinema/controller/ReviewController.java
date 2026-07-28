@@ -40,6 +40,19 @@ public class ReviewController extends HttpServlet {
         MovieReviewDAO dao = new MovieReviewDAO();
 
         try {
+            String commentParam = request.getParameter("comment");
+            if (commentParam != null) {
+                String[] badWords = {"ngu", "dm", "vl", "rac", "rác"};
+                String lowerComment = commentParam.toLowerCase();
+                for (String word : badWords) {
+                    if (lowerComment.contains(word)) {
+                        session.setAttribute("flashError", "Ngôn từ không phù hợp (chứa từ cấm)! Vui lòng sửa lại.");
+                        response.sendRedirect("MovieDetailController?id=" + movieId);
+                        return;
+                    }
+                }
+            }
+
             if ("add".equals(action)) {
                 int ticketId = dao.getCheckedInTicketId(accountId, movieId);
                 if (ticketId != -1) {
