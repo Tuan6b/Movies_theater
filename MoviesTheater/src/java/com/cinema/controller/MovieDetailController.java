@@ -29,7 +29,7 @@ public class MovieDetailController extends HttpServlet {
             clsMovie movie = movieDAO.getMovieById(movieId);
             
             // Kiểm tra trạng thái kích hoạt (Active) của phim
-            if (movie == null || !movie.isIsActive()) {
+            if (movie == null || !movie.isActive()) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Phim không tồn tại hoặc đã ngừng chiếu.");
                 return;
             }

@@ -1,0 +1,10 @@
+﻿.fl-btn-right { margin-left:auto; }
+.fl-td-index { color:rgba(94,63,58,0.5);font-size:12px; }
+.fl-img-preview { width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--cgv-border); }
+.fl-sep { color:rgba(94,63,58,0.2);font-size:11px; }
+.fl-td-bold { font-weight:600; }
+.fl-actions-wrap { display:flex;gap:8px; }
+.fl-form-inline { display:inline; }
+.fl-btn-danger { color:var(--cgv-red);border-color:var(--cgv-red); }
+.fl-btn-success { color:var(--success);border-color:var(--success); }
+.fl-empty-row { text-align:center;padding:48px;color:rgba(94,63,58,0.4); }

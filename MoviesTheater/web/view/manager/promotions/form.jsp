@@ -56,26 +56,6 @@
                         <input type="hidden" name="usedCount"   value="${promotion.usedCount}">
                     </c:if>
 
-                    <%-- Promotion Code --%>
-                    <div class="cgv-field">
-                        <label class="cgv-label">Mã khuyến mãi</label>
-                        <c:choose>
-                            <c:when test="${formAction eq 'create'}">
-                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:13px;color:rgba(94,63,58,0.55);letter-spacing:1px;">
-                                    Tự động tạo khi lưu (VD: KM202606001)
-                                </div>
-                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">
-                                    Mã được tạo tự động theo định dạng KM + tháng/năm + số thứ tự.
-                                </div>
-                            </c:when>
-                            <c:otherwise>
-                                <div style="padding:10px 14px;background:#f7f3f2;border:1px solid var(--cgv-border);border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;letter-spacing:2px;">
-                                    ${promotion.promotionCode}
-                                </div>
-                                <div style="font-size:12px;color:rgba(94,63,58,0.5);margin-top:4px;">Mã khuyến mãi không thể thay đổi sau khi tạo.</div>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
 
                     <%-- Description --%>
                     <div class="cgv-field">

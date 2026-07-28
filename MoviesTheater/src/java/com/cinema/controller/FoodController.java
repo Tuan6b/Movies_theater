@@ -34,15 +34,6 @@ public class FoodController extends HttpServlet {
             case "showAddForm":
                 showAddForm(request, response);
                 break;
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        switch (action != null ? action : "") {
             case "add":
                 addFood(request, response);
                 break;
@@ -54,6 +45,9 @@ public class FoodController extends HttpServlet {
                 break;
             case "delete":
                 deleteFood(request, response);
+                break;
+            case "restore":
+                restoreFood(request, response);
                 break;
             default:
                 listFood(request, response);
@@ -76,29 +70,17 @@ public class FoodController extends HttpServlet {
         List<Food> foodList = foodDAO.getFoodsByType(isCombo);
         request.setAttribute("foodList", foodList);
         request.setAttribute("currentType", type);
-        request.getRequestDispatcher("/view/manager/food-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/employee/food-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String idStr = request.getParameter("id");
-        if (idStr != null && !idStr.trim().isEmpty()) {
-            try {
-                int id = Integer.parseInt(idStr);
-                Food food = foodDAO.getFoodById(id);
-                if (food != null) {
-                    request.setAttribute("food", food);
-                    request.setAttribute("currentType", food.isIsCombo() ? "combo" : "retail");
-                }
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        request.getRequestDispatcher("/view/manager/food-edit.jsp").forward(request, response);
+        request.setAttribute("currentType", getTypeParam(request));
+        request.getRequestDispatcher("/view/employee/food-add.jsp").forward(request, response);
     }
 
     private void addFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
         String foodName = request.getParameter("foodName");
         String priceStr = request.getParameter("price");
         String image = request.getParameter("image");
@@ -107,8 +89,8 @@ public class FoodController extends HttpServlet {
         boolean isCombo = type.equals("combo");
 
         if (foodName == null || foodName.trim().isEmpty()) {
-            request.getSession().setAttribute("flashError", "Vui lòng nhập tên món ăn.");
-            response.sendRedirect(request.getContextPath() + "/FoodController?action=add&type=" + type);
+            request.getSession().setAttribute("flashError", "Please enter a food name.");
+            response.sendRedirect(request.getContextPath() + "/FoodController?action=showAddForm&type=" + type);
             return;
         }
         double price;
@@ -120,8 +102,8 @@ public class FoodController extends HttpServlet {
                 return;
             }
         } catch (NumberFormatException e) {
-            request.getSession().setAttribute("flashError", "Giá không hợp lệ.");
-            response.sendRedirect(request.getContextPath() + "/FoodController?action=add&type=" + type);
+            request.getSession().setAttribute("flashError", "Invalid price.");
+            response.sendRedirect(request.getContextPath() + "/FoodController?action=showAddForm&type=" + type);
             return;
         }
 
@@ -129,11 +111,11 @@ public class FoodController extends HttpServlet {
         food.setFoodName(foodName.trim());
         food.setPrice(price);
         food.setImage(image != null ? image.trim() : null);
-        food.setIsActive(true);
-        food.setIsCombo(isCombo);
+        food.setCombo(isCombo);
+        food.setActive(true);
         foodDAO.addFood(food);
 
-        request.getSession().setAttribute("flashSuccess", "Đã thêm món ăn thành công.");
+        request.getSession().setAttribute("flashSuccess", "Food item added successfully.");
         response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
     }
 
@@ -151,12 +133,11 @@ public class FoodController extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         }
-        request.getRequestDispatcher("/view/manager/food-edit.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/employee/food-edit.jsp").forward(request, response);
     }
 
     private void updateFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
         String idStr = request.getParameter("id");
         if (idStr == null || idStr.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/FoodController");
@@ -179,8 +160,8 @@ public class FoodController extends HttpServlet {
         boolean isCombo = type.equals("combo");
 
         if (foodName == null || foodName.trim().isEmpty()) {
-            request.getSession().setAttribute("flashError", "Vui lòng nhập tên món ăn.");
-            response.sendRedirect(request.getContextPath() + "/FoodController?action=edit&id=" + id + "&type=" + type);
+            request.getSession().setAttribute("flashError", "Please enter a food name.");
+            response.sendRedirect(request.getContextPath() + "/FoodController?action=showEditForm&id=" + id + "&type=" + type);
             return;
         }
         double price;
@@ -192,8 +173,8 @@ public class FoodController extends HttpServlet {
                 return;
             }
         } catch (NumberFormatException e) {
-            request.getSession().setAttribute("flashError", "Giá không hợp lệ.");
-            response.sendRedirect(request.getContextPath() + "/FoodController?action=edit&id=" + id + "&type=" + type);
+            request.getSession().setAttribute("flashError", "Invalid price.");
+            response.sendRedirect(request.getContextPath() + "/FoodController?action=showEditForm&id=" + id + "&type=" + type);
             return;
         }
 
@@ -207,10 +188,10 @@ public class FoodController extends HttpServlet {
         if (image != null) {
             food.setImage(image.trim());
         }
-        food.setIsCombo(isCombo);
+        food.setCombo(isCombo);
         foodDAO.updateFood(food);
 
-        request.getSession().setAttribute("flashSuccess", "Đã cập nhật món ăn thành công.");
+        request.getSession().setAttribute("flashSuccess", "Food item updated successfully.");
         response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
     }
 
@@ -221,7 +202,23 @@ public class FoodController extends HttpServlet {
             try {
                 int id = Integer.parseInt(idStr);
                 foodDAO.deleteFood(id);
-                request.getSession().setAttribute("flashSuccess", "Đã xóa món ăn.");
+                request.getSession().setAttribute("flashSuccess", "Food item deactivated.");
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        String type = request.getParameter("type");
+        if (type == null) type = "retail";
+        response.sendRedirect(request.getContextPath() + "/FoodController?type=" + type);
+    }
+
+    private void restoreFood(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String idStr = request.getParameter("id");
+        if (idStr != null && !idStr.trim().isEmpty()) {
+            try {
+                int id = Integer.parseInt(idStr);
+                foodDAO.restoreFood(id);
+                request.getSession().setAttribute("flashSuccess", "Food item restored.");
             } catch (NumberFormatException ignored) {
             }
         }

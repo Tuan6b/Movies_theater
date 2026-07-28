@@ -10,7 +10,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ScheduleDAO {
 
@@ -104,8 +106,8 @@ public class ScheduleDAO {
             stm.setInt(1, s.getMovieID());
             stm.setInt(2, s.getRoomID());
             stm.setDouble(3, s.getBaseTicketPrice());
-            stm.setTimestamp(4, toTimestamp(s.getShowDate(), s.getStartTime()));
-            stm.setTimestamp(5, toTimestamp(s.getEndDate(), s.getEndTime()));
+            stm.setTimestamp(4, s.getStartTimestamp());
+            stm.setTimestamp(5, s.getEndTimestamp());
             stm.setString(6, s.getStatus());
             return stm.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -122,8 +124,8 @@ public class ScheduleDAO {
             stm.setInt(1, s.getMovieID());
             stm.setInt(2, s.getRoomID());
             stm.setDouble(3, s.getBaseTicketPrice());
-            stm.setTimestamp(4, toTimestamp(s.getShowDate(), s.getStartTime()));
-            stm.setTimestamp(5, toTimestamp(s.getEndDate(), s.getEndTime()));
+            stm.setTimestamp(4, s.getStartTimestamp());
+            stm.setTimestamp(5, s.getEndTimestamp());
             stm.setString(6, s.getStatus());
             stm.setInt(7, s.getScheduleID());
             return stm.executeUpdate() > 0;
@@ -158,7 +160,7 @@ public class ScheduleDAO {
     }
 
     public boolean hasSchedulesForRoom(int roomId) {
-        String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ?";
+        String sql = "SELECT COUNT(*) FROM Schedule WHERE RoomID = ? AND Status != 'Cancelled' AND EndTime > GETDATE()";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setInt(1, roomId);
@@ -193,51 +195,30 @@ public class ScheduleDAO {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private Timestamp toTimestamp(String date, String time) {
-        String timePart = time;
-        if (timePart.contains(".")) {
-            timePart = timePart.substring(0, timePart.indexOf('.'));
-        }
-        if (timePart.length() > 5) {
-            timePart = timePart.substring(0, 5);
-        }
-        return Timestamp.valueOf(LocalDateTime.parse(date + " " + timePart, dateTimeFormatter));
-    }
-
-    private String trimToHHmm(String time) {
-        if (time == null) return "";
-        if (time.contains(".")) time = time.substring(0, time.indexOf('.'));
-        if (time.length() > 5) time = time.substring(0, 5);
-        return time;
-    }
-
     private Schedule mapSchedule(ResultSet rs) throws SQLException {
-        String startStr = rs.getString("StartTime");
-        String endStr = rs.getString("EndTime");
-        String showDate = "";
-        String startTime = "";
-        String endTime = "";
-        String endDate = "";
-        if (startStr != null && startStr.contains(" ")) {
-            String[] parts = startStr.split(" ");
-            showDate = parts[0];
-            startTime = trimToHHmm(parts[1]);
-        }
-        if (endStr != null && endStr.contains(" ")) {
-            String[] parts = endStr.split(" ");
-            endDate = parts[0];
-            endTime = trimToHHmm(parts[1]);
-        }
         return new Schedule(
                 rs.getInt("ScheduleID"),
                 rs.getInt("MovieID"),
                 rs.getInt("RoomID"),
                 rs.getDouble("BaseTicketPrice"),
-                showDate,
-                startTime,
-                endTime,
-                endDate,
+                rs.getTimestamp("StartTime"),
+                rs.getTimestamp("EndTime"),
                 rs.getString("Status")
         );
+    }
+
+    public Set<Integer> getScheduleIdsWithBookedTickets() {
+        Set<Integer> set = new HashSet<>();
+        String sql = "SELECT DISTINCT ScheduleID FROM Ticket";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                set.add(rs.getInt("ScheduleID"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return set;
     }
 }

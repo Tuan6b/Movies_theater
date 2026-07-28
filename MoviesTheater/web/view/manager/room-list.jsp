@@ -8,12 +8,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Room Management — CGV Admin</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-        <style>
-            .cgv-badge.type-2D   { background: #d3e1fb; color: #0d3d86; }
-            .cgv-badge.type-3D   { background: #d7f3dd; color: #0d5023; }
-            .cgv-badge.type-IMAX { background: #ffe8c7; color: #8a5100; }
-            .cgv-badge.type-4DX  { background: #ffdad4; color: #ba1a1a; }
-        </style>
+        
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/room-list.css">
     </head>
     <body class="cgv-body">
 
@@ -60,7 +56,7 @@
                             <a href="RoomServlet?filter=inactive"
                                class="cgv-pill ${currentFilter eq 'inactive' ? 'active' : ''}">Inactive</a>
                         </div>
-                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp?page=${currentPage}&filter=${currentFilter}" class="btn--cgv" style="margin-left:auto;">
+                        <a href="${pageContext.request.contextPath}/view/manager/room-add.jsp?page=${currentPage}&filter=${currentFilter}" class="btn--cgv rl-btn-right">
                             + Add Room
                         </a>
                     </div>
@@ -81,14 +77,14 @@
                                     <c:when test="${not empty roomList}">
                                         <c:forEach var="room" items="${roomList}" varStatus="st">
                                             <tr>
-                                                <td style="color:rgba(94,63,58,0.5);font-size:12px;">${st.index + 1}</td>
-                                                <td style="font-weight:600;">${room.roomNumber}</td>
+                                                <td class="rl-td-index">${st.index + 1}</td>
+                                                <td class="rl-td-bold">${room.roomNumber}</td>
                                                 <td>
                                                     <span class="cgv-badge type-${room.roomType}">${room.roomType}</span>
                                                 </td>
                                                 <td>${room.capacity}</td>
                                                 <td>
-                                                    <div style="display:flex;gap:8px;">
+                                                    <div class="rl-actions-wrap">
                                                         <a href="RoomServlet?action=edit&id=${room.roomId}&page=${currentPage}&filter=${currentFilter}"
                                                            class="btn--cgv-outline">Edit</a>
                                                         <a href="${pageContext.request.contextPath}/SeatController?roomId=${room.roomId}"
@@ -97,8 +93,7 @@
                                                         </a>
                                                         <c:if test="${room.active}">
                                                         <a href="RoomServlet?action=delete&id=${room.roomId}&page=${currentPage}&filter=${currentFilter}"
-                                                           class="btn--cgv-outline"
-                                                           style="color:var(--cgv-red);border-color:var(--cgv-red);"
+                                                           class="btn--cgv-outline rl-btn-danger"
                                                            onclick="return confirm('Deactivate room ${room.roomNumber}?')">
                                                             Deactivate
                                                         </a>
@@ -110,7 +105,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="5" style="text-align:center;padding:48px;color:rgba(94,63,58,0.4);">
+                                            <td colspan="5" class="rl-empty-row">
                                                 No rooms found.
                                             </td>
                                         </tr>

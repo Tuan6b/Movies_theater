@@ -8,7 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Add Room — CGV Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager.css">
-</head>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/manager/room-add.css">
+    </head>
 <body class="cgv-body">
 
 <%@ include file="/view/manager/_sidebar.jsp" %>
@@ -20,7 +21,7 @@
         <div class="cgv-header-right">
             <div class="cgv-header-actions">
                 <a href="${pageContext.request.contextPath}/RoomServlet"
-                   class="btn--cgv-outline" style="margin-right:8px;">
+                   class="btn--cgv-outline ra-btn-outline">
                     ← Back to Rooms
                 </a>
                 <div class="cgv-header-divider"></div>
@@ -38,7 +39,7 @@
     </header>
 
     <div class="cgv-page">
-        <div class="cgv-list-wrap" style="max-width:640px;">
+        <div class="cgv-list-wrap ra-wrap">
 
             <c:if test="${param.error eq 'room_number_exists'}">
                 <div class="cgv-alert cgv-alert-danger">Room number already exists.</div>
@@ -48,8 +49,8 @@
             </c:if>
 
 
-            <div style="background:#fff;border:1px solid var(--cgv-border);border-radius:12px;padding:32px;">
-                <div style="font-family:var(--font-cgv-ui);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(94,63,58,0.5);margin-bottom:24px;">
+            <div class="ra-box">
+                <div class="ra-title">
                     ROOM DETAILS
                 </div>
 
@@ -86,7 +87,7 @@
                                min="1" max="10" placeholder="e.g. 10" required>
                     </div>
 
-                    <div style="display:flex;gap:12px;margin-top:24px;">
+                    <div class="ra-actions">
                         <button type="submit" class="btn--cgv">Add Room</button>
                         <a href="${pageContext.request.contextPath}/RoomServlet"
                            class="btn--cgv-outline">Cancel</a>
