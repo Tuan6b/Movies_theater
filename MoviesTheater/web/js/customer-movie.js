@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     searchResults.innerHTML = html;
                     searchResults.style.display = 'block';
                 } else {
-                    searchResults.innerHTML = '<div style="padding: 10px 15px; color: #888;">Không tìm thấy phim phù hợp</div>';
+                    searchResults.innerHTML = '<div style="padding: 10px 15px; color: #888;">Kh\u00f4ng t\u00ecm th\u1ea5y phim ph\u00f9 h\u1ee3p</div>';
                     searchResults.style.display = 'block';
                 }
             }, 300);
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const reviewForms = document.querySelectorAll('form[action="ReviewController"]');
-    const badWords = ["ngu", "dm", "vl", "rac", "rác"]; 
+    const badWords = ["ngu", "dm", "vl", "rac", "r\u00e1c"]; 
     if (reviewForms.length > 0) {
         reviewForms.forEach(form => {
             if (form.id !== 'delete-review-form') {
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                         if (containsBadWord) {
                             e.preventDefault();
-                            alert('Ngôn từ không phù hợp! Bình luận của bạn chứa từ ngữ vi phạm tiêu chuẩn cộng đồng. Vui lòng sửa lại.');
+                            alert('Ng\u00f4n t\u1eeb kh\u00f4ng ph\u00f9 h\u1ee3p! B\u00ecnh lu\u1eadn c\u1ee7a b\u1ea1n ch\u1ee9a t\u1eeb ng\u1eef vi ph\u1ea1m ti\u00eau chu\u1ea9n c\u1ed9ng \u0111\u1ed3ng. Vui l\u00f2ng s\u1eeda l\u1ea1i.');
                         }
                     }
                 });
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
 // movie-detail.jsp specific functions
 function confirmDeleteReview(event, formElement) {
     event.preventDefault();
-    if (confirm('Bài đánh giá của bạn sẽ bị xóa vĩnh viễn khỏi phim này! Bạn có chắc chắn?')) {
+    if (confirm('B\u00e0i \u0111\u00e1nh gi\u00e1 c\u1ee7a b\u1ea1n s\u1ebd b\u1ecb x\u00f3a v\u0129nh vi\u1ec5n kh\u1ecfi phim n\u00e0y! B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn?')) {
         formElement.submit();
     }
 }
@@ -116,7 +116,7 @@ function cancelEditForm() {
 function submitDeleteReview() {
     document.getElementById("edit-dropdown-menu").style.display = "none";
     var formElement = document.getElementById("delete-review-form");
-    if (confirm('Bạn có chắc chắn muốn xóa đánh giá này không? Hành động này không thể hoàn tác.')) {
+    if (confirm('B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a \u0111\u00e1nh gi\u00e1 n\u00e0y kh\u00f4ng? H\u00e0nh \u0111\u1ed9ng n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c.')) {
         formElement.submit();
     }
 }

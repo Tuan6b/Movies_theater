@@ -331,7 +331,7 @@
             </div>
         </footer>
 
-        <script src="${pageContext.request.contextPath}/js/customer-movie.js"></script>
+        <script src="${pageContext.request.contextPath}/js/customer-movie.js?v=2" charset="UTF-8"></script>
 
     </body>
 </html>

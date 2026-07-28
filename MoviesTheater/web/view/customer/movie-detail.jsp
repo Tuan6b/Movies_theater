@@ -294,8 +294,8 @@
 
             <div class="md-story" style="margin-bottom: 30px;">
                 <h2 class="md-section-title">Thông Số Doanh Thu</h2>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center;">
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;">
+                <div style="display: flex; justify-content: center; gap: 40px; text-align: center; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; min-width: 200px;">
                         <div style="font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase;">Kinh phí</div>
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
@@ -306,7 +306,7 @@
                             </c:choose>
                         </div>
                     </div>
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; min-width: 200px;">
                         <div style="font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase;">Doanh thu toàn cầu</div>
                         <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">
                             <c:choose>
@@ -317,14 +317,7 @@
                             </c:choose>
                         </div>
                     </div>
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;">
-                        <div style="font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase;">Top Tuần</div>
-                        <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);">#${movie.weeklyRevenueRank > 0 ? movie.weeklyRevenueRank : '--'}</div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px;">
-                        <div style="font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase;">Cột mốc vé bán</div>
-                        <div style="font-size: 20px; font-weight: bold; color: var(--cgv-red);"><fmt:formatNumber value="${movie.ticketsSoldMilestone}" type="number"/></div>
-                    </div>
+
                 </div>
             </div>
 
@@ -398,6 +391,12 @@
                 <c:if test="${not empty sessionScope.account and (not empty userReview or canReview)}">
                 <div class="review-form-container" style="background: #fdfdfd; border: 1px solid #e0e0e0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative;">
 
+                    <%-- Báo lỗi từ Server (bị cấm từ, quá hạn...) --%>
+                    <c:if test="${not empty sessionScope.flashError}">
+                        <div style="color: #ff4d4f; margin-bottom: 15px; padding: 10px; background: rgba(255,77,79,0.1); border-radius: 4px;">${sessionScope.flashError}</div>
+                        <c:remove var="flashError" scope="session" />
+                    </c:if>
+
                     <c:choose>
                         <%-- CHƯA CÓ ĐÁNH GIÁ -> FORM THÊM MỚI --%>
                         <c:when test="${empty userReview}">
@@ -451,12 +450,6 @@
                                     </div>
                                 </div>
                             </h3>
-
-                            <%-- Báo lỗi nếu quá 30 ngày --%>
-                            <c:if test="${not empty sessionScope.flashError}">
-                                <div style="color: #ff4d4f; margin-bottom: 15px; padding: 10px; background: rgba(255,77,79,0.1); border-radius: 4px;">${sessionScope.flashError}</div>
-                                <c:remove var="flashError" scope="session" />
-                            </c:if>
 
                             <!-- READ-ONLY VIEW OF USER'S REVIEW -->
                             <div id="user-review-display">
@@ -569,7 +562,7 @@
         </div>
 
 
-        <script src="${pageContext.request.contextPath}/js/customer-movie.js"></script>
+        <script src="${pageContext.request.contextPath}/js/customer-movie.js?v=2" charset="UTF-8"></script>
 
     </body>
 </html>

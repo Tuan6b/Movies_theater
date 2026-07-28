@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
         form.addEventListener('submit', function (e) {
             var checkedGenres = document.querySelectorAll('input[name="genreIds"]:checked');
             if (checkedGenres.length === 0) {
-                alert("Vui lòng chọn ít nhất một thể loại phim!");
+                alert("Vui l\u00f2ng ch\u1ecdn \u00edt nh\u1ea5t m\u1ed9t th\u1ec3 lo\u1ea1i phim!");
                 e.preventDefault();
                 return;
             }
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (durationInput) {
                 var duration = parseInt(durationInput.value);
                 if (duration < 40 || duration > 300) {
-                    alert("Lỗi: Thời lượng phim chiếu rạp phải hợp lý (nằm trong khoảng từ 40 đến 300 phút)!");
+                    alert("L\u1ed7i: Th\u1eddi l\u01b0\u1ee3ng phim chi\u1ebfu r\u1ea1p ph\u1ea3i h\u1ee3p l\u00fd (n\u1eb1m trong kho\u1ea3ng t\u1eeb 40 \u0111\u1ebfn 300 ph\u00fat)!");
                     e.preventDefault();
                     return;
                 }
@@ -29,19 +29,19 @@ document.addEventListener("DOMContentLoaded", function() {
 function confirmEmergencyHide(event, formElement, isEmergency) {
     event.preventDefault();
     if (!isEmergency) {
-        if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái của phim này?')) {
+        if (confirm('B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n thay \u0111\u1ed5i tr\u1ea1ng th\u00e1i c\u1ee7a phim n\u00e0y?')) {
             formElement.submit();
         }
     } else {
         var inputValue = prompt(
-            'CẢNH BÁO KHẨN CẤP!\n\n' +
-            'Phim này đang có lịch chiếu công khai. Hãy ngăn sự ảnh hưởng nghiêm trọng đến vé đã bán!\n\n' +
-            'Hãy gõ chính xác: ANPHIMKHANCAP để xác nhận:'
+            'C\u1ea2NH B\u00c1O KH\u1ea8N C\u1ea4P!\n\n' +
+            'Phim n\u00e0y \u0111ang c\u00f3 l\u1ecbch chi\u1ebfu c\u00f4ng khai. H\u00e3y ng\u0103n s\u1ef1 \u1ea3nh h\u01b0\u1edfng nghi\u00eam tr\u1ecdng \u0111\u1ebfn v\u00e9 \u0111\u00e3 b\u00e1n!\n\n' +
+            'H\u00e3y g\u00f5 ch\u00ednh x\u00e1c: ANPHIMKHANCAP \u0111\u1ec3 x\u00e1c nh\u1eadn:'
         );
         if (inputValue === 'ANPHIMKHANCAP') {
             formElement.submit();
         } else if (inputValue !== null) {
-            alert('Sai mã xác nhận! Yêu cầu gõ chính xác: ANPHIMKHANCAP');
+            alert('Sai m\u00e3 x\u00e1c nh\u1eadn! Y\u00eau c\u1ea7u g\u00f5 ch\u00ednh x\u00e1c: ANPHIMKHANCAP');
         }
     }
 }
@@ -63,7 +63,7 @@ function cancelEdit(id) {
 }
 
 function confirmDeleteGenre(id, name) {
-    if (confirm('Bạn có chắc chắn muốn xóa thể loại "' + name + '" không?\nHành động này không thể hoàn tác!')) {
+    if (confirm('B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n x\u00f3a th\u1ec3 lo\u1ea1i "' + name + '" kh\u00f4ng?\nH\u00e0nh \u0111\u1ed9ng n\u00e0y kh\u00f4ng th\u1ec3 ho\u00e0n t\u00e1c!')) {
         document.getElementById('delete-form-' + id).submit();
     }
 }
