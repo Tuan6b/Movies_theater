@@ -108,16 +108,12 @@ public class EmployeeServlet extends HttpServlet {
     }
 
     /**
-     * Renders the employee form. maxDateOfBirth feeds the date input's max
-     * attribute so the picker cannot even offer an under-age date; the server
-     * still re-checks, since that attribute is trivial to edit away.
+     * Renders the employee form.
      */
     private void forwardToForm(HttpServletRequest request, HttpServletResponse response,
             String formAction, String pageTitle) throws ServletException, IOException {
         request.setAttribute("formAction", formAction);
         request.setAttribute("pageTitle", pageTitle);
-        request.setAttribute("maxDateOfBirth",
-                java.time.LocalDate.now().minusYears(MIN_AGE).toString());
         request.getRequestDispatcher(FORM_JSP).forward(request, response);
     }
 
