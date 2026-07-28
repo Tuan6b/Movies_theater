@@ -326,7 +326,7 @@ public class ScheduleController extends HttpServlet {
         if (schedule != null) {
             clsMovie m = movieDAO.getMovieById(schedule.getMovieID());
             if (m != null) movieName = m.getMovieName();
-            boolean hasTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
+            boolean hasTickets = scheduleDAO.getScheduleIdsWithBookedTickets().contains(id);
             editLocked = hasTickets && "Scheduled".equals(schedule.getStatus());
             priceRoomLocked = hasTickets && "Cancelled".equals(schedule.getStatus());
         }
@@ -358,7 +358,7 @@ public class ScheduleController extends HttpServlet {
                 return;
             }
 
-            boolean hasBookedTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
+            boolean hasBookedTickets = scheduleDAO.getScheduleIdsWithBookedTickets().contains(id);
 
             if (hasBookedTickets && "Scheduled".equals(existing.getStatus())) {
                 request.getSession().setAttribute("flashError",
@@ -460,7 +460,7 @@ public class ScheduleController extends HttpServlet {
                 response.sendRedirect("ScheduleController?movieId=" + movieId);
                 return;
             }
-            boolean hasTickets = !ticketDAO.getBookedTicketsByScheduleId(id).isEmpty();
+            boolean hasTickets = scheduleDAO.getScheduleIdsWithBookedTickets().contains(id);
 
             if (hasTickets) {
                 scheduleDAO.cancelSchedule(id);
