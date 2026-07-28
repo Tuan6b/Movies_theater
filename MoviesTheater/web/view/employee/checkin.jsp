@@ -260,6 +260,35 @@
                         </c:choose>
                     </tbody>
                 </table>
+                <c:if test="${totalPages gt 1}">
+                    <div class="cgv-pager">
+                        <span>Trang ${currentPage} / ${totalPages}</span>
+                        <div class="cgv-pager-pages" style="display: flex; align-items: center; gap: 4px;">
+                            <c:if test="${currentPage gt 1}">
+                                <button class="cgv-pager-btn"
+                                        onclick="location.href = '${pageContext.request.contextPath}/employee/checkin?page=${currentPage - 1}&filter=${empty param.filter ? 'today' : param.filter}<c:if test="${not empty param.q}">&q=${param.q}</c:if><c:if test="${not empty param.code}">&code=${param.code}</c:if>'">‹</button>
+                            </c:if>
+                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                <c:choose>
+                                    <c:when test="${p eq currentPage}">
+                                        <button class="cgv-pager-btn active">${p}</button>
+                                    </c:when>
+                                    <c:when test="${p le 3 || p ge totalPages - 2 || (p ge currentPage - 1 && p le currentPage + 1)}">
+                                        <button class="cgv-pager-btn"
+                                                onclick="location.href = '${pageContext.request.contextPath}/employee/checkin?page=${p}&filter=${empty param.filter ? 'today' : param.filter}<c:if test="${not empty param.q}">&q=${param.q}</c:if><c:if test="${not empty param.code}">&code=${param.code}</c:if>'">${p}</button>
+                                    </c:when>
+                                    <c:when test="${p eq 4 || p eq totalPages - 3}">
+                                        <span style="display:inline-block; padding:0 8px; color:rgba(94, 63, 58, 0.4); font-weight:bold; font-family:var(--font-cgv-ui);">…</span>
+                                    </c:when>
+                                </c:choose>
+                            </c:forEach>
+                            <c:if test="${currentPage lt totalPages}">
+                                <button class="cgv-pager-btn"
+                                        onclick="location.href = '${pageContext.request.contextPath}/employee/checkin?page=${currentPage + 1}&filter=${empty param.filter ? 'today' : param.filter}<c:if test="${not empty param.q}">&q=${param.q}</c:if><c:if test="${not empty param.code}">&code=${param.code}</c:if>'">›</button>
+                            </c:if>
+                        </div>
+                    </div>
+                </c:if>
             </div>
         </div>
     </div>

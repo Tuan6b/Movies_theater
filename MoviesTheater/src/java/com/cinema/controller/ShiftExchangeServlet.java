@@ -31,6 +31,7 @@ public class ShiftExchangeServlet extends HttpServlet {
     private final ShiftExchangeDAO exchangeDAO = new ShiftExchangeDAO();
     private final NotificationService notificationService = new NotificationService();
 
+    private static final int PAGE_SIZE = 10;
     private static final String LIST_JSP = "/view/manager/shifts/exchanges.jsp";
     private static final String LIST_URL = "/manager/shift-exchanges";
 
@@ -81,12 +82,23 @@ public class ShiftExchangeServlet extends HttpServlet {
         }
         String filter = FILTER_STATUSES.contains(status) ? status : "all";
 
+        int page = parseIntParam(request.getParameter("page"), 1);
+        if (page < 1) page = 1;
+
+        String filterParam = "all".equals(filter) ? null : filter;
+        int totalItems = exchangeDAO.countAllForManager(filterParam);
+        int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / PAGE_SIZE);
+        if (page > totalPages) page = totalPages;
+
         List<ShiftExchangeRequest> requests =
-                exchangeDAO.getAllForManager("all".equals(filter) ? null : filter);
+                exchangeDAO.getAllForManager(filterParam, page, PAGE_SIZE);
 
         request.setAttribute("requests", requests);
         request.setAttribute("selectedStatus", filter);
         request.setAttribute("pendingCount", exchangeDAO.countPending());
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalItems", totalItems);
         request.setAttribute("serverToday", java.time.LocalDate.now());
         request.getRequestDispatcher(LIST_JSP).forward(request, response);
     }
@@ -100,10 +112,11 @@ public class ShiftExchangeServlet extends HttpServlet {
         HttpSession session = request.getSession();
         int requestId = parseIntParam(request.getParameter("requestId"), 0);
         String status = request.getParameter("status");
+        int page = parseIntParam(request.getParameter("page"), 1);
 
         if (requestId <= 0) {
             session.setAttribute("flashError", "Yêu cầu không hợp lệ.");
-            response.sendRedirect(buildListUrl(request.getContextPath(), status));
+            response.sendRedirect(buildListUrl(request.getContextPath(), status, page));
             return;
         }
 
@@ -129,7 +142,7 @@ public class ShiftExchangeServlet extends HttpServlet {
         } else {
             session.setAttribute("flashError", failureMessage(outcome, approve));
         }
-        response.sendRedirect(buildListUrl(request.getContextPath(), status));
+        response.sendRedirect(buildListUrl(request.getContextPath(), status, page));
     }
 
     /** Turns an approve() outcome into what the Manager needs to do about it. */
@@ -149,9 +162,9 @@ public class ShiftExchangeServlet extends HttpServlet {
         }
     }
 
-    private String buildListUrl(String contextPath, String status) {
+    private String buildListUrl(String contextPath, String status, int page) {
         String safe = FILTER_STATUSES.contains(status) ? status : "Pending";
-        return contextPath + LIST_URL + "?status=" + safe;
+        return contextPath + LIST_URL + "?status=" + safe + "&page=" + page;
     }
 
     private void transferFlash(HttpSession session, HttpServletRequest request, String key) {

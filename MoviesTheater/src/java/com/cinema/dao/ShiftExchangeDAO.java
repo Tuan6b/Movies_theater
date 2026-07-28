@@ -113,15 +113,28 @@ public class ShiftExchangeDAO {
      *               all of them. Compared as a bind parameter, never concatenated.
      */
     public List<ShiftExchangeRequest> getAllForManager(String status) {
+        return getAllForManager(status, 1, Integer.MAX_VALUE);
+    }
+
+    public List<ShiftExchangeRequest> getAllForManager(String status, int page, int pageSize) {
         List<ShiftExchangeRequest> list = new ArrayList<>();
         // Pending first, then newest: the queue the Manager has to act on stays on
         // top even when the filter is showing the whole history.
-        String sql = BASE_SELECT
-                + (status != null ? "WHERE r.Status = ? " : "")
-                + "ORDER BY CASE WHEN r.Status = 'Pending' THEN 0 ELSE 1 END, r.CreatedAt DESC";
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        if (status != null) {
+            sql.append("WHERE r.Status = ? ");
+        }
+        sql.append("ORDER BY CASE WHEN r.Status = 'Pending' THEN 0 ELSE 1 END, r.CreatedAt DESC ");
+        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
         try (Connection conn = DBUtils.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            if (status != null) ps.setString(1, status);
+                PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (status != null) {
+                ps.setString(idx++, status);
+            }
+            ps.setInt(idx++, Math.max(0, (page - 1) * pageSize));
+            ps.setInt(idx, pageSize);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(mapRequest(rs));
             }
@@ -129,6 +142,23 @@ public class ShiftExchangeDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int countAllForManager(String status) {
+        String sql = "SELECT COUNT(*) FROM ShiftExchangeRequest "
+                + (status != null ? "WHERE Status = ?" : "");
+        try (Connection conn = DBUtils.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (status != null) {
+                ps.setString(1, status);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public int countPending() {

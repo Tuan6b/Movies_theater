@@ -460,13 +460,26 @@
                     </table>
 
                     <div class="cgv-pager">
-                        <span>Hiển thị ${fn:length(outgoing)} / ${reqTotal} yêu cầu</span>
+                        <span>
+                            <c:choose>
+                                <c:when test="${not empty reqTotal and reqTotal gt 0}">
+                                    Hiển thị ${(reqPage - 1) * 10 + 1} – ${reqPage * 10 gt reqTotal ? reqTotal : reqPage * 10} / ${reqTotal} yêu cầu
+                                </c:when>
+                                <c:otherwise>
+                                    Hiển thị 0 yêu cầu
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
                         <c:if test="${reqTotalPages gt 1}">
                             <div class="cgv-pager-pages">
+                                <button type="button" class="cgv-pager-btn" ${reqPage eq 1 ? 'disabled' : ''}
+                                        onclick="location.href='${pageContext.request.contextPath}/employee/my-shifts?year=${selYear}&month=${selMonth}&reqPage=${reqPage - 1}#req-list'">&lsaquo;</button>
                                 <c:forEach begin="1" end="${reqTotalPages}" var="pg">
                                     <button type="button" class="cgv-pager-btn ${pg eq reqPage ? 'active' : ''}"
                                             onclick="location.href='${pageContext.request.contextPath}/employee/my-shifts?year=${selYear}&month=${selMonth}&reqPage=${pg}#req-list'">${pg}</button>
                                 </c:forEach>
+                                <button type="button" class="cgv-pager-btn" ${reqPage eq reqTotalPages ? 'disabled' : ''}
+                                        onclick="location.href='${pageContext.request.contextPath}/employee/my-shifts?year=${selYear}&month=${selMonth}&reqPage=${reqPage + 1}#req-list'">&rsaquo;</button>
                             </div>
                         </c:if>
                     </div>
